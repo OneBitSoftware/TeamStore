@@ -23,5 +23,11 @@
             // Get projects with access
             return await DbContext.Projects.ToListAsync();
         }
+
+        public async Task<Project> GetProject(int projectId)
+        {
+            // Validate access
+            return await DbContext.Projects.Where(p => p.Id == projectId).FirstOrDefaultAsync();
+        }
     }
 }

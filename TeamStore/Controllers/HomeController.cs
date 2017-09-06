@@ -16,18 +16,18 @@ namespace TeamStore.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        public IProjectsService ProjectsService { get; set; }
+        private IProjectsService _projectsService { get; set; }
 
         public HomeController(IProjectsService projectsService)
         {
-            ProjectsService = projectsService ?? throw new ArgumentNullException(nameof(projectsService));
+            _projectsService = projectsService ?? throw new ArgumentNullException(nameof(projectsService));
         }
 
         public async Task<IActionResult> Index()
         {
             var homeViewModel = new HomeViewModel();
 
-            homeViewModel.Projects = await ProjectsService.GetProjects();
+            homeViewModel.Projects = await _projectsService.GetProjects();
 
             return View(homeViewModel);
         }

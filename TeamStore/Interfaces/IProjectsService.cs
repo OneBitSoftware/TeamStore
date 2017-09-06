@@ -6,6 +6,9 @@
 
     public interface IProjectsService
     {
+        Task<Project> GetProject(int projectId);
+
         Task<List<Project>> GetProjects();
+
     }
 }
