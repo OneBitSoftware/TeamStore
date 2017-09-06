@@ -43,6 +43,88 @@ namespace TeamStore.Controllers
             return View(project);
         }
 
+        // GET: Projects/CreateCredential
+        public IActionResult CreateCredential()
+        {
+            return View();
+        }
+
+        // POST: Projects/CreateCredential
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateCredential(int id, [Bind("Id,Title,Description,Category")] Project project)
+        {
+            if (id != project.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(project);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ProjectExists(project.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(project);
+        }
+
+        // GET: Projects/CreateNote
+        public IActionResult CreateNote()
+        {
+            return View();
+        }
+
+        // POST: Projects/CreateNote
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateNote(int id, [Bind("Id,Title,Description,Category")] Project project)
+        {
+            if (id != project.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(project);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ProjectExists(project.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(project);
+        }
+
         // GET: Projects/Create
         public IActionResult Create()
         {
