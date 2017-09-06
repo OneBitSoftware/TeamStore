@@ -39,7 +39,9 @@ namespace TeamStore
                 options.UseSqlite(connectionString);
             });
 
+            // Set up services
             services.AddScoped<IEventService, EventService>(); // needs to be before auth setup
+            services.AddScoped<IProjectsService, ProjectsService>(); 
 
             // Sets up Azure Ad Open Id Connect auth
             services.AddAuthentication(sharedOptions =>
@@ -55,7 +57,7 @@ namespace TeamStore
             })
             .AddCookie();
 
-
+            // Set up MVC
             services.AddMvc();
         }
 

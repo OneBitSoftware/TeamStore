@@ -10,7 +10,7 @@ using TeamStore.Interfaces;
 namespace Microsoft.AspNetCore.Authentication
 {
     public static class AzureAdAuthenticationBuilderExtensions
-    {        
+    {
         public static AuthenticationBuilder AddAzureAd(this AuthenticationBuilder builder)
             => builder.AddAzureAd(_ => { });
 
@@ -18,10 +18,13 @@ namespace Microsoft.AspNetCore.Authentication
         {
             builder.Services.Configure(configureOptions);
             builder.Services.AddSingleton<IConfigureOptions<OpenIdConnectOptions>, ConfigureAzureOptions>();
-            builder.AddOpenIdConnect(options => {
-                options.Events = new OpenIdConnectEvents {
+            builder.AddOpenIdConnect(options =>
+            {
+                options.Events = new OpenIdConnectEvents
+                {
 
-                    OnTokenValidated = async context => {
+                    OnTokenValidated = async context =>
+                    {
                         var claimIdentity = (ClaimsIdentity)context.Principal.Identity;
 
                         // Store login event
@@ -31,15 +34,16 @@ namespace Microsoft.AspNetCore.Authentication
 
                         await eventService.StoreLoginEventAsync(claimIdentity);
                     },
-                    OnAuthorizationCodeReceived = async context => {
-                        var a = context;
+                    OnAuthorizationCodeReceived = async context =>
+                    {
+                        var c = context.ProtocolMessage.Code;
                     }
                 };
             });
             return builder;
         }
 
-        private class ConfigureAzureOptions: IConfigureNamedOptions<OpenIdConnectOptions>
+        private class ConfigureAzureOptions : IConfigureNamedOptions<OpenIdConnectOptions>
         {
             private readonly AzureAdOptions _azureOptions;
 

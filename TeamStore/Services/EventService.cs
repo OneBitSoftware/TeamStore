@@ -16,9 +16,7 @@ namespace TeamStore.Services
 
         public EventService(ApplicationDbContext context)
         {
-            if (context == null) throw new ArgumentNullException(nameof(context));
-
-            DbContext = context;
+            DbContext = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task StoreLoginEventAsync(ClaimsIdentity identity)
@@ -30,9 +28,6 @@ namespace TeamStore.Services
 
             await DbContext.Events.AddAsync(loginEvent);
             await DbContext.SaveChangesAsync();
-
-            var allEvents = DbContext.Events;
-            var ttt = allEvents.First();
         }
     }
 }

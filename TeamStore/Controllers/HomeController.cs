@@ -7,35 +7,29 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeamStore.Models;
 using System.Security.Claims;
+using TeamStore.ViewModels;
+using TeamStore.Services;
+using TeamStore.Interfaces;
 
 namespace TeamStore.Controllers
 {
     [Authorize]
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private IProjectsService _projectsService { get; set; }
+
+        public HomeController(IProjectsService projectsService)
         {
-            return View();
+            _projectsService = projectsService ?? throw new ArgumentNullException(nameof(projectsService));
         }
 
-        public IActionResult About()
+        public async Task<IActionResult> Index()
         {
-            ViewData["Message"] = "Your application description page.";
+            var homeViewModel = new HomeViewModel();
 
-            
-            Claim displayName = User.Claims.First(c => c.Type == User.Identities.First().NameClaimType);
-            ViewBag.DisplayName = displayName != null ? displayName.Value : string.Empty;
+            homeViewModel.Projects = await _projectsService.GetProjects();
 
-            var u = User.Identity.Name;
-
-            return View();
-        }
-
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
+            return View(homeViewModel);
         }
 
         [AllowAnonymous]
