@@ -30,9 +30,6 @@ namespace Microsoft.AspNetCore.Authentication
                         if (eventService == null) throw new Exception("EventService not found. Terminating.");
 
                         await eventService.StoreLoginEventAsync(claimIdentity);
-                    },
-                    OnAuthorizationCodeReceived = async context => {
-                        var a = context;
                     }
                 };
             });
