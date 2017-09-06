@@ -10,6 +10,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using TeamStore.DataAccess;
+using Microsoft.EntityFrameworkCore;
+using TeamStore.Interfaces;
+using TeamStore.Services;
+using System.IO;
 
 namespace TeamStore
 {
@@ -25,17 +30,31 @@ namespace TeamStore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var fileName = Configuration["DataAccess:SQLiteDbFileName"];
+            var connectionString = "Data Source=" + fileName;
+
+            // Set up the DbContext for data access
+            services.AddDbContext<ApplicationDbContext>(options =>
+            {
+                options.UseSqlite(connectionString);
+            });
+
+            services.AddScoped<IEventService, EventService>(); // needs to be before auth setup
+
+            // Sets up Azure Ad Open Id Connect auth
             services.AddAuthentication(sharedOptions =>
             {
                 sharedOptions.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 sharedOptions.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
-            .AddAzureAd(options => {
+            .AddAzureAd(options =>
+            {
 
                 Configuration.Bind("AzureAd", options);
-                
-                })
+
+            })
             .AddCookie();
+
 
             services.AddMvc();
         }

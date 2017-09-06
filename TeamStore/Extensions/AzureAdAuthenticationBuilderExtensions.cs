@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System.Security.Claims;
+using TeamStore.Services;
+using TeamStore.Interfaces;
 
 namespace Microsoft.AspNetCore.Authentication
 {
@@ -15,7 +18,24 @@ namespace Microsoft.AspNetCore.Authentication
         {
             builder.Services.Configure(configureOptions);
             builder.Services.AddSingleton<IConfigureOptions<OpenIdConnectOptions>, ConfigureAzureOptions>();
-            builder.AddOpenIdConnect();
+            builder.AddOpenIdConnect(options => {
+                options.Events = new OpenIdConnectEvents {
+
+                    OnTokenValidated = async context => {
+                        var claimIdentity = (ClaimsIdentity)context.Principal.Identity;
+
+                        // Store login event
+                        var eventService = context.HttpContext.RequestServices.GetService<IEventService>();
+
+                        if (eventService == null) throw new Exception("EventService not found. Terminating.");
+
+                        await eventService.StoreLoginEventAsync(claimIdentity);
+                    },
+                    OnAuthorizationCodeReceived = async context => {
+                        var a = context;
+                    }
+                };
+            });
             return builder;
         }
 

@@ -15,7 +15,7 @@ namespace TeamStore.Models
 
         public ApplicationUser User { get; set; }
 
-        public int AssetForeignKey { get; set; }
+        public int? AssetForeignKey { get; set; }
 
         [ForeignKey("AssetForeignKey")]
         public Asset Asset { get; set; }
