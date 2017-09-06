@@ -31,6 +31,7 @@ namespace TeamStore
         public void ConfigureServices(IServiceCollection services)
         {
             var fileName = Configuration["DataAccess:SQLiteDbFileName"];
+
             var connectionString = "Data Source=" + fileName;
 
             // Set up the DbContext for data access
@@ -39,9 +40,15 @@ namespace TeamStore
                 options.UseSqlite(connectionString);
             });
 
+            // We use Session and In-memory cache for token storage
+            // This will not scale across applications and users need ro re-authenticate on restart
+            services.AddMemoryCache();
+            services.AddSession();
+
             // Set up services
             services.AddScoped<IEventService, EventService>(); // needs to be before auth setup
             services.AddScoped<IProjectsService, ProjectsService>(); 
+            services.AddScoped<IGraphService, GraphService>(); 
 
             // Sets up Azure Ad Open Id Connect auth
             services.AddAuthentication(sharedOptions =>
@@ -51,9 +58,7 @@ namespace TeamStore
             })
             .AddAzureAd(options =>
             {
-
                 Configuration.Bind("AzureAd", options);
-
             })
             .AddCookie();
 

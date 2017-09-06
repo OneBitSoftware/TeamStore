@@ -6,6 +6,13 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using TeamStore.Services;
 using TeamStore.Interfaces;
+using System.Linq;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Microsoft.AspNetCore.Authentication
 {
@@ -33,12 +40,25 @@ namespace Microsoft.AspNetCore.Authentication
                         if (eventService == null) throw new Exception("EventService not found. Terminating.");
 
                         await eventService.StoreLoginEventAsync(claimIdentity);
-                    },
+                    }
+                    ,
                     OnAuthorizationCodeReceived = async context =>
                     {
-                        var c = context.ProtocolMessage.Code;
+                        var claimIdentity = context.Principal.Claims;
+                        var graphService = context.HttpContext.RequestServices.GetService<IGraphService>();
+
+                        var code = context.ProtocolMessage.Code;
+                        // Can't find the object identifier enum
+                        var identifier = context.Principal.Claims.First(item => item.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+
+                        var redirectHost = context.Request.Scheme + "://" + context.Request.Host.Value;
+
+                        var result = await graphService.GetTokenByAuthorizationCodeAsync(identifier, code, redirectHost);
+                        context.HandleCodeRedemption(result.AccessToken, result.IdToken);
                     }
                 };
+
+                options.ResponseType = OpenIdConnectResponseType.CodeIdToken;
             });
             return builder;
         }

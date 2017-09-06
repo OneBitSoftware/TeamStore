@@ -11,7 +11,7 @@ namespace TeamStore.DataAccess
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-
+            var created = Database.EnsureCreated();
         }
 
         public DbSet<Project> Projects { get; set; }
