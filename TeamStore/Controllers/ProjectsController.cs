@@ -1,27 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using TeamStore.DataAccess;
-using TeamStore.Models;
-
-namespace TeamStore.Controllers
+﻿namespace TeamStore.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Rendering;
+    using Microsoft.EntityFrameworkCore;
+    using TeamStore.DataAccess;
+    using TeamStore.Models;
+    using TeamStore.Interfaces;
+    using TeamStore.ViewModels;
+    using TeamStore.Factories;
+
     public class ProjectsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context; // TODO: remove DB Context and use Services
+        private readonly IPermissionService _permissionService;
+        private readonly IProjectsService _projectsService;
+        private readonly IGraphService _graphService;
 
-        public ProjectsController(ApplicationDbContext context)
+        public ProjectsController(
+            ApplicationDbContext context,
+            IPermissionService permissionService,
+            IProjectsService projectsService,
+            IGraphService graphService
+            )
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
+            _projectsService = projectsService ?? throw new ArgumentNullException(nameof(projectsService));
+            _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
         }
 
         // GET: Projects
         public async Task<IActionResult> Index()
         {
+            // TODO: return ProjectViewModel not DB Project
             return View(await _context.Projects.ToListAsync());
         }
 
@@ -33,14 +48,18 @@ namespace TeamStore.Controllers
                 return NotFound();
             }
 
-            var project = await _context.Projects
-                .SingleOrDefaultAsync(m => m.Id == id);
+            var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == id);
+
             if (project == null)
             {
                 return NotFound();
             }
 
-            return View(project);
+            var s = await _graphService.GetGroups("", HttpContext.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value);
+
+            var projectViewModel = ProjectFactory.Convert(project);
+
+            return View(projectViewModel);
         }
 
         // GET: Projects/CreateCredential
@@ -145,6 +164,41 @@ namespace TeamStore.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(project);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Share(int id)
+        {
+            var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == id);
+
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            if (await _permissionService.UserHasAccess(id) == false) return Forbid();
+
+            var shareProjectViewModel = ProjectFactory.ConvertForShare(project);
+
+            return View(shareProjectViewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ShareProject(ShareProjectViewModel shareProjectViewModel)
+        {
+            // check if current user has access to the project
+            var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == shareProjectViewModel.ProjectId);
+
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            if (await _permissionService.UserHasAccess(shareProjectViewModel.ProjectId) == false) return Forbid();
+
+            await _permissionService.GrantAccess(project, shareProjectViewModel.ShareDetails);
+
+            return View();
         }
 
         // GET: Projects/Edit/5

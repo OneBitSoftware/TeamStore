@@ -49,6 +49,7 @@ namespace TeamStore
             services.AddScoped<IEventService, EventService>(); // needs to be before auth setup
             services.AddScoped<IProjectsService, ProjectsService>(); 
             services.AddScoped<IGraphService, GraphService>(); 
+            services.AddScoped<IPermissionService, PermissionService>(); 
 
             // Sets up Azure Ad Open Id Connect auth
             services.AddAuthentication(sharedOptions =>
