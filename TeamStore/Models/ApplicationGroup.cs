@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 
 namespace TeamStore.Models
 {
-    public class ApplicationGroup
+    public class ApplicationGroup : ApplicationIdentity
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
+        public string DisplayName { get; set; }
     }
 }

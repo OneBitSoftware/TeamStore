@@ -196,7 +196,9 @@
 
             if (await _permissionService.UserHasAccess(shareProjectViewModel.ProjectId) == false) return Forbid();
 
-            await _permissionService.GrantAccess(project, shareProjectViewModel.ShareDetails);
+            // Build user
+
+            await _permissionService.GrantAccess(project, shareProjectViewModel.ShareDetails, null);
 
             return View();
         }

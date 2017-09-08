@@ -131,13 +131,37 @@
                 {
                     items.Add(new ApplicationGroup
                     {
-                        Name = group.DisplayName,
-                        Id = group.Id
+                        DisplayName = group.DisplayName,
+                        AzureAdObjectIdentifier = group.Id
                     });
                 }
             }
 
             return items;
+        }
+
+        public async Task<ApplicationGroup> GetGroup(string azureAdObjectId, string userObjectId)
+        {
+            var graphClient = GetAuthenticatedClient(userObjectId);
+
+            List<ApplicationGroup> items = new List<ApplicationGroup>();
+
+            // Get groups by ID - TODO
+            IGraphServiceGroupsCollectionPage groups = await graphClient.Groups.Request().GetAsync();
+
+            if (groups?.Count > 0)
+            {
+                foreach (Group group in groups)
+                {
+                    items.Add(new ApplicationGroup
+                    {
+                        DisplayName = group.DisplayName,
+                        AzureAdObjectIdentifier = group.Id
+                    });
+                }
+            }
+
+            return items.FirstOrDefault();
         }
 
         /// <summary>
@@ -164,8 +188,8 @@
                         Group group = directoryObject as Group;
                         items.Add(new ApplicationGroup
                         {
-                            Name = group.DisplayName,
-                            Id = group.Id
+                            DisplayName = group.DisplayName,
+                            AzureAdObjectIdentifier = group.Id
                         });
                     }
 

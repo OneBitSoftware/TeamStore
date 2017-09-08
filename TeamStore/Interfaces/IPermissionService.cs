@@ -10,6 +10,6 @@ namespace TeamStore.Interfaces
     {
         Task<bool> UserHasAccess(int projectId);
         Task<bool> UserHasAccess(Project project);
-        Task GrantAccess(Project project, string principals);
+        Task GrantAccess(Project project, string principals, ApplicationIdentity contextUser);
     }
 }

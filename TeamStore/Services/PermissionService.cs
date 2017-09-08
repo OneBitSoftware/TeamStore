@@ -9,9 +9,30 @@ namespace TeamStore.Services
 {
     public class PermissionService : IPermissionService
     {
-        public Task GrantAccess(Project project, string principals)
+        private readonly IGraphService _graphService;
+
+        public PermissionService(IGraphService graphService)
         {
-            throw new NotImplementedException();
+            _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
+        }
+
+        public async Task GrantAccess(Project project, string principals, ApplicationIdentity contextUser)
+        {
+
+            var newAccessIdentifier = new AccessIdentifier();
+            newAccessIdentifier.Project = project;
+            newAccessIdentifier.Role = "Edit"; // TODO
+            newAccessIdentifier.Created = DateTime.UtcNow;
+            newAccessIdentifier.CreatedBy = (ApplicationUser)contextUser;
+
+            var newGroup = new ApplicationGroup();
+
+            // Get group object
+            await _graphService.GetGroup(principals, contextUser.AzureAdObjectIdentifier);
+
+
+           // project.AccessIdentifiers.Add
+
         }
 
         public Task<bool> UserHasAccess(int projectId)
