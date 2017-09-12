@@ -13,8 +13,8 @@ using TeamStore.Enums;
 namespace TeamStore.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20170906102802_ProjectsModelCategoryUpdate")]
-    partial class ProjectsModelCategoryUpdate
+    [Migration("20170912171656_ApplicationIdentifiers")]
+    partial class ApplicationIdentifiers
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -22,22 +22,43 @@ namespace TeamStore.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "2.0.0-rtm-26452");
 
-            modelBuilder.Entity("TeamStore.Models.ApplicationUser", b =>
+            modelBuilder.Entity("TeamStore.Models.AccessIdentifier", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("AzureAdNameIdentifier");
+                    b.Property<DateTime>("Created");
 
-                    b.Property<Guid>("AzureAdObjectIdentifier");
+                    b.Property<DateTime>("Modified");
 
-                    b.Property<Guid>("TenantId");
+                    b.Property<int>("ProjectForeignKey");
 
-                    b.Property<string>("Upn");
+                    b.Property<string>("Role");
 
                     b.HasKey("Id");
 
-                    b.ToTable("ApplicationUser");
+                    b.HasIndex("ProjectForeignKey");
+
+                    b.ToTable("AccessIdentifiers");
+                });
+
+            modelBuilder.Entity("TeamStore.Models.ApplicationIdentity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("AzureAdObjectIdentifier");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired();
+
+                    b.Property<string>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ApplicationIdentities");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("ApplicationIdentity");
                 });
 
             modelBuilder.Entity("TeamStore.Models.Asset", b =>
@@ -60,7 +81,7 @@ namespace TeamStore.Migrations
 
                     b.HasIndex("ProjectForeignKey");
 
-                    b.ToTable("Asset");
+                    b.ToTable("Assets");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Asset");
                 });
@@ -80,13 +101,9 @@ namespace TeamStore.Migrations
 
                     b.Property<int>("Type");
 
-                    b.Property<int?>("UserId");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AssetForeignKey");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Events");
                 });
@@ -100,11 +117,37 @@ namespace TeamStore.Migrations
 
                     b.Property<string>("Description");
 
+                    b.Property<bool>("IsArchived");
+
                     b.Property<string>("Title");
 
                     b.HasKey("Id");
 
                     b.ToTable("Projects");
+                });
+
+            modelBuilder.Entity("TeamStore.Models.ApplicationGroup", b =>
+                {
+                    b.HasBaseType("TeamStore.Models.ApplicationIdentity");
+
+                    b.Property<string>("DisplayName");
+
+                    b.ToTable("ApplicationGroup");
+
+                    b.HasDiscriminator().HasValue("ApplicationGroup");
+                });
+
+            modelBuilder.Entity("TeamStore.Models.ApplicationUser", b =>
+                {
+                    b.HasBaseType("TeamStore.Models.ApplicationIdentity");
+
+                    b.Property<string>("AzureAdNameIdentifier");
+
+                    b.Property<string>("Upn");
+
+                    b.ToTable("ApplicationUser");
+
+                    b.HasDiscriminator().HasValue("ApplicationUser");
                 });
 
             modelBuilder.Entity("TeamStore.Models.Credential", b =>
@@ -131,6 +174,14 @@ namespace TeamStore.Migrations
                     b.HasDiscriminator().HasValue("Note");
                 });
 
+            modelBuilder.Entity("TeamStore.Models.AccessIdentifier", b =>
+                {
+                    b.HasOne("TeamStore.Models.Project", "Project")
+                        .WithMany("AccessIdentifiers")
+                        .HasForeignKey("ProjectForeignKey")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("TeamStore.Models.Asset", b =>
                 {
                     b.HasOne("TeamStore.Models.Project", "Project")
@@ -144,10 +195,6 @@ namespace TeamStore.Migrations
                     b.HasOne("TeamStore.Models.Asset", "Asset")
                         .WithMany()
                         .HasForeignKey("AssetForeignKey");
-
-                    b.HasOne("TeamStore.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
                 });
 #pragma warning restore 612, 618
         }

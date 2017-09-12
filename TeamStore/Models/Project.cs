@@ -19,6 +19,6 @@ namespace TeamStore.Models
         public string Category { get; set; }
         public List<Asset> Assets { get; set; }
         public List<AccessIdentifier> AccessIdentifiers { get; set; }
-
+        public bool IsArchived { get; set; }
     }
 }

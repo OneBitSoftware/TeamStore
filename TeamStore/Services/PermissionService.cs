@@ -18,12 +18,11 @@ namespace TeamStore.Services
 
         public async Task GrantAccess(Project project, string principals, ApplicationIdentity contextUser)
         {
-
             var newAccessIdentifier = new AccessIdentifier();
             newAccessIdentifier.Project = project;
             newAccessIdentifier.Role = "Edit"; // TODO
             newAccessIdentifier.Created = DateTime.UtcNow;
-            newAccessIdentifier.CreatedBy = (ApplicationUser)contextUser;
+            //newAccessIdentifier.CreatedBy = (ApplicationUser)contextUser;
 
             var newGroup = new ApplicationGroup();
 

@@ -14,13 +14,19 @@ namespace TeamStore.DataAccess
             var created = Database.EnsureCreated();
         }
 
+        public DbSet<Asset> Assets { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<Event> Events { get; set; }
+        public DbSet<AccessIdentifier> AccessIdentifiers { get; set; }
+        public DbSet<ApplicationIdentity> ApplicationIdentities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Credential>();
             modelBuilder.Entity<Note>();
+            modelBuilder.Entity<ApplicationIdentity>();
+            modelBuilder.Entity<ApplicationUser>();
+            modelBuilder.Entity<ApplicationGroup>();
 
             base.OnModelCreating(modelBuilder); 
         }

@@ -13,8 +13,8 @@
         public EncryptionService()
         {
             var protectionProvider = DataProtectionProvider.Create(
-                new DirectoryInfo(Environment.CurrentDirectory + "\\Keys"),
-                options => options.DisableAutomaticKeyGeneration()
+                new DirectoryInfo(Environment.CurrentDirectory + "\\Keys")
+                , options => options.DisableAutomaticKeyGeneration()
                 );  //protector ?? throw new ArgumentNullException(nameof(protector));
 
             _protector = protectionProvider.CreateProtector("Key Validation");
