@@ -12,12 +12,12 @@
 
         public EncryptionService()
         {
-            var p = DataProtectionProvider.Create(
-                new DirectoryInfo(Environment.CurrentDirectory + "\\Keys"), 
+            var protectionProvider = DataProtectionProvider.Create(
+                new DirectoryInfo(Environment.CurrentDirectory + "\\Keys"),
                 options => options.DisableAutomaticKeyGeneration()
                 );  //protector ?? throw new ArgumentNullException(nameof(protector));
 
-            _protector = p.CreateProtector("boooo");
+            _protector = protectionProvider.CreateProtector("Key Validation");
             var bytes = Encoding.UTF8.GetBytes("Validates if there is a key in the Keys folder, throws if the key is not found.");
             var base64 = Convert.ToBase64String(bytes);
             var result = _protector.Protect(base64);
@@ -25,7 +25,6 @@
 
         public string EncryptStringAsync(string stringToEncrypt)
         {
-
             return _protector.Protect(stringToEncrypt);
         }
 
