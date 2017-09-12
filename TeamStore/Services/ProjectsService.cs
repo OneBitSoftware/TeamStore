@@ -12,22 +12,50 @@
     public class ProjectsService : IProjectsService
     {
         private ApplicationDbContext DbContext { get; set; }
+        private readonly IEncryptionService _encryptionService;
 
-        public ProjectsService(ApplicationDbContext context)
+        public ProjectsService(ApplicationDbContext context, IEncryptionService encryptionService)
         {
             DbContext = context ?? throw new ArgumentNullException(nameof(context));
+            _encryptionService = encryptionService ?? throw new ArgumentNullException(nameof(encryptionService));
         }
 
         public async Task<List<Project>> GetProjects()
         {
-            // Get projects with access
-            return await DbContext.Projects.ToListAsync();
+            // Validate access
+
+            // Get projects with access TODO
+            var projects = await DbContext.Projects.ToListAsync();
+            foreach (var project in projects)
+            {
+                project.Title = _encryptionService.DecryptStringAsync(project.Title);
+                project.Description = _encryptionService.DecryptStringAsync(project.Description);
+            }
+
+            return projects;
         }
 
         public async Task<Project> GetProject(int projectId)
         {
-            // Validate access
-            return await DbContext.Projects.Where(p => p.Id == projectId).FirstOrDefaultAsync();
+            // Validate access TODO
+
+            // Get project
+            var result =  await DbContext.Projects.Where(p => p.Id == projectId).FirstOrDefaultAsync();
+
+            result.Title = _encryptionService.DecryptStringAsync(result.Title);
+            result.Description = _encryptionService.DecryptStringAsync(result.Description);
+
+            return result;
+        }
+
+        public async void CreateProject(Project project)
+        {
+            // Encrypt
+            project.Title = _encryptionService.EncryptStringAsync(project.Title);
+            project.Description = _encryptionService.EncryptStringAsync(project.Description);
+
+            // Save
+            await DbContext.Projects.AddAsync(project);
         }
     }
 }
