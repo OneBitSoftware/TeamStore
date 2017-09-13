@@ -1,7 +1,11 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading.Tasks;
+using TeamStore.Factories;
 using TeamStore.Interfaces;
 using TeamStore.Models;
 
@@ -10,8 +14,9 @@ namespace TeamStore.Services
     public class PermissionService : IPermissionService
     {
         private readonly IGraphService _graphService;
+        private HttpContext _context;
 
-        public PermissionService(IGraphService graphService)
+        public PermissionService(IGraphService graphService, IHttpContextAccessor httpContextAccessor)
         {
             _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
         }
@@ -42,6 +47,22 @@ namespace TeamStore.Services
         public Task<bool> UserHasAccess(Project project)
         {
             throw new NotImplementedException();
+        }
+
+        public ApplicationUser GetCurrentUser(HttpContext httpContext)
+        {
+            if (httpContext == null) throw new ArgumentNullException(nameof(httpContext));
+
+            return GetCurrentUser(httpContext.User?.Identity);
+        }
+
+        public ApplicationUser GetCurrentUser(IIdentity identity)
+        {
+            if (identity == null) throw new ArgumentNullException(nameof(identity));
+            if (identity.IsAuthenticated == false) // TODO needs a better Exception type
+                throw new Exception("The current request is not authenticated.");
+
+            return UserIdentityFactory.CreateApplicationUserFromAzureIdentity(identity as ClaimsIdentity);
         }
     }
 }

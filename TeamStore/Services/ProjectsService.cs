@@ -13,16 +13,18 @@
     {
         private ApplicationDbContext _dbContext { get; set; }
         private readonly IEncryptionService _encryptionService;
+        private readonly IPermissionService _permissionService;
 
         /// <summary>
         /// Constructor for the Project Service
         /// </summary>
         /// <param name="context"></param>
         /// <param name="encryptionService"></param>
-        public ProjectsService(ApplicationDbContext context, IEncryptionService encryptionService)
+        public ProjectsService(ApplicationDbContext context, IEncryptionService encryptionService, IPermissionService permissionService)
         {
             _dbContext = context ?? throw new ArgumentNullException(nameof(context));
             _encryptionService = encryptionService ?? throw new ArgumentNullException(nameof(encryptionService));
+            _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
         }
 
         /// <summary>
@@ -82,6 +84,15 @@
             project.Title = _encryptionService.EncryptStringAsync(project.Title);
             project.Description = _encryptionService.EncryptStringAsync(project.Description);
 
+            // Set any AccessIdentifier statuses
+            foreach (var accessItem in project.AccessIdentifiers)
+            {
+                accessItem.Created = DateTime.UtcNow;
+                accessItem.Modified = DateTime.UtcNow;
+                accessItem.CreatedBy = _permissionService.GetCurrentUser();
+                accessItem.ModifiedBy = _permissionService.GetCurrentUser();
+            }
+
             // Save
             await _dbContext.Projects.AddAsync(project);
             await _dbContext.SaveChangesAsync();
@@ -106,5 +117,18 @@
 
             await _dbContext.SaveChangesAsync(); // save db
         }
+
+        /// <summary>
+        /// Sets a Project's Created/CreatedBy and Modified/ModifiedBy values
+        /// </summary>
+        /// <param name="project">The Project to set</param>
+        //private void SetModifiedAccessControl(Project project)
+        //{
+        //    foreach (var item in project.AccessIdentifiers)
+        //    {
+        //        item.Modified = DateTime.UtcNow;
+        //        item.ModifiedBy = _permissionService.GetCurrentUser();
+        //    }
+        //}
     }
 }

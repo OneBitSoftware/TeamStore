@@ -48,7 +48,8 @@ namespace Microsoft.AspNetCore.Authentication
                         var graphService = context.HttpContext.RequestServices.GetService<IGraphService>();
 
                         var code = context.ProtocolMessage.Code;
-                        // Can't find the object identifier enum
+                        // Can't find the object identifier enum, using string
+                        // TODO null check here!
                         var identifier = context.Principal.Claims.First(item => item.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
 
                         var redirectHost = context.Request.Scheme + "://" + context.Request.Host.Value;

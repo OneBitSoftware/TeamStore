@@ -55,7 +55,7 @@
                 return NotFound();
             }
 
-            var s = await _graphService.GetGroups("", HttpContext.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value);
+            //var s = await _graphService.GetGroups("", HttpContext.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value);
 
             var projectViewModel = ProjectFactory.Convert(project);
 

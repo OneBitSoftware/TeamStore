@@ -24,7 +24,7 @@ namespace TeamStore.Services
             var loginEvent = new Event();
             loginEvent.DateTime = DateTime.UtcNow;
             loginEvent.Type = Enums.EventType.Signin;
-            //loginEvent.User = UserIdentityFactory.CreateApplicationUser(identity);
+            loginEvent.User = UserIdentityFactory.CreateApplicationUserFromAzureIdentity(identity);
 
             await DbContext.Events.AddAsync(loginEvent);
             await DbContext.SaveChangesAsync();
