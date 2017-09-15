@@ -7,7 +7,7 @@ namespace IntegrationTests
     using System;
     using System.IO;
     using System.Linq;
-
+    using System.Reflection;
     using TeamStore.DataAccess;
     using TeamStore.Interfaces;
     using TeamStore.Models;
@@ -133,6 +133,8 @@ namespace IntegrationTests
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("testsettings.json");
 
+            builder.AddUserSecrets(Assembly.GetExecutingAssembly());
+
             _configuration = builder.Build();
         }
 
@@ -144,7 +146,8 @@ namespace IntegrationTests
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             optionsBuilder.UseSqlite(connectionString);
 
-            var dbContext = new ApplicationDbContext(optionsBuilder.Options);
+            // When in tests, we use context.EnsureCreated() instead of migrations
+            var dbContext = new ApplicationDbContext(optionsBuilder.Options, true);
 
             // Set up the DbContext for data access
             return dbContext;
