@@ -1,6 +1,8 @@
 namespace IntegrationTests
 {
+    using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.IO;
@@ -17,12 +19,25 @@ namespace IntegrationTests
         IConfigurationRoot _configuration;
         IEncryptionService _encryptionService;
         IProjectsService _projectsService;
+        IPermissionService _permissionService;
+        IGraphService _graphService;
+
+        HttpContext _testHttpContext;
+        IHttpContextAccessor _httpContextAccessor;
 
         public ProjectTests()
         {
+            BuildTestConfiguration();
             var dbContext = GetDbContext();
+            _testHttpContext = new DefaultHttpContext();
+            _httpContextAccessor = new HttpContextAccessor();
+            _httpContextAccessor.HttpContext = _testHttpContext;
+
+            var memoryCache = new MemoryCache(new MemoryCacheOptions() { } );
+            _graphService = new GraphService(memoryCache, _configuration);
             _encryptionService = new EncryptionService();
-            _projectsService = new ProjectsService(dbContext, _encryptionService);
+            _permissionService = new PermissionService(_graphService, _httpContextAccessor);
+            _projectsService = new ProjectsService(dbContext, _encryptionService, _permissionService);
         }
 
         [Fact]
@@ -112,13 +127,17 @@ namespace IntegrationTests
             Assert.Null(archivedProject);
         }
 
-        private ApplicationDbContext GetDbContext()
+        private void BuildTestConfiguration()
         {
             var builder = new ConfigurationBuilder()
-             .SetBasePath(Directory.GetCurrentDirectory())
-             .AddJsonFile("testsettings.json");
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("testsettings.json");
 
             _configuration = builder.Build();
+        }
+
+        private ApplicationDbContext GetDbContext()
+        {
             var fileName = _configuration["DataAccess:SQLiteDbFileName"];
             var connectionString = "Data Source=" + fileName;
 

@@ -19,6 +19,7 @@ namespace TeamStore.Services
         public PermissionService(IGraphService graphService, IHttpContextAccessor httpContextAccessor)
         {
             _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
+            _context = httpContextAccessor.HttpContext;
         }
 
         public async Task GrantAccess(Project project, string principals, ApplicationIdentity contextUser)
@@ -49,11 +50,10 @@ namespace TeamStore.Services
             throw new NotImplementedException();
         }
 
-        public ApplicationUser GetCurrentUser(HttpContext httpContext)
+        public ApplicationUser GetCurrentUser()
         {
-            if (httpContext == null) throw new ArgumentNullException(nameof(httpContext));
-
-            return GetCurrentUser(httpContext.User?.Identity);
+            if (_context == null) throw new ArgumentNullException(nameof(_context));
+            return GetCurrentUser(_context.User?.Identity);
         }
 
         public ApplicationUser GetCurrentUser(IIdentity identity)
