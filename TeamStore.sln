@@ -7,7 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeamStore", "TeamStore\Team
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "Tests\UnitTests\UnitTests.csproj", "{BE20024A-BA81-4F62-B269-2D89456FBB79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "Tests\IntegrationTests\IntegrationTests.csproj", "{9062DF0D-F934-4096-8CD9-94E81081A753}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationTests", "Tests\IntegrationTests\IntegrationTests.csproj", "{9062DF0D-F934-4096-8CD9-94E81081A753}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BEFDF188-D799-4C30-9ACC-10424A4A3FC1}"
+	ProjectSection(SolutionItems) = preProject
+		DevNotes.md = DevNotes.md
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
