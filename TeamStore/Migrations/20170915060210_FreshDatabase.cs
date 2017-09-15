@@ -9,6 +9,24 @@ namespace TeamStore.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "ApplicationIdentities",
+                columns: table => new
+                {
+                    DisplayName = table.Column<string>(type: "TEXT", nullable: true),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AzureAdObjectIdentifier = table.Column<string>(type: "TEXT", nullable: true),
+                    Discriminator = table.Column<string>(type: "TEXT", nullable: false),
+                    TenantId = table.Column<string>(type: "TEXT", nullable: true),
+                    AzureAdNameIdentifier = table.Column<string>(type: "TEXT", nullable: true),
+                    Upn = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ApplicationIdentities", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Projects",
                 columns: table => new
                 {
@@ -31,13 +49,34 @@ namespace TeamStore.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatedById = table.Column<int>(type: "INTEGER", nullable: true),
+                    IdentityId = table.Column<int>(type: "INTEGER", nullable: true),
                     Modified = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ModifiedById = table.Column<int>(type: "INTEGER", nullable: true),
                     ProjectForeignKey = table.Column<int>(type: "INTEGER", nullable: false),
                     Role = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AccessIdentifiers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AccessIdentifiers_ApplicationIdentities_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "ApplicationIdentities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_AccessIdentifiers_ApplicationIdentities_IdentityId",
+                        column: x => x.IdentityId,
+                        principalTable: "ApplicationIdentities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_AccessIdentifiers_ApplicationIdentities_ModifiedById",
+                        column: x => x.ModifiedById,
+                        principalTable: "ApplicationIdentities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_AccessIdentifiers_Projects_ProjectForeignKey",
                         column: x => x.ProjectForeignKey,
@@ -82,7 +121,8 @@ namespace TeamStore.Migrations
                     DateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
                     NewValue = table.Column<string>(type: "TEXT", nullable: true),
                     OldValue = table.Column<string>(type: "TEXT", nullable: true),
-                    Type = table.Column<int>(type: "INTEGER", nullable: false)
+                    Type = table.Column<int>(type: "INTEGER", nullable: false),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -93,7 +133,28 @@ namespace TeamStore.Migrations
                         principalTable: "Assets",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Events_ApplicationIdentities_UserId",
+                        column: x => x.UserId,
+                        principalTable: "ApplicationIdentities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccessIdentifiers_CreatedById",
+                table: "AccessIdentifiers",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccessIdentifiers_IdentityId",
+                table: "AccessIdentifiers",
+                column: "IdentityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccessIdentifiers_ModifiedById",
+                table: "AccessIdentifiers",
+                column: "ModifiedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AccessIdentifiers_ProjectForeignKey",
@@ -109,6 +170,11 @@ namespace TeamStore.Migrations
                 name: "IX_Events_AssetForeignKey",
                 table: "Events",
                 column: "AssetForeignKey");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Events_UserId",
+                table: "Events",
+                column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -121,6 +187,9 @@ namespace TeamStore.Migrations
 
             migrationBuilder.DropTable(
                 name: "Assets");
+
+            migrationBuilder.DropTable(
+                name: "ApplicationIdentities");
 
             migrationBuilder.DropTable(
                 name: "Projects");

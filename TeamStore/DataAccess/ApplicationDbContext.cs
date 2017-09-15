@@ -9,9 +9,14 @@ namespace TeamStore.DataAccess
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, bool ensureFullDbCreated = false) : base(options)
         {
-            var created = Database.EnsureCreated();
+            // EnsureCreated was removed due to EF Migrations, which fail if the DB is already created with EnsureCreated
+            // EnsureCreated builds the DB based on this context, creating all tables. Migrations then fails on migrationBuilder.CreateTable(name: "ApplicationIdentities",
+            if (ensureFullDbCreated)
+            {
+                var created = Database.EnsureCreated();
+            }
         }
 
         public DbSet<Asset> Assets { get; set; }
@@ -28,7 +33,7 @@ namespace TeamStore.DataAccess
             modelBuilder.Entity<ApplicationUser>();
             modelBuilder.Entity<ApplicationGroup>();
 
-            base.OnModelCreating(modelBuilder); 
+            base.OnModelCreating(modelBuilder);
         }
     }
 }

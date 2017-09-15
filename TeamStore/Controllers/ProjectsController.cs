@@ -15,19 +15,19 @@
 
     public class ProjectsController : Controller
     {
-        private readonly ApplicationDbContext _context; // TODO: remove DB Context and use Services
+        //private readonly ApplicationDbContext _context; // TODO: remove DB Context and use Services
         private readonly IPermissionService _permissionService;
         private readonly IProjectsService _projectsService;
         private readonly IGraphService _graphService;
 
         public ProjectsController(
-            ApplicationDbContext context,
+            //ApplicationDbContext context,
             IPermissionService permissionService,
             IProjectsService projectsService,
             IGraphService graphService
             )
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            //_context = context ?? throw new ArgumentNullException(nameof(context));
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _projectsService = projectsService ?? throw new ArgumentNullException(nameof(projectsService));
             _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
@@ -37,7 +37,7 @@
         public async Task<IActionResult> Index()
         {
             // TODO: return ProjectViewModel not DB Project
-            return View(await _context.Projects.ToListAsync());
+            return View(await _projectsService.GetProjects());
         }
 
         // GET: Projects/Details/5
@@ -48,7 +48,7 @@
                 return NotFound();
             }
 
-            var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == id);
+            var project = await _projectsService.GetProject(id.Value);
 
             if (project == null)
             {
@@ -84,8 +84,8 @@
             {
                 try
                 {
-                    _context.Update(project);
-                    await _context.SaveChangesAsync();
+                    //_context.Update(project);
+                    //await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -125,8 +125,8 @@
             {
                 try
                 {
-                    _context.Update(project);
-                    await _context.SaveChangesAsync();
+                    //_context.Update(project);
+                    //await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -159,8 +159,7 @@
         {
             if (ModelState.IsValid)
             {
-                _context.Add(project);
-                await _context.SaveChangesAsync();
+                await _projectsService.CreateProject(project);
                 return RedirectToAction(nameof(Index));
             }
             return View(project);
@@ -169,7 +168,7 @@
         [HttpGet]
         public async Task<IActionResult> Share(int id)
         {
-            var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == id);
+            var project = await _projectsService.GetProject(id);
 
             if (project == null)
             {
@@ -187,7 +186,7 @@
         public async Task<IActionResult> ShareProject(ShareProjectViewModel shareProjectViewModel)
         {
             // check if current user has access to the project
-            var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == shareProjectViewModel.ProjectId);
+            var project = await _projectsService.GetProject(shareProjectViewModel.ProjectId);
 
             if (project == null)
             {
@@ -211,7 +210,7 @@
                 return NotFound();
             }
 
-            var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == id);
+            var project = await _projectsService.GetProject(id.Value);
             if (project == null)
             {
                 return NotFound();
@@ -235,8 +234,8 @@
             {
                 try
                 {
-                    _context.Update(project);
-                    await _context.SaveChangesAsync();
+                    //_context.Update(project);
+                    //await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -262,8 +261,7 @@
                 return NotFound();
             }
 
-            var project = await _context.Projects
-                .SingleOrDefaultAsync(m => m.Id == id);
+            var project = await _projectsService.GetProject(id.Value);
             if (project == null)
             {
                 return NotFound();
@@ -277,15 +275,17 @@
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == id);
-            _context.Projects.Remove(project);
-            await _context.SaveChangesAsync();
+            //var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == id);
+            //_context.Projects.Remove(project);
+            //await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ProjectExists(int id)
         {
-            return _context.Projects.Any(e => e.Id == id);
+            var retrievedProject = _projectsService.GetProject(id);
+            if (retrievedProject != null) return true;
+            return false;
         }
     }
 }

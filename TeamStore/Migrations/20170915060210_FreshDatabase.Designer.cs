@@ -13,8 +13,8 @@ using TeamStore.Enums;
 namespace TeamStore.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20170912171656_ApplicationIdentifiers")]
-    partial class ApplicationIdentifiers
+    [Migration("20170915060210_FreshDatabase")]
+    partial class FreshDatabase
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -29,13 +29,25 @@ namespace TeamStore.Migrations
 
                     b.Property<DateTime>("Created");
 
+                    b.Property<int?>("CreatedById");
+
+                    b.Property<int?>("IdentityId");
+
                     b.Property<DateTime>("Modified");
+
+                    b.Property<int?>("ModifiedById");
 
                     b.Property<int>("ProjectForeignKey");
 
                     b.Property<string>("Role");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("IdentityId");
+
+                    b.HasIndex("ModifiedById");
 
                     b.HasIndex("ProjectForeignKey");
 
@@ -101,9 +113,13 @@ namespace TeamStore.Migrations
 
                     b.Property<int>("Type");
 
+                    b.Property<int?>("UserId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AssetForeignKey");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Events");
                 });
@@ -176,6 +192,18 @@ namespace TeamStore.Migrations
 
             modelBuilder.Entity("TeamStore.Models.AccessIdentifier", b =>
                 {
+                    b.HasOne("TeamStore.Models.ApplicationUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("TeamStore.Models.ApplicationIdentity", "Identity")
+                        .WithMany()
+                        .HasForeignKey("IdentityId");
+
+                    b.HasOne("TeamStore.Models.ApplicationUser", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById");
+
                     b.HasOne("TeamStore.Models.Project", "Project")
                         .WithMany("AccessIdentifiers")
                         .HasForeignKey("ProjectForeignKey")
@@ -195,6 +223,10 @@ namespace TeamStore.Migrations
                     b.HasOne("TeamStore.Models.Asset", "Asset")
                         .WithMany()
                         .HasForeignKey("AssetForeignKey");
+
+                    b.HasOne("TeamStore.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
                 });
 #pragma warning restore 612, 618
         }

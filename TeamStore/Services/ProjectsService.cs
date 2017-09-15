@@ -83,6 +83,7 @@
             // Encrypt
             project.Title = _encryptionService.EncryptStringAsync(project.Title);
             project.Description = _encryptionService.EncryptStringAsync(project.Description);
+            project.Category = _encryptionService.EncryptStringAsync(project.Category);
 
             // Set any AccessIdentifier statuses
             foreach (var accessItem in project.AccessIdentifiers)
