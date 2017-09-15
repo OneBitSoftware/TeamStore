@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using TeamStore.Models;
 
@@ -13,5 +14,6 @@ namespace TeamStore.Interfaces
         Task GrantAccess(Project project, string principals, ApplicationIdentity contextUser);
 
         ApplicationUser GetCurrentUser();
+        ApplicationUser GetCurrentUser(IIdentity identity);
     }
 }

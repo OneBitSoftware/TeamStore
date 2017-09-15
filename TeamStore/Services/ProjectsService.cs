@@ -66,6 +66,7 @@
 
             result.Title = _encryptionService.DecryptStringAsync(result.Title);
             result.Description = _encryptionService.DecryptStringAsync(result.Description);
+            result.Category = _encryptionService.DecryptStringAsync(result.Category);
 
             return result;
         }
