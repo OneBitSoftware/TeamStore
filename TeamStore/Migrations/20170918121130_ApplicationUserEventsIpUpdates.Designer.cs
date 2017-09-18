@@ -13,8 +13,8 @@ using TeamStore.Enums;
 namespace TeamStore.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20170918091151_ApplicationUserIpUpdates")]
-    partial class ApplicationUserIpUpdates
+    [Migration("20170918121130_ApplicationUserEventsIpUpdates")]
+    partial class ApplicationUserEventsIpUpdates
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -107,11 +107,15 @@ namespace TeamStore.Migrations
 
                     b.Property<int?>("AssetForeignKey");
 
+                    b.Property<string>("Data");
+
                     b.Property<DateTime>("DateTime");
 
                     b.Property<string>("NewValue");
 
                     b.Property<string>("OldValue");
+
+                    b.Property<string>("RemoteIpAddress");
 
                     b.Property<int>("Type");
 
@@ -158,13 +162,9 @@ namespace TeamStore.Migrations
                 {
                     b.HasBaseType("TeamStore.Models.ApplicationIdentity");
 
-                    b.Property<string>("AccessIpAddress");
-
                     b.Property<string>("AzureAdName");
 
                     b.Property<string>("AzureAdNameIdentifier");
-
-                    b.Property<string>("SignInIpAddress");
 
                     b.Property<string>("Upn");
 

@@ -1,5 +1,6 @@
 ﻿namespace TeamStore.Interfaces
 {
+    using System.Security.Claims;
     using System.Security.Principal;
     using TeamStore.Models;
 
@@ -7,5 +8,7 @@
     {
         ApplicationUser GetCurrentUser();
         ApplicationUser GetCurrentUser(IIdentity identity);
+
+        ApplicationUser GetUser(ClaimsIdentity identity);
     }
 }

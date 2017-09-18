@@ -15,15 +15,8 @@ namespace IntegrationTests
     using TeamStore.Services;
     using Xunit;
 
-    public class ProjectTests
+    public class ProjectTests : IntegrationTestBase
     {
-        IConfigurationRoot _configuration;
-        IEncryptionService _encryptionService;
-        IProjectsService _projectsService;
-        IPermissionService _permissionService;
-        IApplicationIdentityService _applicationIdentityService;
-        IGraphService _graphService;
-
         HttpContext _testHttpContext;
         IHttpContextAccessor _httpContextAccessor;
         Dictionary<object, object> _fakeHttpContextItems;
@@ -31,8 +24,6 @@ namespace IntegrationTests
 
         public ProjectTests()
         {
-            BuildTestConfiguration();
-            var dbContext = GetDbContext();
             _testHttpContext = new DefaultHttpContext();
             _httpContextAccessor = new HttpContextAccessor();
             _httpContextAccessor.HttpContext = _testHttpContext;
@@ -47,16 +38,14 @@ namespace IntegrationTests
                 AzureAdName = "Test User Name",
                 AzureAdNameIdentifier = "123123kl21j3lk12j31",
                 Upn = "123123123@12312312.com",
-                SignInIpAddress = "1.2.3.4",
-                AccessIpAddress = "123.123.123.123"
             };
 
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { } );
             _graphService = new GraphService(memoryCache, _configuration);
             _encryptionService = new EncryptionService();
             _permissionService = new PermissionService(_graphService);
-            _applicationIdentityService = new ApplicationIdentityService(_httpContextAccessor, _fakeHttpContextItems);
-            _projectsService = new ProjectsService(dbContext, _encryptionService, _applicationIdentityService, _permissionService);
+            _applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor, _fakeHttpContextItems);
+            _projectsService = new ProjectsService(_dbContext, _encryptionService, _applicationIdentityService, _permissionService);
         }
 
         [Fact]
@@ -87,7 +76,6 @@ namespace IntegrationTests
             Assert.Null(archivedProject);
         }
 
-
         [Fact]
         public async void CreateProject_ShouldFailOnEmptyTitle()
         {
@@ -99,7 +87,6 @@ namespace IntegrationTests
                 await _projectsService.CreateProject(newDecryptedProject);
             });
         }
-
 
         [Fact]
         public async void CreateProject_ShouldReturnCorrectAccess()
@@ -159,32 +146,6 @@ namespace IntegrationTests
             await _projectsService.ArchiveProject(retrievedProject);
             var archivedProject = await _projectsService.GetProject(createdProjectId);
             Assert.Null(archivedProject);
-        }
-
-        private void BuildTestConfiguration()
-        {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("testsettings.json");
-
-            builder.AddUserSecrets(Assembly.GetExecutingAssembly());
-
-            _configuration = builder.Build();
-        }
-
-        private ApplicationDbContext GetDbContext()
-        {
-            var fileName = _configuration["DataAccess:SQLiteDbFileName"];
-            var connectionString = "Data Source=" + fileName;
-
-            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseSqlite(connectionString);
-
-            // When in tests, we use context.EnsureCreated() instead of migrations
-            var dbContext = new ApplicationDbContext(optionsBuilder.Options, true);
-
-            // Set up the DbContext for data access
-            return dbContext;
         }
     }
 }

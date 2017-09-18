@@ -52,6 +52,7 @@ namespace TeamStore
             services.AddScoped<IGraphService, GraphService>(); 
             services.AddScoped<IPermissionService, PermissionService>(); 
             services.AddScoped<IEncryptionService, EncryptionService>(); 
+            services.AddScoped<IApplicationIdentityService, ApplicationIdentityService>(); 
 
             // Sets up Azure Ad Open Id Connect auth
             services.AddAuthentication(sharedOptions =>

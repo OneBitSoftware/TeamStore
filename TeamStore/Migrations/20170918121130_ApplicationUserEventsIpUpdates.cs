@@ -4,24 +4,24 @@ using System.Collections.Generic;
 
 namespace TeamStore.Migrations
 {
-    public partial class ApplicationUserIpUpdates : Migration
+    public partial class ApplicationUserEventsIpUpdates : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "AccessIpAddress",
-                table: "ApplicationIdentities",
+                name: "Data",
+                table: "Events",
+                type: "TEXT",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "RemoteIpAddress",
+                table: "Events",
                 type: "TEXT",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "AzureAdName",
-                table: "ApplicationIdentities",
-                type: "TEXT",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "SignInIpAddress",
                 table: "ApplicationIdentities",
                 type: "TEXT",
                 nullable: true);
@@ -30,15 +30,15 @@ namespace TeamStore.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "AccessIpAddress",
-                table: "ApplicationIdentities");
+                name: "Data",
+                table: "Events");
+
+            migrationBuilder.DropColumn(
+                name: "RemoteIpAddress",
+                table: "Events");
 
             migrationBuilder.DropColumn(
                 name: "AzureAdName",
-                table: "ApplicationIdentities");
-
-            migrationBuilder.DropColumn(
-                name: "SignInIpAddress",
                 table: "ApplicationIdentities");
         }
     }

@@ -47,12 +47,5 @@ namespace TeamStore.Services
         {
             throw new NotImplementedException();
         }
-
- 
-
-        public ApplicationUser GetUser(string objectIdentifier)
-        {
-            return null;
-        }
     }
 }

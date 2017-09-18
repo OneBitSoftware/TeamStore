@@ -6,32 +6,38 @@
     using TeamStore.Models;
     using System.Collections.Generic;
     using System;
+    using System.Linq;
     using TeamStore.Factories;
     using System.Security.Claims;
+    using TeamStore.DataAccess;
 
     public class ApplicationIdentityService : IApplicationIdentityService
     {
         public const string CURRENTUSERKEY = "Auth_CurrentUser";
+        private ApplicationDbContext _dbContext;
 
-        private HttpContext _context;
+        private HttpContext _httpContext;
         IDictionary<object, object> _itemsCollection;
         IPrincipal _claimsPrincipal;
 
         public ApplicationIdentityService(
+            ApplicationDbContext context,
             IHttpContextAccessor httpContextAccessor,
             IDictionary<object, object> itemsCollection = null,
             IPrincipal claimsPrincipal = null
             )
         {
-            _context = httpContextAccessor?.HttpContext;
-            if (_context == null)
+            _dbContext = context ?? throw new ArgumentNullException(nameof(context));
+
+            _httpContext = httpContextAccessor?.HttpContext;
+            if (_httpContext == null)
             {
-                throw new ArgumentNullException(nameof(_context));
+                throw new ArgumentNullException(nameof(_httpContext));
             }
             else
             {
                 // set the claims principal with priority from the context
-                _claimsPrincipal = _context.User;
+                _claimsPrincipal = _httpContext.User;
             }
 
             if (_claimsPrincipal == null) // if the context principal is null, set from the passed object
@@ -40,9 +46,9 @@
             }
 
             // Set the items colletion from the context
-            if (_context.Items.Count > 0)
+            if (_httpContext.Items.Count > 0)
             {
-                _itemsCollection = _context.Items;
+                _itemsCollection = _httpContext.Items;
             }
             else // if no items in context, set from passed values
             {
@@ -52,7 +58,7 @@
 
         public ApplicationUser GetCurrentUser()
         {
-            if (_context == null) return null;
+            if (_httpContext == null) return null;
             if (_itemsCollection == null) return null;
             if (_itemsCollection.ContainsKey(CURRENTUSERKEY) == false) return null;
 
@@ -61,7 +67,7 @@
             if (applicationUser != null) return applicationUser;
 
             // 2. return from HttpContext.User if the context item collection does not have it
-            return GetCurrentUser(_context.User?.Identity);
+            return GetCurrentUser(_httpContext.User?.Identity);
         }
 
         public ApplicationUser GetCurrentUser(IIdentity identity)
@@ -84,6 +90,16 @@
             }
 
             return currentApplicationUser;
+        }
+
+        public ApplicationUser GetUser(ClaimsIdentity identity)
+        {
+            var claim = identity.Claims.FirstOrDefault(c => c.Type == Constants.CLAIMS_OBJECTIDENTIFIER);
+            if (claim == null) return null;
+
+            var returnedObject = _dbContext.ApplicationIdentities.Where(u => u.AzureAdObjectIdentifier == claim.Value).FirstOrDefault();
+            var returnUser = returnedObject as ApplicationUser;
+            return returnUser;
         }
     }
 }

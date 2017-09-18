@@ -21,9 +21,9 @@ namespace TeamStore.Models
         public Asset Asset { get; set; }
 
         public DateTime DateTime { get; set; }
-
+        public string RemoteIpAddress { get; set; }
         public string OldValue { get; set; }
         public string NewValue { get; set; }
-
+        public string Data { get; set; }
     }
 }

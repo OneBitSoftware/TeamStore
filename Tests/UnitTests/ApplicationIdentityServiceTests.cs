@@ -10,6 +10,7 @@
     using System.Reflection;
     using System.Security.Claims;
     using System.Text;
+    using TeamStore.DataAccess;
     using TeamStore.Interfaces;
     using TeamStore.Models;
     using TeamStore.Services;
@@ -19,7 +20,7 @@
     {
         IApplicationIdentityService _applicationIdentityService;
         IConfigurationRoot _configuration;
-
+        ApplicationDbContext _dbContext;
         HttpContext _testHttpContext;
         IHttpContextAccessor _httpContextAccessor;
 
@@ -31,7 +32,10 @@
             _testHttpContext = new DefaultHttpContext();
             _httpContextAccessor = new HttpContextAccessor();
             _httpContextAccessor.HttpContext = _testHttpContext;
-            _applicationIdentityService = new ApplicationIdentityService(_httpContextAccessor);
+
+            _dbContext = new ApplicationDbContext(new Microsoft.EntityFrameworkCore.DbContextOptions<ApplicationDbContext>());
+
+            _applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor);
 
             SetApplicationUser();
         }
@@ -41,8 +45,6 @@
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("testsettings.json");
-
-            //            builder.AddUserSecrets(Assembly.GetExecutingAssembly());
 
             _configuration = builder.Build();
         }
@@ -63,7 +65,7 @@
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
-                ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(null);
+                ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, null);
             });
         }
 
@@ -72,7 +74,7 @@
         {
             // Arrange
             ApplicationUser nullUser;
-            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(new HttpContextAccessor());
+            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, new HttpContextAccessor());
             _testHttpContext.Items[ApplicationIdentityService.CURRENTUSERKEY] = null; // need to clear singleton context
 
             // Act
@@ -87,7 +89,7 @@
         {
             // Arrange
             ApplicationUser nullUser;
-            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(new HttpContextAccessor());
+            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, new HttpContextAccessor());
 
             // Act
             nullUser = applicationIdentityService.GetCurrentUser(null);
@@ -109,7 +111,7 @@
             _testHttpContext.Items[ApplicationIdentityService.CURRENTUSERKEY] = newApplicationUser;
 
             ApplicationUser returnedUser;
-            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_httpContextAccessor);
+            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor);
 
             // Act
             returnedUser = applicationIdentityService.GetCurrentUser();
@@ -141,7 +143,7 @@
             mockContext.SetupGet(p => p.IsAuthenticated).Returns(true);
             mockContext.SetupGet(p => p.Claims).Returns(claimsList);
 
-            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_httpContextAccessor);
+            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor);
 
             // Act
             ApplicationUser retrievedUser = applicationIdentityService.GetCurrentUser(mockContext.Object);
@@ -154,7 +156,6 @@
             Assert.Equal("Simple Name Claim Test", retrievedUser.DisplayName);
             Assert.Equal("upn@rtest.com", retrievedUser.Upn);
             Assert.Equal("12345678-1234-1234-1234-123982828122", retrievedUser.TenantId);
-            Assert.Equal("1.2.3.4", retrievedUser.SignInIpAddress);
         }
     }
 }
