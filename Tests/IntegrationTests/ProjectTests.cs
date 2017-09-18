@@ -5,6 +5,7 @@ namespace IntegrationTests
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -25,6 +26,8 @@ namespace IntegrationTests
 
         HttpContext _testHttpContext;
         IHttpContextAccessor _httpContextAccessor;
+        Dictionary<object, object> _fakeHttpContextItems;
+        ApplicationUser _testUser;
 
         public ProjectTests()
         {
@@ -34,11 +37,25 @@ namespace IntegrationTests
             _httpContextAccessor = new HttpContextAccessor();
             _httpContextAccessor.HttpContext = _testHttpContext;
 
+            _fakeHttpContextItems = new Dictionary<object, object>();
+
+            _testUser = new ApplicationUser()
+            {
+                DisplayName = "Test User 123456789",
+                AzureAdObjectIdentifier = "TestAdObjectId11234567890",
+                TenantId = "1234-12345-123",
+                AzureAdName = "Test User Name",
+                AzureAdNameIdentifier = "123123kl21j3lk12j31",
+                Upn = "123123123@12312312.com",
+                SignInIpAddress = "1.2.3.4",
+                AccessIpAddress = "123.123.123.123"
+            };
+
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { } );
             _graphService = new GraphService(memoryCache, _configuration);
             _encryptionService = new EncryptionService();
             _permissionService = new PermissionService(_graphService);
-            _applicationIdentityService = new ApplicationIdentityService(_httpContextAccessor);
+            _applicationIdentityService = new ApplicationIdentityService(_httpContextAccessor, _fakeHttpContextItems);
             _projectsService = new ProjectsService(dbContext, _encryptionService, _applicationIdentityService, _permissionService);
         }
 
@@ -70,10 +87,25 @@ namespace IntegrationTests
             Assert.Null(archivedProject);
         }
 
+
+        [Fact]
+        public async void CreateProject_ShouldFailOnEmptyTitle()
+        {
+            // Arrange
+            Project newDecryptedProject = new Project();
+
+            // Act
+            await Assert.ThrowsAsync<ArgumentException>(async () => {
+                await _projectsService.CreateProject(newDecryptedProject);
+            });
+        }
+
+
         [Fact]
         public async void CreateProject_ShouldReturnCorrectAccess()
         {
             // Arrange
+            _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, _testUser);
             string testTitle = "Project 1234 Access Test";
             string testDescription = "Created during integration tests";
             string testCategory = "Access Tests";

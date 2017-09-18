@@ -54,14 +54,11 @@
         {
             if (_context == null) return null;
             if (_itemsCollection == null) return null;
+            if (_itemsCollection.ContainsKey(CURRENTUSERKEY) == false) return null;
 
             // 1. Check context Item for Application User
-            var applicationUserObject = _itemsCollection[CURRENTUSERKEY];
-            if (applicationUserObject != null)
-            {
-                var applicationUser = applicationUserObject as ApplicationUser;
-                if (applicationUser != null) return applicationUser;
-            }
+            var applicationUser = _itemsCollection[CURRENTUSERKEY] as ApplicationUser;
+            if (applicationUser != null) return applicationUser;
 
             // 2. return from HttpContext.User if the context item collection does not have it
             return GetCurrentUser(_context.User?.Identity);

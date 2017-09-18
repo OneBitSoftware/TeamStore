@@ -126,20 +126,21 @@
         public void GetCurrentUser_ShouldReturnCorrectClaimsIdentity()
         {
             // Arrange
-            Claim objectIdClaim = new Claim("http://schemas.microsoft.com/identity/claims/objectidentifier", "my unit test object id");
-            ClaimsIdentity newClaimsIdentity = new ClaimsIdentity();
-            newClaimsIdentity.AddClaim(new Claim(ClaimTypes.Name, "my unit test name"));
-            newClaimsIdentity.AddClaim(objectIdClaim);
-
-            // TODO add claims
+            List<Claim> claimsList = new List<Claim>();
+            claimsList.Add(new Claim(
+                "http://schemas.microsoft.com/identity/claims/objectidentifier",
+                "my unit test object id"));
+            claimsList.Add(new Claim(ClaimTypes.NameIdentifier, "Name Identifier Test"));
+            claimsList.Add(new Claim(ClaimTypes.Name, "Display Name Claim Test"));
+            claimsList.Add(new Claim("name", "Simple Name Claim Test"));
+            claimsList.Add(new Claim("ipaddr", "1.2.3.4"));
+            claimsList.Add(new Claim(ClaimTypes.Upn, "upn@rtest.com"));
+            claimsList.Add(new Claim("http://schemas.microsoft.com/identity/claims/tenantid", "12345678-1234-1234-1234-123982828122"));
 
             var mockContext = new Mock<ClaimsIdentity>();
             mockContext.SetupGet(p => p.IsAuthenticated).Returns(true);
-            mockContext.Object.AddClaim(new Claim(ClaimTypes.Name, "my unit test name"));
-            mockContext.Object.AddClaim(objectIdClaim);
+            mockContext.SetupGet(p => p.Claims).Returns(claimsList);
 
-
-            var memoryCache = new MemoryCache(new MemoryCacheOptions() { });
             ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_httpContextAccessor);
 
             // Act
@@ -148,7 +149,12 @@
             // Assert
             Assert.NotNull(retrievedUser);
             Assert.Equal("my unit test object id", retrievedUser.AzureAdObjectIdentifier);
-            Assert.Equal("my unit test name", retrievedUser.AzureAdNameIdentifier);
+            Assert.Equal("Name Identifier Test", retrievedUser.AzureAdNameIdentifier);
+            Assert.Equal("Display Name Claim Test", retrievedUser.AzureAdName);
+            Assert.Equal("Simple Name Claim Test", retrievedUser.DisplayName);
+            Assert.Equal("upn@rtest.com", retrievedUser.Upn);
+            Assert.Equal("12345678-1234-1234-1234-123982828122", retrievedUser.TenantId);
+            Assert.Equal("1.2.3.4", retrievedUser.SignInIpAddress);
         }
     }
 }

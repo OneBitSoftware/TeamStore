@@ -84,7 +84,7 @@
         /// <returns>A Task of int with the Project Id.</returns>
         public async Task<int> CreateProject(Project project)
         {
-            // Validation
+            // Validate title
             if (string.IsNullOrWhiteSpace(project.Title)) throw new ArgumentException("A project must have a title.");
 
             // Encrypt
@@ -99,6 +99,9 @@
                 accessItem.Modified = DateTime.UtcNow;
                 accessItem.CreatedBy = _applicationIdentityService.GetCurrentUser();
                 accessItem.ModifiedBy = _applicationIdentityService.GetCurrentUser();
+
+                // Access Item Validation
+                if (accessItem.CreatedBy == null) throw new ArgumentException("The current user could not be resolved during project createion.");
             }
 
             // Save
