@@ -20,6 +20,7 @@ namespace IntegrationTests
         IEncryptionService _encryptionService;
         IProjectsService _projectsService;
         IPermissionService _permissionService;
+        IApplicationIdentityService _applicationIdentityService;
         IGraphService _graphService;
 
         HttpContext _testHttpContext;
@@ -36,8 +37,9 @@ namespace IntegrationTests
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { } );
             _graphService = new GraphService(memoryCache, _configuration);
             _encryptionService = new EncryptionService();
-            _permissionService = new PermissionService(_graphService, _httpContextAccessor);
-            _projectsService = new ProjectsService(dbContext, _encryptionService, _permissionService);
+            _permissionService = new PermissionService(_graphService);
+            _applicationIdentityService = new ApplicationIdentityService(_httpContextAccessor);
+            _projectsService = new ProjectsService(dbContext, _encryptionService, _applicationIdentityService, _permissionService);
         }
 
         [Fact]

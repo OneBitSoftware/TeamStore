@@ -12,6 +12,7 @@ To run/test/debug the project, various dependencies need to be set up:
 * https://localhost:44336/signin-oidc
 * https://onebit-teamstore.azurewebsites.net/signin-oidc
 4. The ASP.NET Core Data Protection API needs a valid key created (which doesn't expire soon)
+5. You need the App to be configured with permissions to an Azure AD Tenant.
 
 ## Database Setup
 
@@ -19,7 +20,7 @@ To create/update the local database, run the following from the [ProjectRoot]\Te
 
 1. Build the project
 2. dotnet ef database update - creates the DB and applies the last migration
-
+3. dotnet ef migrations add [MigrationName666]
 
 NOTE: if you have issues, delete "data.db" in the project root to start over. EF Migrations will recreate it.
 
@@ -43,3 +44,5 @@ You can generate your own DB encryption key by running the integration tests aft
 commentiing out the following:
 * options.DisableAutomaticKeyGeneration(); from EncryptionService.cs, line 19
 * copy the key from the IntegrationTests\Keys folder to the TeamStore\Keys folder (in the web application)
+
+## Azure AD Setup

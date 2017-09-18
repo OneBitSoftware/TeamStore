@@ -15,25 +15,23 @@
     using TeamStore.Services;
     using Xunit;
 
-    public class PermissionServiceTests
+    public class ApplicationIdentityServiceTests
     {
-        IPermissionService _permissionService;
+        IApplicationIdentityService _applicationIdentityService;
         IConfigurationRoot _configuration;
-        IGraphService _graphService;
 
         HttpContext _testHttpContext;
         IHttpContextAccessor _httpContextAccessor;
 
-        public PermissionServiceTests()
+        public ApplicationIdentityServiceTests()
         {
             BuildTestConfiguration();
 
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { });
-            _graphService = new GraphService(memoryCache, _configuration);
             _testHttpContext = new DefaultHttpContext();
             _httpContextAccessor = new HttpContextAccessor();
             _httpContextAccessor.HttpContext = _testHttpContext;
-            _permissionService = new PermissionService(_graphService, _httpContextAccessor);
+            _applicationIdentityService = new ApplicationIdentityService(_httpContextAccessor);
 
             SetApplicationUser();
         }
@@ -57,7 +55,7 @@
             newApplicationUser.TenantId = "Unit Test 1234 - Tenant ID";
             newApplicationUser.Upn = "test@testupn.integration";
 
-            _testHttpContext.Items[PermissionService.CURRENTUSERKEY] = newApplicationUser;
+            _testHttpContext.Items[ApplicationIdentityService.CURRENTUSERKEY] = newApplicationUser;
         }
 
         [Fact]
@@ -65,7 +63,7 @@
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
-                PermissionService permissionService = new PermissionService(_graphService, null);
+                ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(null);
             });
         }
 
@@ -74,11 +72,11 @@
         {
             // Arrange
             ApplicationUser nullUser;
-            PermissionService permissionService = new PermissionService(_graphService, new HttpContextAccessor());
-            _testHttpContext.Items[PermissionService.CURRENTUSERKEY] = null; // need to clear singleton context
+            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(new HttpContextAccessor());
+            _testHttpContext.Items[ApplicationIdentityService.CURRENTUSERKEY] = null; // need to clear singleton context
 
             // Act
-            nullUser = permissionService.GetCurrentUser();
+            nullUser = applicationIdentityService.GetCurrentUser();
 
             // Assert
             Assert.Null(nullUser);
@@ -89,10 +87,10 @@
         {
             // Arrange
             ApplicationUser nullUser;
-            PermissionService permissionService = new PermissionService(_graphService, new HttpContextAccessor());
+            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(new HttpContextAccessor());
 
             // Act
-            nullUser = permissionService.GetCurrentUser(null);
+            nullUser = applicationIdentityService.GetCurrentUser(null);
 
             // Assert
             Assert.Null(nullUser);
@@ -108,13 +106,13 @@
             newApplicationUser.TenantId = "Unit Test 1234 - Tenant ID";
             newApplicationUser.Upn = "test@testupn.integration";
 
-            _testHttpContext.Items[PermissionService.CURRENTUSERKEY] = newApplicationUser;
+            _testHttpContext.Items[ApplicationIdentityService.CURRENTUSERKEY] = newApplicationUser;
 
             ApplicationUser returnedUser;
-            PermissionService permissionService = new PermissionService(_graphService, _httpContextAccessor);
+            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_httpContextAccessor);
 
             // Act
-            returnedUser = permissionService.GetCurrentUser();
+            returnedUser = applicationIdentityService.GetCurrentUser();
 
             // Assert
             Assert.NotNull(returnedUser);
@@ -142,13 +140,13 @@
 
 
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { });
-            GraphService graphService = new GraphService(memoryCache, _configuration);
-            PermissionService permissionService = new PermissionService(graphService, _httpContextAccessor);
+            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_httpContextAccessor);
 
             // Act
-            ApplicationUser retrievedUser = permissionService.GetCurrentUser(mockContext.Object);
+            ApplicationUser retrievedUser = applicationIdentityService.GetCurrentUser(mockContext.Object);
 
             // Assert
+            Assert.NotNull(retrievedUser);
             Assert.Equal("my unit test object id", retrievedUser.AzureAdObjectIdentifier);
             Assert.Equal("my unit test name", retrievedUser.AzureAdNameIdentifier);
         }

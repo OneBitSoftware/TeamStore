@@ -14,17 +14,23 @@
         private ApplicationDbContext _dbContext { get; set; }
         private readonly IEncryptionService _encryptionService;
         private readonly IPermissionService _permissionService;
+        private readonly IApplicationIdentityService _applicationIdentityService;
 
         /// <summary>
         /// Constructor for the Project Service
         /// </summary>
         /// <param name="context"></param>
         /// <param name="encryptionService"></param>
-        public ProjectsService(ApplicationDbContext context, IEncryptionService encryptionService, IPermissionService permissionService)
+        public ProjectsService(
+            ApplicationDbContext context,
+            IEncryptionService encryptionService,
+            IApplicationIdentityService applicationIdentityService,
+            IPermissionService permissionService)
         {
             _dbContext = context ?? throw new ArgumentNullException(nameof(context));
             _encryptionService = encryptionService ?? throw new ArgumentNullException(nameof(encryptionService));
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
+            _applicationIdentityService = applicationIdentityService ?? throw new ArgumentNullException(nameof(applicationIdentityService));
         }
 
         /// <summary>
@@ -91,8 +97,8 @@
             {
                 accessItem.Created = DateTime.UtcNow;
                 accessItem.Modified = DateTime.UtcNow;
-                accessItem.CreatedBy = _permissionService.GetCurrentUser();
-                accessItem.ModifiedBy = _permissionService.GetCurrentUser();
+                accessItem.CreatedBy = _applicationIdentityService.GetCurrentUser();
+                accessItem.ModifiedBy = _applicationIdentityService.GetCurrentUser();
             }
 
             // Save

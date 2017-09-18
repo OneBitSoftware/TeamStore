@@ -2,6 +2,5 @@
 {
     public class ApplicationGroup : ApplicationIdentity
     {
-        public string DisplayName { get; set; }
     }
 }
