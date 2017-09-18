@@ -9,8 +9,26 @@ namespace TeamStore.Interfaces
 {
     public interface IPermissionService
     {
-        Task<bool> UserHasAccess(int projectId);
-        Task<bool> UserHasAccess(Project project);
-        Task GrantAccess(Project project, string azureAdObjectIdentifier, ApplicationUser grantingUser, string remoteIpAddress);
+        Task<bool> UserHasAccessAsync(int projectId, IProjectsService projectsService, string role);
+
+        Task<bool> UserHasAccessAsync(Project project, string role);
+
+        Task GrantAccessAsync(
+            int projectId,
+            string azureAdObjectIdentifier,
+            string role,
+            ApplicationUser grantingUser,
+            string remoteIpAddress,
+            IProjectsService projectsService
+            );
+
+        Task RevokeAccessAsync(
+            int projectId,
+            string azureAdObjectIdentifier,
+            string role,
+            ApplicationUser revokingUser,
+            string remoteIpAddress,
+            IProjectsService projectsService
+            );
     }
 }

@@ -52,12 +52,18 @@
             return projects;
         }
 
+        public async Task<Project> GetProject(int projectId)
+        {
+            return await GetProject(projectId, false);
+        }
+
         /// <summary>
         /// Retrieves a Project by Project Id, if the user has access to it.
         /// </summary>
         /// <param name="projectId">The Project Id to lookup.</param>
+        /// <param name="skipDecryption">Set to True if the project should not be decrypted.</param>
         /// <returns>A Project object, null if none are found or the current user does not have access to it.</returns>
-        public async Task<Project> GetProject(int projectId)
+        public async Task<Project> GetProject(int projectId, bool skipDecryption = false)
         {
             // Validate request
             if (projectId < 0) throw new ArgumentException("You must pass a valid project id.");
@@ -66,13 +72,16 @@
 
 
             // Get project
-            var result =  await _dbContext.Projects.Where(p => p.Id == projectId && p.IsArchived == false).FirstOrDefaultAsync();
+            var result = await _dbContext.Projects.Where(p => p.Id == projectId && p.IsArchived == false).FirstOrDefaultAsync();
 
             if (result == null) return null;
 
-            result.Title = _encryptionService.DecryptStringAsync(result.Title);
-            result.Description = _encryptionService.DecryptStringAsync(result.Description);
-            result.Category = _encryptionService.DecryptStringAsync(result.Category);
+            if (skipDecryption == false) // decrypt project
+            {
+                result.Title = _encryptionService.DecryptStringAsync(result.Title);
+                result.Description = _encryptionService.DecryptStringAsync(result.Description);
+                result.Category = _encryptionService.DecryptStringAsync(result.Category); 
+            }
 
             return result;
         }
@@ -92,13 +101,23 @@
             project.Description = _encryptionService.EncryptStringAsync(project.Description);
             project.Category = _encryptionService.EncryptStringAsync(project.Category);
 
+            var currentUser = _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new ArgumentNullException(nameof(currentUser)); // we fail on no current user
+
+            // Ensure the creating user has Owner permissions to be able to grant access to other users
+            project.AccessIdentifiers.Add(new AccessIdentifier() {
+                Identity = currentUser,
+                Role = "Owner",
+                Project = project
+            });
+
             // Set any AccessIdentifier statuses
             foreach (var accessItem in project.AccessIdentifiers)
             {
                 accessItem.Created = DateTime.UtcNow;
                 accessItem.Modified = DateTime.UtcNow;
-                accessItem.CreatedBy = _applicationIdentityService.GetCurrentUser();
-                accessItem.ModifiedBy = _applicationIdentityService.GetCurrentUser();
+                accessItem.CreatedBy = currentUser;
+                accessItem.ModifiedBy = currentUser;
 
                 // Access Item Validation
                 if (accessItem.CreatedBy == null) throw new ArgumentException("The current user could not be resolved during project createion.");
@@ -128,6 +147,7 @@
 
             await _dbContext.SaveChangesAsync(); // save db
         }
+
 
         /// <summary>
         /// Sets a Project's Created/CreatedBy and Modified/ModifiedBy values

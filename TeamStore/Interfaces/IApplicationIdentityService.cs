@@ -2,6 +2,7 @@
 {
     using System.Security.Claims;
     using System.Security.Principal;
+    using System.Threading.Tasks;
     using TeamStore.Models;
 
     public interface IApplicationIdentityService
@@ -9,7 +10,8 @@
         ApplicationUser GetCurrentUser();
         ApplicationUser GetCurrentUser(IIdentity identity);
 
-        ApplicationUser GetUser(ClaimsIdentity identity);
-        ApplicationUser GetUser(string azureAdObjectIdentifier);
+        Task<ApplicationUser> GetUserAsync(ClaimsIdentity identity);
+        Task<ApplicationUser> GetUserAsync(string azureAdObjectIdentifier);
+        Task<ApplicationUser> EnsureUserAsync(string azureAdObjectIdentifier);
     }
 }

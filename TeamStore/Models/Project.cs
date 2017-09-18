@@ -11,6 +11,9 @@ namespace TeamStore.Models
         {
             Assets = new List<Asset>();
             AccessIdentifiers = new List<AccessIdentifier>();
+
+            Description = string.Empty;
+            Category = string.Empty;
         }
 
         public int Id { get; set; }

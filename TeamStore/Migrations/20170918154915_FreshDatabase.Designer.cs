@@ -13,7 +13,7 @@ using TeamStore.Enums;
 namespace TeamStore.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20170915060210_FreshDatabase")]
+    [Migration("20170918154915_FreshDatabase")]
     partial class FreshDatabase
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -64,6 +64,8 @@ namespace TeamStore.Migrations
                     b.Property<string>("Discriminator")
                         .IsRequired();
 
+                    b.Property<string>("DisplayName");
+
                     b.Property<string>("TenantId");
 
                     b.HasKey("Id");
@@ -103,7 +105,11 @@ namespace TeamStore.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<int?>("ActedByUserId");
+
                     b.Property<int?>("AssetForeignKey");
+
+                    b.Property<string>("Data");
 
                     b.Property<DateTime>("DateTime");
 
@@ -111,15 +117,15 @@ namespace TeamStore.Migrations
 
                     b.Property<string>("OldValue");
 
-                    b.Property<int>("Type");
+                    b.Property<string>("RemoteIpAddress");
 
-                    b.Property<int?>("UserId");
+                    b.Property<int>("Type");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AssetForeignKey");
+                    b.HasIndex("ActedByUserId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AssetForeignKey");
 
                     b.ToTable("Events");
                 });
@@ -146,7 +152,6 @@ namespace TeamStore.Migrations
                 {
                     b.HasBaseType("TeamStore.Models.ApplicationIdentity");
 
-                    b.Property<string>("DisplayName");
 
                     b.ToTable("ApplicationGroup");
 
@@ -156,6 +161,8 @@ namespace TeamStore.Migrations
             modelBuilder.Entity("TeamStore.Models.ApplicationUser", b =>
                 {
                     b.HasBaseType("TeamStore.Models.ApplicationIdentity");
+
+                    b.Property<string>("AzureAdName");
 
                     b.Property<string>("AzureAdNameIdentifier");
 
@@ -220,13 +227,13 @@ namespace TeamStore.Migrations
 
             modelBuilder.Entity("TeamStore.Models.Event", b =>
                 {
+                    b.HasOne("TeamStore.Models.ApplicationUser", "ActedByUser")
+                        .WithMany()
+                        .HasForeignKey("ActedByUserId");
+
                     b.HasOne("TeamStore.Models.Asset", "Asset")
                         .WithMany()
                         .HasForeignKey("AssetForeignKey");
-
-                    b.HasOne("TeamStore.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
                 });
 #pragma warning restore 612, 618
         }

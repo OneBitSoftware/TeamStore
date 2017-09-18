@@ -17,6 +17,14 @@
         Task<Project> GetProject(int projectId);
 
         /// <summary>
+        /// Retrieves a Project by Project Id, if the user has access to it.
+        /// </summary>
+        /// <param name="projectId">The Project Id to lookup.</param>
+        /// <param name="skipDecryption">Set to True if the project should not be decrypted.</param>
+        /// <returns>A Project object, null if none are found or the current user does not have access to it.</returns>
+        Task<Project> GetProject(int projectId, bool skipDecryption);
+
+        /// <summary>
         /// Gets all projects for which the current user has access to. Excludes archived projects.
         /// </summary>
         /// <returns>A list of Project objects</returns>

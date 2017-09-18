@@ -104,6 +104,8 @@ namespace TeamStore.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<int?>("ActedByUserId");
+
                     b.Property<int?>("AssetForeignKey");
 
                     b.Property<string>("Data");
@@ -118,13 +120,11 @@ namespace TeamStore.Migrations
 
                     b.Property<int>("Type");
 
-                    b.Property<int?>("UserId");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("AssetForeignKey");
+                    b.HasIndex("ActedByUserId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AssetForeignKey");
 
                     b.ToTable("Events");
                 });
@@ -226,13 +226,13 @@ namespace TeamStore.Migrations
 
             modelBuilder.Entity("TeamStore.Models.Event", b =>
                 {
+                    b.HasOne("TeamStore.Models.ApplicationUser", "ActedByUser")
+                        .WithMany()
+                        .HasForeignKey("ActedByUserId");
+
                     b.HasOne("TeamStore.Models.Asset", "Asset")
                         .WithMany()
                         .HasForeignKey("AssetForeignKey");
-
-                    b.HasOne("TeamStore.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
                 });
 #pragma warning restore 612, 618
         }

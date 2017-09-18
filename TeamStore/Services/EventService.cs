@@ -25,6 +25,25 @@ namespace TeamStore.Services
             _applicationIdentityService = applicationIdentityService ?? throw new ArgumentNullException(nameof(applicationIdentityService));
         }
 
+        public async Task LogRevokeAccessEventAsync(
+            int projectId,
+            string remoteIpAddress, 
+            string azureAdObjectIdentifier,
+            string role,
+            ApplicationUser revokingUser)
+        {
+            var revokeAccess = new Event();
+            revokeAccess.DateTime = DateTime.UtcNow;
+            revokeAccess.Type = Enums.EventType.RevokeAccess;
+            revokeAccess.OldValue = role;
+            revokeAccess.RemoteIpAddress = remoteIpAddress;
+            revokeAccess.ActedByUser = revokingUser;
+            revokeAccess.Data = "ProjectId: " + projectId + " RemovingAccessFor: " + azureAdObjectIdentifier;
+
+            await _dbContext.Events.AddAsync(revokeAccess);
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task StoreGrantAccessEventAsync(int projectId, string remoteIpAddress, string newRole, string azureAdObjectIdentifier, ApplicationUser grantingUser)
         {
             var grantAccess = new Event();
@@ -33,7 +52,7 @@ namespace TeamStore.Services
             grantAccess.NewValue = newRole;
             grantAccess.RemoteIpAddress = remoteIpAddress;
             grantAccess.ActedByUser = grantingUser;
-            grantAccess.Data = "ProjectId: " + projectId + " GrantedTo:" + azureAdObjectIdentifier;
+            grantAccess.Data = "ProjectId: " + projectId + " GrantedTo: " + azureAdObjectIdentifier;
 
             await _dbContext.Events.AddAsync(grantAccess);
             await _dbContext.SaveChangesAsync();
@@ -46,7 +65,7 @@ namespace TeamStore.Services
             loginEvent.Type = Enums.EventType.Signin;
 
             // Get/Create user
-            ApplicationUser existingUser = _applicationIdentityService.GetUser(identity);
+            ApplicationUser existingUser = await _applicationIdentityService.GetUserAsync(identity);
             if (existingUser == null)
             {
                 loginEvent.ActedByUser = UserIdentityFactory.CreateApplicationUserFromAzureIdentity(identity);

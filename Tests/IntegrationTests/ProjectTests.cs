@@ -17,36 +17,11 @@ namespace IntegrationTests
 
     public class ProjectTests : IntegrationTestBase
     {
-        HttpContext _testHttpContext;
-        IHttpContextAccessor _httpContextAccessor;
-        Dictionary<object, object> _fakeHttpContextItems;
-        ApplicationUser _testUser;
+      
 
         public ProjectTests()
         {
-            _testHttpContext = new DefaultHttpContext();
-            _httpContextAccessor = new HttpContextAccessor();
-            _httpContextAccessor.HttpContext = _testHttpContext;
 
-            _fakeHttpContextItems = new Dictionary<object, object>();
-
-            _testUser = new ApplicationUser()
-            {
-                DisplayName = "Test User 123456789",
-                AzureAdObjectIdentifier = "TestAdObjectId11234567890",
-                TenantId = "1234-12345-123",
-                AzureAdName = "Test User Name",
-                AzureAdNameIdentifier = "123123kl21j3lk12j31",
-                Upn = "123123123@12312312.com",
-            };
-
-            var memoryCache = new MemoryCache(new MemoryCacheOptions() { } );
-            _graphService = new GraphService(memoryCache, _configuration);
-            _encryptionService = new EncryptionService();
-            _applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor, _fakeHttpContextItems);
-            _projectsService = new ProjectsService(_dbContext, _encryptionService, _applicationIdentityService, _permissionService);
-            _eventService = new EventService(_dbContext, _applicationIdentityService);
-            _permissionService = new PermissionService(_dbContext, _graphService, _eventService, _applicationIdentityService);
         }
 
         [Fact]

@@ -12,12 +12,13 @@ namespace TeamStore.Migrations
                 name: "ApplicationIdentities",
                 columns: table => new
                 {
-                    DisplayName = table.Column<string>(type: "TEXT", nullable: true),
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     AzureAdObjectIdentifier = table.Column<string>(type: "TEXT", nullable: true),
                     Discriminator = table.Column<string>(type: "TEXT", nullable: false),
+                    DisplayName = table.Column<string>(type: "TEXT", nullable: true),
                     TenantId = table.Column<string>(type: "TEXT", nullable: true),
+                    AzureAdName = table.Column<string>(type: "TEXT", nullable: true),
                     AzureAdNameIdentifier = table.Column<string>(type: "TEXT", nullable: true),
                     Upn = table.Column<string>(type: "TEXT", nullable: true)
                 },
@@ -117,26 +118,28 @@ namespace TeamStore.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    ActedByUserId = table.Column<int>(type: "INTEGER", nullable: true),
                     AssetForeignKey = table.Column<int>(type: "INTEGER", nullable: true),
+                    Data = table.Column<string>(type: "TEXT", nullable: true),
                     DateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
                     NewValue = table.Column<string>(type: "TEXT", nullable: true),
                     OldValue = table.Column<string>(type: "TEXT", nullable: true),
-                    Type = table.Column<int>(type: "INTEGER", nullable: false),
-                    UserId = table.Column<int>(type: "INTEGER", nullable: true)
+                    RemoteIpAddress = table.Column<string>(type: "TEXT", nullable: true),
+                    Type = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Events", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Events_Assets_AssetForeignKey",
-                        column: x => x.AssetForeignKey,
-                        principalTable: "Assets",
+                        name: "FK_Events_ApplicationIdentities_ActedByUserId",
+                        column: x => x.ActedByUserId,
+                        principalTable: "ApplicationIdentities",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Events_ApplicationIdentities_UserId",
-                        column: x => x.UserId,
-                        principalTable: "ApplicationIdentities",
+                        name: "FK_Events_Assets_AssetForeignKey",
+                        column: x => x.AssetForeignKey,
+                        principalTable: "Assets",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -167,14 +170,14 @@ namespace TeamStore.Migrations
                 column: "ProjectForeignKey");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Events_ActedByUserId",
+                table: "Events",
+                column: "ActedByUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Events_AssetForeignKey",
                 table: "Events",
                 column: "AssetForeignKey");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Events_UserId",
-                table: "Events",
-                column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -186,10 +189,10 @@ namespace TeamStore.Migrations
                 name: "Events");
 
             migrationBuilder.DropTable(
-                name: "Assets");
+                name: "ApplicationIdentities");
 
             migrationBuilder.DropTable(
-                name: "ApplicationIdentities");
+                name: "Assets");
 
             migrationBuilder.DropTable(
                 name: "Projects");

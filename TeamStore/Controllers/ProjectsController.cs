@@ -178,7 +178,7 @@
                 return NotFound();
             }
 
-            if (await _permissionService.UserHasAccess(id) == false) return Forbid();
+            if (await _permissionService.UserHasAccessAsync(id, _projectsService, "Edit") == false) return Forbid();
 
             var shareProjectViewModel = ProjectFactory.ConvertForShare(project);
 
@@ -196,11 +196,17 @@
                 return NotFound();
             }
 
-            if (await _permissionService.UserHasAccess(shareProjectViewModel.ProjectId) == false) return Forbid();
+            if (await _permissionService.UserHasAccessAsync(shareProjectViewModel.ProjectId, _projectsService, "Edit") == false) return Forbid();
 
             // Build user
             var remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress.ToString();
-            await _permissionService.GrantAccess(project, shareProjectViewModel.ShareDetails, _applicationIdentityService.GetCurrentUser(), HttpContext.Connection.RemoteIpAddress.ToString());
+            await _permissionService.GrantAccessAsync(
+                project.Id,
+                shareProjectViewModel.ShareDetails,
+                "Edit",
+                _applicationIdentityService.GetCurrentUser(),
+                HttpContext.Connection.RemoteIpAddress.ToString(),
+                _projectsService);
 
             return View();
         }

@@ -10,6 +10,8 @@
     using TeamStore.Factories;
     using System.Security.Claims;
     using TeamStore.DataAccess;
+    using Microsoft.EntityFrameworkCore;
+    using System.Threading.Tasks;
 
     public class ApplicationIdentityService : IApplicationIdentityService
     {
@@ -92,24 +94,44 @@
             return currentApplicationUser;
         }
 
-        public ApplicationUser GetUser(ClaimsIdentity identity)
+        public async Task<ApplicationUser> GetUserAsync(ClaimsIdentity identity)
         {
             var claim = identity.Claims.FirstOrDefault(c => c.Type == Constants.CLAIMS_OBJECTIDENTIFIER);
             if (claim == null) return null;
             if (string.IsNullOrWhiteSpace(claim.Value)) return null;
 
-            return GetUser(claim.Value);
+            return await GetUserAsync(claim.Value);
         }
 
-        public ApplicationUser GetUser(string azureAdObjectIdentifier)
+        public async Task<ApplicationUser> GetUserAsync(string azureAdObjectIdentifier)
         {
             if (string.IsNullOrWhiteSpace(azureAdObjectIdentifier)) return null;
 
-            var returnedObject = _dbContext.ApplicationIdentities.Where
-                (u => u.AzureAdObjectIdentifier == azureAdObjectIdentifier).FirstOrDefault();
+            var returnedObject = await _dbContext.ApplicationIdentities.Where
+                (u => u.AzureAdObjectIdentifier == azureAdObjectIdentifier).FirstOrDefaultAsync();
 
             var returnUser = returnedObject as ApplicationUser;
             return returnUser;
+        }
+
+
+        public async Task<ApplicationUser> EnsureUserAsync(string azureAdObjectIdentifier)
+        {
+            var existingUser = await GetUserAsync(azureAdObjectIdentifier);
+            if (existingUser != null)
+            {
+                return existingUser;
+            }
+            else
+            {
+                // TODO: RESOLVE USER from Azure AD
+                existingUser = new ApplicationUser()
+                {
+                    AzureAdObjectIdentifier = azureAdObjectIdentifier
+                };
+            }
+
+            return existingUser;
         }
     }
 }
