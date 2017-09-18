@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using TeamStore.Models;
     using TeamStore.Services;
@@ -15,7 +16,7 @@
         }
 
         [Fact]
-        public async void GrantAccess_ShouldReturnCorrectACL()
+        public async void GrantRevokeAccess_ShouldReturnCorrectACL()
         {
             // Arrange
             Project newDecryptedProject = new Project();
@@ -32,15 +33,25 @@
             // Act - Grant access
             await _permissionService.GrantAccessAsync(retrievedProject.Id, "1234123412-1234-1312-1234-12341234", "Edit", _testUser, "127.0.0.1", _projectsService);
             await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", _testUser, "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", _testUser, "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", _testUser, "127.0.0.1", _projectsService);
             await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Read", _testUser, "127.0.0.1", _projectsService);
 
-            Assert.Equal(4, retrievedProject.AccessIdentifiers.Count);
+            Assert.Equal(6, retrievedProject.AccessIdentifiers.Count);
 
             await _permissionService.RevokeAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", _testUser, "127.0.1.1", _projectsService);
             retrievedProject = await _projectsService.GetProject(createdProjectId);
 
             Assert.Equal(3, retrievedProject.AccessIdentifiers.Count);
+            Assert.Equal(_testUser, retrievedProject.AccessIdentifiers
+                .FirstOrDefault(ai => ai.Identity.AzureAdObjectIdentifier == "4444555511-6666-7777-8888-12345678" && ai.Role == "Read").CreatedBy);
+            Assert.Equal(retrievedProject, retrievedProject.AccessIdentifiers
+                .FirstOrDefault(ai => ai.Identity.AzureAdObjectIdentifier == "1234123412-1234-1312-1234-12341234" && ai.Role == "Edit").Project);
 
+            // Cleanup
+            await _projectsService.ArchiveProject(retrievedProject);
+            var archivedProject = await _projectsService.GetProject(createdProjectId, true);
+            Assert.Null(archivedProject);
         }
     }
 }

@@ -28,6 +28,7 @@ namespace IntegrationTests
         public async void CreateProject_ShouldReturnCorrectData()
         {
             // Arrange
+            _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, _testUser);
             string testTitle = "Project 1234 Test";
             string testDescription = "Created during integration tests";
             string testCategory = "Integration Tests";
@@ -106,7 +107,7 @@ namespace IntegrationTests
             // Assert
             Assert.True(retrievedProject.Id > 0);
             Assert.False(retrievedProject.IsArchived);
-            Assert.Equal(2, retrievedProject.AccessIdentifiers.Count);
+            Assert.Equal(3, retrievedProject.AccessIdentifiers.Count); // +1 for the Owner
             Assert.NotNull(retrievedProject.AccessIdentifiers.First());
             Assert.NotNull(retrievedProject.AccessIdentifiers.First().Project);
             Assert.True(retrievedProject.AccessIdentifiers.First().ProjectForeignKey > 0);
