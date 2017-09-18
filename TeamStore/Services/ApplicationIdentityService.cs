@@ -96,8 +96,18 @@
         {
             var claim = identity.Claims.FirstOrDefault(c => c.Type == Constants.CLAIMS_OBJECTIDENTIFIER);
             if (claim == null) return null;
+            if (string.IsNullOrWhiteSpace(claim.Value)) return null;
 
-            var returnedObject = _dbContext.ApplicationIdentities.Where(u => u.AzureAdObjectIdentifier == claim.Value).FirstOrDefault();
+            return GetUser(claim.Value);
+        }
+
+        public ApplicationUser GetUser(string azureAdObjectIdentifier)
+        {
+            if (string.IsNullOrWhiteSpace(azureAdObjectIdentifier)) return null;
+
+            var returnedObject = _dbContext.ApplicationIdentities.Where
+                (u => u.AzureAdObjectIdentifier == azureAdObjectIdentifier).FirstOrDefault();
+
             var returnUser = returnedObject as ApplicationUser;
             return returnUser;
         }

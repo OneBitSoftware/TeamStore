@@ -23,7 +23,20 @@ namespace TeamStore.Services
         {
             _dbContext = context ?? throw new ArgumentNullException(nameof(context));
             _applicationIdentityService = applicationIdentityService ?? throw new ArgumentNullException(nameof(applicationIdentityService));
+        }
 
+        public async Task StoreGrantAccessEventAsync(int projectId, string remoteIpAddress, string newRole, string azureAdObjectIdentifier, ApplicationUser grantingUser)
+        {
+            var grantAccess = new Event();
+            grantAccess.DateTime = DateTime.UtcNow;
+            grantAccess.Type = Enums.EventType.GrantAccess;
+            grantAccess.NewValue = newRole;
+            grantAccess.RemoteIpAddress = remoteIpAddress;
+            grantAccess.ActedByUser = grantingUser;
+            grantAccess.Data = "ProjectId: " + projectId + " GrantedTo:" + azureAdObjectIdentifier;
+
+            await _dbContext.Events.AddAsync(grantAccess);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task StoreLoginEventAsync(ClaimsIdentity identity, string accessIpAddress)
@@ -36,11 +49,11 @@ namespace TeamStore.Services
             ApplicationUser existingUser = _applicationIdentityService.GetUser(identity);
             if (existingUser == null)
             {
-                loginEvent.User = UserIdentityFactory.CreateApplicationUserFromAzureIdentity(identity);
+                loginEvent.ActedByUser = UserIdentityFactory.CreateApplicationUserFromAzureIdentity(identity);
             }
             else
             {
-                loginEvent.User = existingUser;
+                loginEvent.ActedByUser = existingUser;
             }
 
             // Set IP as extra data

@@ -43,9 +43,10 @@ namespace IntegrationTests
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { } );
             _graphService = new GraphService(memoryCache, _configuration);
             _encryptionService = new EncryptionService();
-            _permissionService = new PermissionService(_graphService);
             _applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor, _fakeHttpContextItems);
             _projectsService = new ProjectsService(_dbContext, _encryptionService, _applicationIdentityService, _permissionService);
+            _eventService = new EventService(_dbContext, _applicationIdentityService);
+            _permissionService = new PermissionService(_dbContext, _graphService, _eventService, _applicationIdentityService);
         }
 
         [Fact]

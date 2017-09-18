@@ -12,6 +12,8 @@ namespace TeamStore.Enums
         RetrieveAsset = 3,
         UpdateAsset = 4,
         DeleteAsset = 5,
-        CreateAsset = 6
+        CreateAsset = 6,
+        GrantAccess = 7,
+        RemoveAccess = 8
     }
 }

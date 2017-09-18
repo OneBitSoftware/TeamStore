@@ -10,5 +10,6 @@
         ApplicationUser GetCurrentUser(IIdentity identity);
 
         ApplicationUser GetUser(ClaimsIdentity identity);
+        ApplicationUser GetUser(string azureAdObjectIdentifier);
     }
 }

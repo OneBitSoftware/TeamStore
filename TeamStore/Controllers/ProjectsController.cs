@@ -19,18 +19,21 @@
         private readonly IPermissionService _permissionService;
         private readonly IProjectsService _projectsService;
         private readonly IGraphService _graphService;
+        private readonly IApplicationIdentityService _applicationIdentityService;
 
         public ProjectsController(
             //ApplicationDbContext context,
             IPermissionService permissionService,
             IProjectsService projectsService,
-            IGraphService graphService
+            IGraphService graphService,
+            IApplicationIdentityService applicationIdentityService
             )
         {
             //_context = context ?? throw new ArgumentNullException(nameof(context));
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _projectsService = projectsService ?? throw new ArgumentNullException(nameof(projectsService));
             _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
+            _applicationIdentityService = applicationIdentityService ?? throw new ArgumentNullException(nameof(applicationIdentityService));
         }
 
         // GET: Projects
@@ -196,8 +199,8 @@
             if (await _permissionService.UserHasAccess(shareProjectViewModel.ProjectId) == false) return Forbid();
 
             // Build user
-
-            await _permissionService.GrantAccess(project, shareProjectViewModel.ShareDetails, null);
+            var remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress.ToString();
+            await _permissionService.GrantAccess(project, shareProjectViewModel.ShareDetails, _applicationIdentityService.GetCurrentUser(), HttpContext.Connection.RemoteIpAddress.ToString());
 
             return View();
         }

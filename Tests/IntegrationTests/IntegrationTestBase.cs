@@ -18,6 +18,7 @@ namespace IntegrationTests
         protected IPermissionService _permissionService;
         protected IApplicationIdentityService _applicationIdentityService;
         protected IGraphService _graphService;
+        protected IEventService _eventService;
 
         protected ApplicationDbContext _dbContext;
 
