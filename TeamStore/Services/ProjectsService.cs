@@ -39,14 +39,22 @@
         /// <returns>A list of Project objects</returns>
         public async Task<List<Project>> GetProjects()
         {
-            // Validate access
+            // Get user to validate access
+            var currentUser = _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) return null;
 
-            // Get projects with access TODO
-            var projects = await _dbContext.Projects.Where(p=>p.IsArchived == false).ToListAsync();
+            // Get projects with access
+            var projects = await _dbContext.Projects.Where(p =>
+                p.IsArchived == false)
+                .Include(p => p.AccessIdentifiers)
+                .ToListAsync();
+
+            var projectsWiithAccess = projects.Where(p =>
+                p.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id));
+
             foreach (var project in projects)
             {
-                project.Title = _encryptionService.DecryptStringAsync(project.Title);
-                project.Description = _encryptionService.DecryptStringAsync(project.Description);
+                DecryptProject(project);
             }
 
             return projects;
@@ -68,22 +76,34 @@
             // Validate request
             if (projectId < 0) throw new ArgumentException("You must pass a valid project id.");
 
-            // Validate access TODO
+            // Validate access
+            var currentUser = _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) return null;
 
+            // NOTE: we can't use the permission service, the below results in an infinite loop
+            //if(await _permissionService.CurrentUserHasAccessAsync(projectId, this) == false) return null;
 
             // Get project
-            var result = await _dbContext.Projects.Where(p => p.Id == projectId && p.IsArchived == false).FirstOrDefaultAsync();
+            var result = await _dbContext.Projects.Where(p => 
+                p.Id == projectId && 
+                p.IsArchived == false &&
+                p.AccessIdentifiers.Any(ai=>ai.Identity.Id == currentUser.Id)).FirstOrDefaultAsync();
 
             if (result == null) return null;
 
             if (skipDecryption == false) // decrypt project
             {
-                result.Title = _encryptionService.DecryptStringAsync(result.Title);
-                result.Description = _encryptionService.DecryptStringAsync(result.Description);
-                result.Category = _encryptionService.DecryptStringAsync(result.Category); 
+                DecryptProject(result);
             }
 
             return result;
+        }
+
+        private void DecryptProject(Project result)
+        {
+            result.Title = _encryptionService.DecryptStringAsync(result.Title);
+            result.Description = _encryptionService.DecryptStringAsync(result.Description);
+            result.Category = _encryptionService.DecryptStringAsync(result.Category);
         }
 
         /// <summary>
@@ -101,7 +121,7 @@
             project.Description = _encryptionService.EncryptStringAsync(project.Description);
             project.Category = _encryptionService.EncryptStringAsync(project.Category);
 
-            var currentUser = _applicationIdentityService.GetCurrentUser();
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new ArgumentNullException(nameof(currentUser)); // we fail on no current user
 
             // Ensure the creating user has Owner permissions to be able to grant access to other users

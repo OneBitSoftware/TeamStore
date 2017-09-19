@@ -48,7 +48,7 @@
             }
 
             // Set the items colletion from the context
-            if (_httpContext.Items.Count > 0)
+            if (_httpContext.Items != null && itemsCollection == null)
             {
                 _itemsCollection = _httpContext.Items;
             }
@@ -58,26 +58,35 @@
             }
         }
 
-        public ApplicationUser GetCurrentUser()
+        public async Task<ApplicationUser> GetCurrentUser()
         {
             if (_httpContext == null) return null;
             if (_itemsCollection == null) return null;
-            if (_itemsCollection.ContainsKey(CURRENTUSERKEY) == false) return null;
+            //if (_itemsCollection.ContainsKey(CURRENTUSERKEY) == false) return null;
 
             // 1. Check context Item for Application User
             var applicationUser = _itemsCollection[CURRENTUSERKEY] as ApplicationUser;
             if (applicationUser != null) return applicationUser;
 
             // 2. return from HttpContext.User if the context item collection does not have it
-            return GetCurrentUser(_httpContext.User?.Identity);
+            return await GetCurrentUser(_httpContext.User?.Identity);
         }
 
-        public ApplicationUser GetCurrentUser(IIdentity identity)
+        public async Task<ApplicationUser> GetCurrentUser(IIdentity identity)
         {
             if (identity == null) return null;
             if (identity.IsAuthenticated == false) return null; // not authenticated, so we shouldn't build an object
 
-            var currentApplicationUser = UserIdentityFactory.CreateApplicationUserFromAzureIdentity(identity as ClaimsIdentity);
+            var existingUser = await GetUserAsync(identity as ClaimsIdentity);
+            ApplicationUser currentApplicationUser;
+            if (existingUser != null)
+            {
+                currentApplicationUser = existingUser;
+            }
+            else
+            {
+                currentApplicationUser = UserIdentityFactory.CreateNewApplicationUserFromAzureIdentity(identity as ClaimsIdentity);
+            }
 
             // Update the HttpContext requet object if it is not set. On the next Get it will get it from the context.
             if (_itemsCollection[CURRENTUSERKEY] != null && _itemsCollection[CURRENTUSERKEY] as ApplicationUser != currentApplicationUser)

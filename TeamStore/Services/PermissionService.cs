@@ -161,7 +161,22 @@
             if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             var project = await projectsService.GetProject(projectId, true);
 
-            return CurrentUserHasAccess(project, projectsService, role);
+            return await CurrentUserHasAccess(project, projectsService, role);
+        }
+
+        /// <summary>
+        /// Checks if the current ApplicationUser has the passed role access to the specified project 
+        /// </summary>
+        /// <param name="projectId">The Id of the project to check for access</param>
+        /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
+        /// <returns>A Task of bool, True if the current user has the role access to the specified project</returns>
+        public async Task<bool> CurrentUserHasAccessAsync(int projectId, IProjectsService projectsService)
+        {
+            // Get/find the project
+            if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
+            var project = await projectsService.GetProject(projectId, true);
+
+            return await CurrentUserHasAccess(project, projectsService);
         }
 
         /// <summary>
@@ -171,18 +186,42 @@
         /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
         /// <param name="role">The role/level of access to check</param>
         /// <returns>True if the current user has the role access to the specified project</returns>
-        public bool CurrentUserHasAccess(Project project, IProjectsService projectsService, string role)
+        public async Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService, string role)
         {
             // Get/find the project
             if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
             if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
-            var currentUser = _applicationIdentityService.GetCurrentUser();
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new ArgumentNullException(nameof(currentUser));
             if (project == null) throw new ArgumentNullException(nameof(project));
 
             var accessList = project.AccessIdentifiers.Where(ai =>
                 ai.Project == project &&
                 ai.Role == role &&
+                ai.Identity == currentUser);
+
+            if (accessList.Count() > 0)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the current ApplicationUser has any access to the specified project 
+        /// </summary>
+        /// <param name="project">The instance of the project to check for access</param>
+        /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
+        /// <returns>True if the current user has the role access to the specified project</returns>
+        public async Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService)
+        {
+            // Get/find the project
+            if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new ArgumentNullException(nameof(currentUser));
+            if (project == null) throw new ArgumentNullException(nameof(project));
+
+            var accessList = project.AccessIdentifiers.Where(ai =>
+                ai.Project == project &&
                 ai.Identity == currentUser);
 
             if (accessList.Count() > 0)

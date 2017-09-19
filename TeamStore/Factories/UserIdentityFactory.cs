@@ -9,7 +9,7 @@
 
     public static class UserIdentityFactory
     {
-        public static ApplicationUser CreateApplicationUserFromAzureIdentity(ClaimsIdentity identity)
+        public static ApplicationUser CreateNewApplicationUserFromAzureIdentity(ClaimsIdentity identity)
         {
             var newUser = new ApplicationUser();
             newUser.DisplayName = GetClaimValue("name", identity.Claims);

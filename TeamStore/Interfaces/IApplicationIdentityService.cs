@@ -7,9 +7,8 @@
 
     public interface IApplicationIdentityService
     {
-        ApplicationUser GetCurrentUser();
-        ApplicationUser GetCurrentUser(IIdentity identity);
-
+        Task<ApplicationUser> GetCurrentUser();
+        Task<ApplicationUser> GetCurrentUser(IIdentity identity);
         Task<ApplicationUser> GetUserAsync(ClaimsIdentity identity);
         Task<ApplicationUser> GetUserAsync(string azureAdObjectIdentifier);
         Task<ApplicationUser> EnsureUserAsync(string azureAdObjectIdentifier);

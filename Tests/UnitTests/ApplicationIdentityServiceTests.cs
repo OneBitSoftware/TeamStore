@@ -70,7 +70,7 @@
         }
 
         [Fact]
-        public void GetCurrentUser_UnauthenticatedIdentityShouldReturnNull()
+        public async void GetCurrentUser_UnauthenticatedIdentityShouldReturnNull()
         {
             // Arrange
             ApplicationUser nullUser;
@@ -78,28 +78,28 @@
             _testHttpContext.Items[ApplicationIdentityService.CURRENTUSERKEY] = null; // need to clear singleton context
 
             // Act
-            nullUser = applicationIdentityService.GetCurrentUser();
+            nullUser = await applicationIdentityService.GetCurrentUser();
 
             // Assert
             Assert.Null(nullUser);
         }
 
         [Fact]
-        public void GetCurrentUser_NullIdentityShouldReturnNull()
+        public async void GetCurrentUser_NullIdentityShouldReturnNull()
         {
             // Arrange
             ApplicationUser nullUser;
             ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, new HttpContextAccessor());
 
             // Act
-            nullUser = applicationIdentityService.GetCurrentUser(null);
+            nullUser = await applicationIdentityService.GetCurrentUser(null);
 
             // Assert
             Assert.Null(nullUser);
         }
 
         [Fact]
-        public void GetCurrentUser_ShouldReturnUser()
+        public async void GetCurrentUser_ShouldReturnUser()
         {
             // Arrange
             var newApplicationUser = new ApplicationUser();
@@ -114,7 +114,7 @@
             ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor);
 
             // Act
-            returnedUser = applicationIdentityService.GetCurrentUser();
+            returnedUser = await applicationIdentityService.GetCurrentUser();
 
             // Assert
             Assert.NotNull(returnedUser);
@@ -125,7 +125,7 @@
         }
 
         [Fact]
-        public void GetCurrentUser_ShouldReturnCorrectClaimsIdentity()
+        public async void GetCurrentUser_ShouldReturnCorrectClaimsIdentity()
         {
             // Arrange
             List<Claim> claimsList = new List<Claim>();
@@ -146,7 +146,7 @@
             ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor);
 
             // Act
-            ApplicationUser retrievedUser = applicationIdentityService.GetCurrentUser(mockContext.Object);
+            ApplicationUser retrievedUser = await applicationIdentityService.GetCurrentUser(mockContext.Object);
 
             // Assert
             Assert.NotNull(retrievedUser);

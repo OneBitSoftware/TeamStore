@@ -68,7 +68,7 @@ namespace TeamStore.Services
             ApplicationUser existingUser = await _applicationIdentityService.GetUserAsync(identity);
             if (existingUser == null)
             {
-                loginEvent.ActedByUser = UserIdentityFactory.CreateApplicationUserFromAzureIdentity(identity);
+                loginEvent.ActedByUser = UserIdentityFactory.CreateNewApplicationUserFromAzureIdentity(identity);
             }
             else
             {

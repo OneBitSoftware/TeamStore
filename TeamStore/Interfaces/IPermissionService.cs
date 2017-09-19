@@ -6,6 +6,14 @@
     public interface IPermissionService
     {
         /// <summary>
+        /// Checks if the current ApplicationUser has any access to the specified project 
+        /// </summary>
+        /// <param name="projectId">The Id of the project to check for access</param>
+        /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
+        /// <returns>A Task of bool, True if the current user has the role access to the specified project</returns>
+        Task<bool> CurrentUserHasAccessAsync(int projectId, IProjectsService projectsService);
+
+        /// <summary>
         /// Checks if the current ApplicationUser has the passed role access to the specified project 
         /// </summary>
         /// <param name="projectId">The Id of the project to check for access</param>
@@ -15,13 +23,21 @@
         Task<bool> CurrentUserHasAccessAsync(int projectId, IProjectsService projectsService, string role);
 
         /// <summary>
+        /// Checks if the current ApplicationUser has any access to the specified project 
+        /// </summary>
+        /// <param name="project">The instance of the project to check for access</param>
+        /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
+        /// <returns>True if the current user has the role access to the specified project</returns>
+        Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService);
+
+        /// <summary>
         /// Checks if the current ApplicationUser has the passed role access to the specified project 
         /// </summary>
         /// <param name="project">The instance of the project to check for access</param>
         /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
         /// <param name="role">The role/level of access to check</param>
         /// <returns>True if the current user has the role access to the specified project</returns>
-        bool CurrentUserHasAccess(Project project, IProjectsService projectsService, string role);
+        Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService, string role);
 
         /// <summary>
         /// Grants access to a project

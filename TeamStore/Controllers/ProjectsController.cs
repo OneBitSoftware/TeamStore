@@ -204,7 +204,7 @@
                 project.Id,
                 shareProjectViewModel.ShareDetails,
                 "Edit",
-                _applicationIdentityService.GetCurrentUser(),
+                await _applicationIdentityService.GetCurrentUser(),
                 HttpContext.Connection.RemoteIpAddress.ToString(),
                 _projectsService);
 
