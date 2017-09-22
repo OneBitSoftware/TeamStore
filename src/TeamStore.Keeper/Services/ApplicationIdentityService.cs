@@ -175,7 +175,7 @@
             }
             //throw new NotImplementedException();
 
-            //return existingUser;
+            return existingUser;
         }
     }
 }
