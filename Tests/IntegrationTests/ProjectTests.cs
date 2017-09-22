@@ -76,13 +76,8 @@ namespace IntegrationTests
         {
             // Arrange
             _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, _testUser);
-            string testTitle = "Project 1234 Access Test";
-            string testDescription = "Created during integration tests";
-            string testCategory = "Access Tests";
-            Project newDecryptedProject = new Project();
-            newDecryptedProject.Title = testTitle;
-            newDecryptedProject.Description = testDescription;
-            newDecryptedProject.Category = testCategory;
+
+            var newDecryptedProject = CreateTestProject();
 
             AccessIdentifier accessIdentifier1 = new AccessIdentifier();
             accessIdentifier1.Role = "Test";
@@ -129,6 +124,26 @@ namespace IntegrationTests
             await _projectsService.ArchiveProject(retrievedProject);
             var archivedProject = await _projectsService.GetProject(createdProjectId);
             Assert.Null(archivedProject);
+        }
+
+        [Fact]
+        public async void GetProjects_ShouldGiveProjectsWithRightAccess()
+        {
+            var newDecryptedProject = CreateTestProject();
+
+        }
+
+        private Project CreateTestProject()
+        {
+            string testTitle = "Project 1234 Access Test";
+            string testDescription = "Created during integration tests";
+            string testCategory = "Access Tests";
+            Project newDecryptedProject = new Project();
+            newDecryptedProject.Title = testTitle;
+            newDecryptedProject.Description = testDescription;
+            newDecryptedProject.Category = testCategory;
+
+            return newDecryptedProject;
         }
     }
 }

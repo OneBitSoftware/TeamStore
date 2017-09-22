@@ -173,7 +173,7 @@
                     AzureAdObjectIdentifier = azureAdObjectIdentifier
                 };
             }
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
 
             //return existingUser;
         }
