@@ -19,8 +19,8 @@ To run/test/debug the project, various dependencies need to be set up:
 To create/update the local database, run the following from the [ProjectRoot]\TeamStore folder:
 
 1. Build the project
-2. dotnet ef database update - creates the DB and applies the last migration
-3. dotnet ef migrations add [MigrationName666]
+2. dotnet ef database update - creates the DB and applies the last migration. You should be ready to go.
+3. dotnet ef migrations add [MigrationName666] - this is used when the Models need updating.
 
 NOTE: if you have issues, delete "data.db" in the project root to start over. EF Migrations will recreate it.
 
@@ -35,8 +35,8 @@ Manage secrets with these commands:
 
 ## Data Protection API Key - Database Encryption
 
-ASP.NET Core authentication and cookies use it's normal key DP API. We use a seperate key for DB encryption before writing to the DB. 
-This key must be managed securely.
+ASP.NET Core authentication and cookies use it's normal key DP API. We use a seperate key for DB encryption before writing to the DB and leave ASP.NET to deal with cookies. 
+This DB key must be managed securely.
 
 This key is stored in the [ProjectRoot]\Keys folder.
 
@@ -45,6 +45,19 @@ commentiing out the following:
 * options.DisableAutomaticKeyGeneration(); from EncryptionService.cs, line 19
 * copy the key from the IntegrationTests\Keys folder to the TeamStore\Keys folder (in the web application)
 
+OR you can copy the one from the UnitTests / IntegrationTests folder for dev purposes.
+
 I haven't figured out a CLI way to generate the keys yet.
 
 ## Azure AD Setup
+
+Everything is configured to currently run in my dev Azure AD instance. The application is set up with the return URL's and Key. 
+
+The Azure AD tenant details and client ID are in the appsettings.json file. You can register your own Azure AD Application and change them to yours if you wish. The Graph API secret will also need updating.
+
+
+## Test projects
+Integration Tests create/read data against a real database - testdatabase.db in the IntegrationTests folder. It will be created with .EnsureCreated during test run. 
+It will not be deleted.
+
+Unit Tests use the EFCore In-memory database provider.
