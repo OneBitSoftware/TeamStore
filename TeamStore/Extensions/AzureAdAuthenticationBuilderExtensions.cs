@@ -33,13 +33,20 @@ namespace Microsoft.AspNetCore.Authentication
                     OnTokenValidated = async context =>
                     {
                         var claimIdentity = (ClaimsIdentity)context.Principal.Identity;
-
+                        var claimsPrincipal = context.Principal.Identity;
+                        
                         // Store login event
                         var eventService = context.HttpContext.RequestServices.GetService<IEventService>();
 
                         if (eventService == null) throw new Exception("EventService not found. Terminating.");
 
-                        await eventService.StoreLoginEventAsync(claimIdentity);
+                        string accessIpAddress = string.Empty;
+                        if (context.HttpContext != null)
+                        {
+                            accessIpAddress = context.HttpContext.Connection.RemoteIpAddress.ToString();
+                        }
+
+                        await eventService.StoreLoginEventAsync(claimIdentity, accessIpAddress);
                     }
                     ,
                     OnAuthorizationCodeReceived = async context =>
@@ -48,7 +55,8 @@ namespace Microsoft.AspNetCore.Authentication
                         var graphService = context.HttpContext.RequestServices.GetService<IGraphService>();
 
                         var code = context.ProtocolMessage.Code;
-                        // Can't find the object identifier enum
+                        // Can't find the object identifier enum, using string
+                        // TODO null check here!
                         var identifier = context.Principal.Claims.First(item => item.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
 
                         var redirectHost = context.Request.Scheme + "://" + context.Request.Host.Value;

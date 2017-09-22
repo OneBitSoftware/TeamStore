@@ -1,28 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using TeamStore.DataAccess;
-using TeamStore.Models;
-
-namespace TeamStore.Controllers
+﻿namespace TeamStore.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Rendering;
+    using Microsoft.EntityFrameworkCore;
+    using TeamStore.DataAccess;
+    using TeamStore.Models;
+    using TeamStore.Interfaces;
+    using TeamStore.ViewModels;
+    using TeamStore.Factories;
+
     public class ProjectsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        //private readonly ApplicationDbContext _context; // TODO: remove DB Context and use Services
+        private readonly IPermissionService _permissionService;
+        private readonly IProjectsService _projectsService;
+        private readonly IGraphService _graphService;
+        private readonly IApplicationIdentityService _applicationIdentityService;
 
-        public ProjectsController(ApplicationDbContext context)
+        public ProjectsController(
+            //ApplicationDbContext context,
+            IPermissionService permissionService,
+            IProjectsService projectsService,
+            IGraphService graphService,
+            IApplicationIdentityService applicationIdentityService
+            )
         {
-            _context = context;
+            //_context = context ?? throw new ArgumentNullException(nameof(context));
+            _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
+            _projectsService = projectsService ?? throw new ArgumentNullException(nameof(projectsService));
+            _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
+            _applicationIdentityService = applicationIdentityService ?? throw new ArgumentNullException(nameof(applicationIdentityService));
         }
 
         // GET: Projects
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Projects.ToListAsync());
+            // TODO: return ProjectViewModel not DB Project
+            return View(await _projectsService.GetProjects());
         }
 
         // GET: Projects/Details/5
@@ -33,14 +51,18 @@ namespace TeamStore.Controllers
                 return NotFound();
             }
 
-            var project = await _context.Projects
-                .SingleOrDefaultAsync(m => m.Id == id);
+            var project = await _projectsService.GetProject(id.Value);
+
             if (project == null)
             {
                 return NotFound();
             }
 
-            return View(project);
+            //var s = await _graphService.GetGroups("", HttpContext.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value);
+
+            var projectViewModel = ProjectFactory.Convert(project);
+
+            return View(projectViewModel);
         }
 
         // GET: Projects/CreateCredential
@@ -65,8 +87,8 @@ namespace TeamStore.Controllers
             {
                 try
                 {
-                    _context.Update(project);
-                    await _context.SaveChangesAsync();
+                    //_context.Update(project);
+                    //await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -106,8 +128,8 @@ namespace TeamStore.Controllers
             {
                 try
                 {
-                    _context.Update(project);
-                    await _context.SaveChangesAsync();
+                    //_context.Update(project);
+                    //await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -140,11 +162,53 @@ namespace TeamStore.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(project);
-                await _context.SaveChangesAsync();
+                await _projectsService.CreateProject(project);
                 return RedirectToAction(nameof(Index));
             }
             return View(project);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Share(int id)
+        {
+            var project = await _projectsService.GetProject(id);
+
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            if (await _permissionService.CurrentUserHasAccessAsync(id, _projectsService, "Edit") == false) return Forbid();
+
+            var shareProjectViewModel = ProjectFactory.ConvertForShare(project);
+
+            return View(shareProjectViewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ShareProject(ShareProjectViewModel shareProjectViewModel)
+        {
+            // check if current user has access to the project
+            var project = await _projectsService.GetProject(shareProjectViewModel.ProjectId);
+
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            if (await _permissionService.CurrentUserHasAccessAsync(shareProjectViewModel.ProjectId, _projectsService, "Edit") == false) return Forbid();
+
+            // Build user
+            var remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress.ToString();
+            await _permissionService.GrantAccessAsync(
+                project.Id,
+                shareProjectViewModel.ShareDetails,
+                "Edit",
+                await _applicationIdentityService.GetCurrentUser(),
+                HttpContext.Connection.RemoteIpAddress.ToString(),
+                _projectsService);
+
+            return View();
         }
 
         // GET: Projects/Edit/5
@@ -155,7 +219,7 @@ namespace TeamStore.Controllers
                 return NotFound();
             }
 
-            var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == id);
+            var project = await _projectsService.GetProject(id.Value);
             if (project == null)
             {
                 return NotFound();
@@ -179,8 +243,8 @@ namespace TeamStore.Controllers
             {
                 try
                 {
-                    _context.Update(project);
-                    await _context.SaveChangesAsync();
+                    //_context.Update(project);
+                    //await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -206,8 +270,7 @@ namespace TeamStore.Controllers
                 return NotFound();
             }
 
-            var project = await _context.Projects
-                .SingleOrDefaultAsync(m => m.Id == id);
+            var project = await _projectsService.GetProject(id.Value);
             if (project == null)
             {
                 return NotFound();
@@ -221,15 +284,17 @@ namespace TeamStore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == id);
-            _context.Projects.Remove(project);
-            await _context.SaveChangesAsync();
+            //var project = await _context.Projects.SingleOrDefaultAsync(m => m.Id == id);
+            //_context.Projects.Remove(project);
+            //await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ProjectExists(int id)
         {
-            return _context.Projects.Any(e => e.Id == id);
+            var retrievedProject = _projectsService.GetProject(id);
+            if (retrievedProject != null) return true;
+            return false;
         }
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamStore.Models;
 
 namespace TeamStore.Interfaces
 {
@@ -15,5 +16,11 @@ namespace TeamStore.Interfaces
         GraphServiceClient GetAuthenticatedClient(string userId);
 
         Task<AuthenticationResult> GetTokenByAuthorizationCodeAsync(string userId, string code, string redirectHost);
+
+        Task<List<ApplicationGroup>> GetGroups(string prefix, string userObjectId);
+
+        Task<ApplicationGroup> GetGroup(string groupObjectIdentifier, string userObjectId);
+
+        Task<List<ApplicationGroup>> GetGroupMembershipForUser(string userId);
     }
 }

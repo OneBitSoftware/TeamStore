@@ -1,16 +1,17 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Graph;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using TeamStore.Interfaces;
-
-namespace TeamStore.Services
+﻿namespace TeamStore.Services
 {
+    using Microsoft.Extensions.Caching.Memory;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Graph;
+    using Microsoft.IdentityModel.Clients.ActiveDirectory;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Http.Headers;
+    using System.Threading.Tasks;
+    using TeamStore.Interfaces;
+    using TeamStore.Models;
+
     public class GraphService : IGraphService
     {
         private readonly IMemoryCache _memoryCache;
@@ -62,6 +63,11 @@ namespace TeamStore.Services
         {
             TokenCache userTokenCache = new SessionCacheService(userId, _memoryCache).GetCacheInstance();
 
+            // TODO: extract and DRY
+            if (!_aadInstance.Last().Equals('/'))
+                _aadInstance = _aadInstance + "/";
+
+            _aadInstance = _aadInstance + _tenantId;
             try
             {
                 AuthenticationContext authContext = new AuthenticationContext(_aadInstance, userTokenCache);
@@ -73,8 +79,9 @@ namespace TeamStore.Services
 
                 return result.AccessToken;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                // TODO: log ex
                 return null;
             }
         }
@@ -85,7 +92,7 @@ namespace TeamStore.Services
         {
             TokenCache userTokenCache = new SessionCacheService(userId, _memoryCache).GetCacheInstance();
 
-            if (!_aadInstance.Last().Equals('/'))
+            if (!_aadInstance.Last().Equals('/')) // TODO: extract and DRY
                 _aadInstance = _aadInstance + "/";
 
             _aadInstance = _aadInstance + _tenantId;
@@ -104,8 +111,92 @@ namespace TeamStore.Services
             }
             catch (Exception ex)
             {
+                // TODO: log ex
                 return null;
             }
         }
+
+        public async Task<List<ApplicationGroup>> GetGroups(string prefix, string userObjectId)
+        {
+            var graphClient = GetAuthenticatedClient(userObjectId);
+
+            List<ApplicationGroup> items = new List<ApplicationGroup>();
+
+            // Get groups.
+            IGraphServiceGroupsCollectionPage groups = await graphClient.Groups.Request().GetAsync();
+
+            if (groups?.Count > 0)
+            {
+                foreach (Group group in groups)
+                {
+                    items.Add(new ApplicationGroup
+                    {
+                        DisplayName = group.DisplayName,
+                        AzureAdObjectIdentifier = group.Id
+                    });
+                }
+            }
+
+            return items;
+        }
+
+        public async Task<ApplicationGroup> GetGroup(string azureAdObjectId, string userObjectId)
+        {
+            var graphClient = GetAuthenticatedClient(userObjectId);
+
+            List<ApplicationGroup> items = new List<ApplicationGroup>();
+
+            // Get groups by ID - TODO
+            IGraphServiceGroupsCollectionPage groups = await graphClient.Groups.Request().GetAsync();
+
+            if (groups?.Count > 0)
+            {
+                foreach (Group group in groups)
+                {
+                    items.Add(new ApplicationGroup
+                    {
+                        DisplayName = group.DisplayName,
+                        AzureAdObjectIdentifier = group.Id
+                    });
+                }
+            }
+
+            return items.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Gets the groups for which a given user is a member of
+        /// </summary>
+        /// <param name="userId">The Id of the User to check</param>
+        /// <returns>A Task of ApplicationGroup items</returns>
+        public async Task<List<ApplicationGroup>> GetGroupMembershipForUser(string userId)
+        {
+            List<ApplicationGroup> items = new List<ApplicationGroup>();
+            var graphClient = GetAuthenticatedClient(userId);
+
+            // Get groups the current user is a direct member of.
+            IUserMemberOfCollectionWithReferencesPage memberOfGroups = await graphClient.Me.MemberOf.Request().GetAsync();
+
+            if (memberOfGroups?.Count > 0)
+            {
+                foreach (var directoryObject in memberOfGroups)
+                {
+
+                    // We only want groups, so ignore DirectoryRole objects.
+                    if (directoryObject is Group)
+                    {
+                        Group group = directoryObject as Group;
+                        items.Add(new ApplicationGroup
+                        {
+                            DisplayName = group.DisplayName,
+                            AzureAdObjectIdentifier = group.Id
+                        });
+                    }
+
+                }
+            }
+            return items;
+        }
+
     }
 }

@@ -1,13 +1,20 @@
 ﻿namespace TeamStore.Models
 {
-    using System;
-
-    public class ApplicationUser
+    public class ApplicationUser : ApplicationIdentity
     {
-        public int Id { get; set; }
+        /// <summary>
+        /// The claim value given by the "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn" claim
+        /// </summary>
         public string Upn { get; set; }
-        public Guid AzureAdObjectIdentifier { get; set; }
+
+        /// <summary>
+        /// The claim value given by the "http://schemas.microsoft.com/identity/claims/nameidentifier" claim
+        /// </summary>
         public string AzureAdNameIdentifier { get; set; }
-        public Guid TenantId { get; set; }
+
+        /// <summary>
+        /// The claim value given by the "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name" claim
+        /// </summary>
+        public string AzureAdName { get; set; }
     }
 }

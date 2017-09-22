@@ -1,0 +1,19 @@
+﻿{
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "Domain": "",
+    "TenantId": "",
+    "ClientId": "",
+    "CallbackPath": "/signin-oidc",
+    "GraphResourceId": "https://graph.microsoft.com/"
+  },
+  "DataAccess": {
+    "SQLiteDbFileName": "testdata.db"
+  },
+  "Logging": {
+    "IncludeScopes": false,
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  }
+}
