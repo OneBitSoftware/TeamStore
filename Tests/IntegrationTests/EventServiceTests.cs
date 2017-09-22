@@ -3,8 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Text;
-    using TeamStore.Interfaces;
-    using TeamStore.Services;
+    using TeamStore.Keeper.Services;
 
     public class EventServiceTests : IntegrationTestBase
     {

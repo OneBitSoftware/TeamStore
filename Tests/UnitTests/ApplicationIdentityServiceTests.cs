@@ -9,10 +9,10 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Security.Claims;
-    using TeamStore.DataAccess;
-    using TeamStore.Interfaces;
-    using TeamStore.Models;
-    using TeamStore.Services;
+    using TeamStore.Keeper.DataAccess;
+    using TeamStore.Keeper.Interfaces;
+    using TeamStore.Keeper.Models;
+    using TeamStore.Keeper.Services;
     using Xunit;
 
     public class ApplicationIdentityServiceTests
@@ -41,7 +41,7 @@
             SetApplicationUser();
         }
 
-        /// <summary>
+        /// <summary>Microsoft.EntityFrameworkCore.InMemory
         /// Reads testsettings.json and builds out the configuration
         /// </summary>
         private void BuildTestConfiguration()

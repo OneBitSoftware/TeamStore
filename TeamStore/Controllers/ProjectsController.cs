@@ -7,29 +7,25 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.EntityFrameworkCore;
-    using TeamStore.DataAccess;
-    using TeamStore.Models;
-    using TeamStore.Interfaces;
     using TeamStore.ViewModels;
     using TeamStore.Factories;
+    using TeamStore.Keeper.Interfaces;
+    using TeamStore.Keeper.Models;
 
     public class ProjectsController : Controller
     {
-        //private readonly ApplicationDbContext _context; // TODO: remove DB Context and use Services
         private readonly IPermissionService _permissionService;
         private readonly IProjectsService _projectsService;
         private readonly IGraphService _graphService;
         private readonly IApplicationIdentityService _applicationIdentityService;
 
         public ProjectsController(
-            //ApplicationDbContext context,
             IPermissionService permissionService,
             IProjectsService projectsService,
             IGraphService graphService,
             IApplicationIdentityService applicationIdentityService
             )
         {
-            //_context = context ?? throw new ArgumentNullException(nameof(context));
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _projectsService = projectsService ?? throw new ArgumentNullException(nameof(projectsService));
             _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
@@ -57,8 +53,6 @@
             {
                 return NotFound();
             }
-
-            //var s = await _graphService.GetGroups("", HttpContext.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value);
 
             var projectViewModel = ProjectFactory.Convert(project);
 

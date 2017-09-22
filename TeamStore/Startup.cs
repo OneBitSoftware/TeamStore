@@ -10,12 +10,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using TeamStore.DataAccess;
 using Microsoft.EntityFrameworkCore;
-using TeamStore.Interfaces;
-using TeamStore.Services;
 using System.IO;
 using Microsoft.AspNetCore.DataProtection;
+using TeamStore.Keeper.Interfaces;
+using TeamStore.Keeper.Services;
+using TeamStore.Keeper.DataAccess;
 
 namespace TeamStore
 {
@@ -32,13 +32,12 @@ namespace TeamStore
         public void ConfigureServices(IServiceCollection services)
         {
             var fileName = Configuration["DataAccess:SQLiteDbFileName"];
-
             var connectionString = "Data Source=" + fileName;
 
             // Set up the DbContext for data access
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlite(connectionString);
+                options.UseSqlite(connectionString, b => b.MigrationsAssembly("TeamStore.Keeper"));
             });
 
             // We use Session and In-memory cache for token storage
@@ -68,13 +67,6 @@ namespace TeamStore
 
             // Set up MVC
             services.AddMvc();
-
-            // Looks up the key in the Keys folder. Will fail if it can't find it.
-            //services.AddDataProtection()
-            //    .DisableAutomaticKeyGeneration()
-            //    .SetDefaultKeyLifetime(new TimeSpan(1230000, 12, 12))
-            //    .SetApplicationName("TeamStore-UnitTests")
-            //    .PersistKeysToFileSystem(new DirectoryInfo(Environment.CurrentDirectory + "\\Keys"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -4,8 +4,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    using TeamStore.Models;
-    using TeamStore.Services;
+    using TeamStore.Keeper.Models;
+    using TeamStore.Keeper.Services;
     using Xunit;
 
     public class PermissionTests : IntegrationTestBase

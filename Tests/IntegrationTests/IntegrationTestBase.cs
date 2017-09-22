@@ -7,10 +7,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using TeamStore.DataAccess;
-using TeamStore.Interfaces;
-using TeamStore.Models;
-using TeamStore.Services;
+using TeamStore.Keeper.DataAccess;
+using TeamStore.Keeper.Interfaces;
+using TeamStore.Keeper.Models;
+using TeamStore.Keeper.Services;
 
 namespace IntegrationTests
 {
@@ -49,7 +49,6 @@ namespace IntegrationTests
             _eventService = new EventService(_dbContext, _applicationIdentityService);
             _permissionService = new PermissionService(_dbContext, _graphService, _eventService, _applicationIdentityService);
             _projectsService = new ProjectsService(_dbContext, _encryptionService, _applicationIdentityService, _permissionService);
-
 
             _testUser = _applicationIdentityService.FindUserAsync("TestAdObjectId11234567890").Result;
             if (_testUser == null)
