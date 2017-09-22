@@ -1,7 +1,7 @@
 ﻿namespace TeamStore.ViewModels
 {
     using System.Collections.Generic;
-    using TeamStore.Models;
+    using TeamStore.Keeper.Models;
 
     public class HomeViewModel
     {

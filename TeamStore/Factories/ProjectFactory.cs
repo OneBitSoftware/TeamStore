@@ -1,6 +1,6 @@
 ﻿namespace TeamStore.Factories
 {
-    using TeamStore.Models;
+    using TeamStore.Keeper.Models;
     using TeamStore.ViewModels;
 
     public static class ProjectFactory

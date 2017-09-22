@@ -13,6 +13,7 @@ To run/test/debug the project, various dependencies need to be set up:
 * https://onebit-teamstore.azurewebsites.net/signin-oidc
 4. The ASP.NET Core Data Protection API needs a valid key created (which doesn't expire soon)
 5. You need the App to be configured with permissions to an Azure AD Tenant.
+6. You need the .NET Core 2 SDK.
 
 ## Database Setup
 

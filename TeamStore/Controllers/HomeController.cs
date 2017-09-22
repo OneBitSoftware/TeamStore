@@ -5,11 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TeamStore.Models;
 using System.Security.Claims;
 using TeamStore.ViewModels;
-using TeamStore.Services;
-using TeamStore.Interfaces;
+using TeamStore.Keeper.Interfaces;
 
 namespace TeamStore.Controllers
 {

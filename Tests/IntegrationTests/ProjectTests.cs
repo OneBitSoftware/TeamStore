@@ -9,10 +9,8 @@ namespace IntegrationTests
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using TeamStore.DataAccess;
-    using TeamStore.Interfaces;
-    using TeamStore.Models;
-    using TeamStore.Services;
+    using TeamStore.Keeper.Models;
+    using TeamStore.Keeper.Services;
     using Xunit;
 
     public class ProjectTests : IntegrationTestBase

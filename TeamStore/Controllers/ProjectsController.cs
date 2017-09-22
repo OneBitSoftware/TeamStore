@@ -7,11 +7,10 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.EntityFrameworkCore;
-    using TeamStore.DataAccess;
-    using TeamStore.Models;
-    using TeamStore.Interfaces;
     using TeamStore.ViewModels;
     using TeamStore.Factories;
+    using TeamStore.Keeper.Interfaces;
+    using TeamStore.Keeper.Models;
 
     public class ProjectsController : Controller
     {

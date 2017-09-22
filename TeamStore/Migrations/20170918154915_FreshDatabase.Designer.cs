@@ -7,8 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using System;
-using TeamStore.DataAccess;
-using TeamStore.Enums;
+using TeamStore.Keeper.DataAccess;
 
 namespace TeamStore.Migrations
 {

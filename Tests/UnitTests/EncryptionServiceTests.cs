@@ -4,8 +4,8 @@ namespace UnitTests
     using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.IO;
-    using TeamStore.Interfaces;
-    using TeamStore.Services;
+    using TeamStore.Keeper.Interfaces;
+    using TeamStore.Keeper.Services;
     using Xunit;
 
     public class EncryptionServiceTests
