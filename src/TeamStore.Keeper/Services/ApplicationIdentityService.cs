@@ -25,6 +25,7 @@
         private ApplicationDbContext _dbContext;
         private HttpContext _httpContext;
         private IDictionary<object, object> _itemsCollection;
+        private IGraphService _graphService; 
 
         /// <summary>
         /// Constructor for the ApplicationIdentityService
@@ -34,11 +35,13 @@
         /// <param name="itemsCollection">An items collection override to retrieve per-request instantiated users</param>
         public ApplicationIdentityService(
             ApplicationDbContext context,
+            IGraphService graphService,
             IHttpContextAccessor httpContextAccessor,
             IDictionary<object, object> itemsCollection = null
             )
         {
             _dbContext = context ?? throw new ArgumentNullException(nameof(context));
+            _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
 
             // we depend on an HttpContext
             _httpContext = httpContextAccessor?.HttpContext ?? throw new ArgumentNullException(nameof(_httpContext));
@@ -65,7 +68,7 @@
             //if (_itemsCollection.ContainsKey(CURRENTUSERKEY) == false) return null;
 
             // 1. Check context Item for Application User
-            var applicationUser = _itemsCollection[CURRENTUSERKEY] as ApplicationUser;
+            var applicationUser = _itemsCollection[CURRENTUSERKEY] as ApplicationUser; // TODO: will throw!
             if (applicationUser != null) return applicationUser;
 
             // 2. return from HttpContext.User if the context item collection does not have it
@@ -167,11 +170,20 @@
             }
             else
             {
+                var currentUser = await GetCurrentUser();
                 // TODO: RESOLVE USER from Azure AD
-                existingUser = new ApplicationUser()
+                var resolvedUser = await _graphService.ResolveUserAsync(azureAdObjectIdentifier, currentUser.AzureAdObjectIdentifier);
+
+                if (resolvedUser == null)
                 {
-                    AzureAdObjectIdentifier = azureAdObjectIdentifier
-                };
+                    return null;// not sure if we should rather throw
+                }
+
+                existingUser = resolvedUser;
+                //existingUser = new ApplicationUser()
+                //{
+                //    AzureAdObjectIdentifier = azureAdObjectIdentifier
+                //};
             }
             //throw new NotImplementedException();
 

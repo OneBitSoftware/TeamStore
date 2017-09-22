@@ -95,7 +95,9 @@
             var result = await _dbContext.Projects.Where(p => 
                 p.Id == projectId && 
                 p.IsArchived == false &&
-                p.AccessIdentifiers.Any(ai=>ai.Identity.Id == currentUser.Id)).FirstOrDefaultAsync();
+                p.AccessIdentifiers.Any(ai=>ai.Identity.Id == currentUser.Id))
+                .Include(p => p.AccessIdentifiers)
+                .FirstOrDefaultAsync();
 
             if (result == null) return null;
 

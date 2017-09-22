@@ -172,7 +172,7 @@
                 return NotFound();
             }
 
-            if (await _permissionService.CurrentUserHasAccessAsync(id, _projectsService, "Edit") == false) return Forbid();
+            if (await _permissionService.CurrentUserHasAccessAsync(id, _projectsService, "Owner") == false) return Unauthorized();
 
             var shareProjectViewModel = ProjectFactory.ConvertForShare(project);
 
@@ -180,24 +180,24 @@
         }
 
         [HttpPost]
-        public async Task<IActionResult> ShareProject(ShareProjectViewModel shareProjectViewModel)
+        public async Task<IActionResult> Share(ShareProjectViewModel shareProjectViewModel, int id)
         {
             // check if current user has access to the project
-            var project = await _projectsService.GetProject(shareProjectViewModel.ProjectId);
+            var project = await _projectsService.GetProject(id);
 
             if (project == null)
             {
                 return NotFound();
             }
 
-            if (await _permissionService.CurrentUserHasAccessAsync(shareProjectViewModel.ProjectId, _projectsService, "Edit") == false) return Forbid();
+            if (await _permissionService.CurrentUserHasAccessAsync(id, _projectsService, "Owner") == false) return Unauthorized();
 
             // Build user
             var remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress.ToString();
             await _permissionService.GrantAccessAsync(
                 project.Id,
                 shareProjectViewModel.ShareDetails,
-                "Edit",
+                "Owner",
                 await _applicationIdentityService.GetCurrentUser(),
                 HttpContext.Connection.RemoteIpAddress.ToString(),
                 _projectsService);

@@ -9,25 +9,31 @@
     using System.Linq;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
+    using TeamStore.Keeper.Factories;
     using TeamStore.Keeper.Interfaces;
     using TeamStore.Keeper.Models;
 
+
+    // NOTE: This is copied from somewhere and is quite shit.
+    // Need to move userId around.
     public class GraphService : IGraphService
     {
         private readonly IMemoryCache _memoryCache;
+        private readonly IAccessTokenRetriever _tokenRetriever;
 
-        private string _aadInstance; 
-        private readonly string _appId; 
-        private readonly string _appSecret; 
-        private readonly string _tenantId; 
-        private readonly string _graphResourceId; 
+        private string _aadInstance;
+        private readonly string _appId;
+        private readonly string _appSecret;
+        private readonly string _tenantId;
+        private readonly string _graphResourceId;
         private readonly string _redirectUri;
 
         private GraphServiceClient _graphClient = null;
 
-        public GraphService(IMemoryCache memoryCache, IConfiguration configuration)
+        public GraphService(IMemoryCache memoryCache, IConfiguration configuration, IAccessTokenRetriever tokenRetriever)
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
+            _tokenRetriever = tokenRetriever ?? throw new ArgumentNullException(nameof(tokenRetriever));
             _redirectUri = configuration.GetValue<string>("AzureAd:CallbackPath");
             _aadInstance = configuration.GetValue<string>("AzureAd:Instance");
             _appId = configuration.GetValue<string>("AzureAd:ClientId");
@@ -48,42 +54,20 @@
                 async (requestMessage) =>
                 {
                     // Passing tenant ID to the sample auth provider to use as a cache key
-                    string accessToken = await GetUserAccessTokenAsync(userId);
+                    string accessToken = await _tokenRetriever.GetGraphAccessTokenAsync(
+                           userId,
+                           _aadInstance,
+                           _appId,
+                           _appSecret,
+                           _tenantId,
+                           _memoryCache,
+                           _graphResourceId);
 
                     // Append the access token to the request
                     requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 }));
 
             return _graphClient;
-        }
-
-        // Gets an access token. First tries to get the access token from the token cache.
-        // Using password (secret) to authenticate. Production apps should use a certificate.
-        public async Task<string> GetUserAccessTokenAsync(string userId)
-        {
-            TokenCache userTokenCache = new SessionCacheService(userId, _memoryCache).GetCacheInstance();
-
-            // TODO: extract and DRY
-            if (!_aadInstance.Last().Equals('/'))
-                _aadInstance = _aadInstance + "/";
-
-            _aadInstance = _aadInstance + _tenantId;
-            try
-            {
-                AuthenticationContext authContext = new AuthenticationContext(_aadInstance, userTokenCache);
-                ClientCredential credential = new ClientCredential(_appId, _appSecret);
-                AuthenticationResult result = await authContext.AcquireTokenSilentAsync(
-                    _graphResourceId,
-                    credential,
-                    new UserIdentifier(userId, UserIdentifierType.UniqueId));
-
-                return result.AccessToken;
-            }
-            catch (Exception ex)
-            {
-                // TODO: log ex
-                return null;
-            }
         }
 
         // Gets a token by Authorization Code.
@@ -198,5 +182,15 @@
             return items;
         }
 
+        public async Task<ApplicationUser> ResolveUserAsync(string azureAdObjectIdentifier, string currentUserId)
+        {
+            var graphClient = GetAuthenticatedClient(currentUserId);
+
+            var user = await graphClient.Users[currentUserId].Request().GetAsync();
+
+            var mappedUser = UserIdentityFactory.MapApplicationUser(user);
+
+            return mappedUser;
+        }
     }
 }

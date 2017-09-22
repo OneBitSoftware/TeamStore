@@ -1,9 +1,9 @@
 ﻿{
   "AzureAd": {
     "Instance": "https://login.microsoftonline.com/",
-    "Domain": "",
-    "TenantId": "",
-    "ClientId": "",
+    "Domain": "radialivecom.onmicrosoft.com",
+    "TenantId": "b0a60979-d5b1-4ed0-8f4d-d2a08559efce",
+    "ClientId": "6f4c436a-ea83-4ed8-9ae1-6bcbec8ebd14",
     "CallbackPath": "/signin-oidc",
     "GraphResourceId": "https://graph.microsoft.com/"
   },

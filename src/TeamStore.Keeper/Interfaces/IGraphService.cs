@@ -22,5 +22,7 @@ namespace TeamStore.Keeper.Interfaces
         Task<ApplicationGroup> GetGroup(string groupObjectIdentifier, string userObjectId);
 
         Task<List<ApplicationGroup>> GetGroupMembershipForUser(string userId);
+
+        Task<ApplicationUser> ResolveUserAsync(string azureAdObjectIdentifier, string currentUserId);
     }
 }

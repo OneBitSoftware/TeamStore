@@ -116,7 +116,7 @@
             if (string.IsNullOrWhiteSpace(azureAdObjectIdentifier)) throw new ArgumentNullException(nameof(azureAdObjectIdentifier));
             if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentNullException(nameof(remoteIpAddress));
             if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
-            if (projectId == 0) throw new ArgumentException("You must provide a valid project id.");
+            if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
             if (revokingUser == null) throw new ArgumentNullException(nameof(revokingUser));
            
             // Get/find the project
@@ -157,6 +157,7 @@
         public async Task<bool> CurrentUserHasAccessAsync(int projectId, IProjectsService projectsService, string role)
         {
             // Get/find the project
+            if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
             if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
             if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             var project = await projectsService.GetProject(projectId, true);
@@ -173,6 +174,7 @@
         public async Task<bool> CurrentUserHasAccessAsync(int projectId, IProjectsService projectsService)
         {
             // Get/find the project
+            if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
             if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
             var project = await projectsService.GetProject(projectId, true);
 

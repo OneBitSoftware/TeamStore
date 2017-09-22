@@ -15,6 +15,8 @@ To run/test/debug the project, various dependencies need to be set up:
 5. You need the App to be configured with permissions to an Azure AD Tenant.
 6. You need the .NET Core 2 SDK.
 
+* It is best to update Visual Studio
+
 ## Database Setup
 
 To create/update the local database, run the following from the [ProjectRoot]\TeamStore folder:
