@@ -37,7 +37,7 @@ namespace TeamStore
             // Set up the DbContext for data access
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlite(connectionString);
+                options.UseSqlite(connectionString, b => b.MigrationsAssembly("TeamStore.Keeper"));
             });
 
             // We use Session and In-memory cache for token storage

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace TeamStore.Migrations
+namespace TeamStore.Keeper.Migrations
 {
     public partial class FreshDatabase : Migration
     {
