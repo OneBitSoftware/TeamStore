@@ -65,7 +65,7 @@ namespace TeamStore.Services
             loginEvent.Type = Enums.EventType.Signin;
 
             // Get/Create user
-            ApplicationUser existingUser = await _applicationIdentityService.GetUserAsync(identity);
+            ApplicationUser existingUser = await _applicationIdentityService.FindUserAsync(identity);
             if (existingUser == null)
             {
                 loginEvent.ActedByUser = UserIdentityFactory.CreateNewApplicationUserFromAzureIdentity(identity);

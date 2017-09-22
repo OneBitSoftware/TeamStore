@@ -50,7 +50,7 @@ namespace IntegrationTests
             _projectsService = new ProjectsService(_dbContext, _encryptionService, _applicationIdentityService, _permissionService);
 
 
-            _testUser = _applicationIdentityService.GetUserAsync("TestAdObjectId11234567890").Result;
+            _testUser = _applicationIdentityService.FindUserAsync("TestAdObjectId11234567890").Result;
             if (_testUser == null)
             {
                 _testUser = new ApplicationUser()

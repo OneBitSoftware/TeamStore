@@ -164,7 +164,7 @@
             ApplicationIdentityService applicationIdentityService = 
                 new ApplicationIdentityService(_dbContext, _httpContextAccessor);
 
-            ApplicationUser retrievedUser = await applicationIdentityService.GetUserAsync("my unit test object id");
+            ApplicationUser retrievedUser = await applicationIdentityService.FindUserAsync("my unit test object id");
 
 
         }
