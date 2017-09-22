@@ -1,21 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-
-namespace TeamStore.Keeper
+﻿namespace TeamStore.Keeper
 {
     public class Program
     {
         public static void Main(string[] args)
         {
-
-
+            // This is left here so EntityFramework can interpret it as an executable library
+            // and do its migration/database stuff.
         }
     }
 }
