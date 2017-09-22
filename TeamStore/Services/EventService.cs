@@ -17,6 +17,11 @@ namespace TeamStore.Services
 
         private ApplicationDbContext _dbContext;
 
+        /// <summary>
+        /// Constructor for the EventService.
+        /// </summary>
+        /// <param name="context">A database ApplicationDbContext</param>
+        /// <param name="applicationIdentityService">An instance of ApplicationIdentityService to retrieve users.</param>
         public EventService(
             ApplicationDbContext context,
             IApplicationIdentityService applicationIdentityService)
@@ -25,6 +30,14 @@ namespace TeamStore.Services
             _applicationIdentityService = applicationIdentityService ?? throw new ArgumentNullException(nameof(applicationIdentityService));
         }
 
+        /// <summary>
+        /// Logs a Revoke Access event
+        /// </summary>
+        /// <param name="projectId">The Id of the project for which to revoke access.</param>
+        /// <param name="remoteIpAddress">The IP address of the originating request</param>
+        /// <param name="azureAdObjectIdentifier">The Azure AD Object Identifier</param>
+        /// <param name="revokingUser">The ApplicationUser performing the event</param>
+        /// <returns>A Task object</returns>
         public async Task LogRevokeAccessEventAsync(
             int projectId,
             string remoteIpAddress, 
@@ -44,6 +57,15 @@ namespace TeamStore.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Logs a Grant Access event
+        /// </summary>
+        /// <param name="projectId">The Id of the project for which to revoke access.</param>
+        /// <param name="remoteIpAddress">The IP address of the originating request.</param>
+        /// <param name="newRole">The Role, level of access the identity must have against the project.</param>
+        /// <param name="azureAdObjectIdentifier">The Azure AD Object Identifier.</param>
+        /// <param name="revokingUser">The ApplicationUser performing the event.</param>
+        /// <returns>A Task object</returns>
         public async Task StoreGrantAccessEventAsync(int projectId, string remoteIpAddress, string newRole, string azureAdObjectIdentifier, ApplicationUser grantingUser)
         {
             var grantAccess = new Event();
@@ -58,6 +80,12 @@ namespace TeamStore.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Logs a Sign in event.
+        /// </summary>
+        /// <param name="identity">The created Claims Identity during sign-ing.</param>
+        /// <param name="accessIpAddress">The IP address of the originating request.</param>
+        /// <returns>A void Task object</returns>
         public async Task StoreLoginEventAsync(ClaimsIdentity identity, string accessIpAddress)
         {
             var loginEvent = new Event();

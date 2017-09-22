@@ -9,9 +9,12 @@
     using TeamStore.Interfaces;
     using TeamStore.Models;
 
+    /// <summary>
+    /// Responsible for CRUD operations of Project.
+    /// </summary>
     public class ProjectsService : IProjectsService
     {
-        private ApplicationDbContext _dbContext { get; set; }
+        private readonly ApplicationDbContext _dbContext;
         private readonly IEncryptionService _encryptionService;
         private readonly IPermissionService _permissionService;
         private readonly IApplicationIdentityService _applicationIdentityService;
@@ -60,6 +63,11 @@
             return projects;
         }
 
+        /// <summary>
+        /// Retrieves a Project by Project Id, if the user has access to it.
+        /// </summary>
+        /// <param name="projectId">The Project Id to lookup.</param>
+        /// <returns>A Project object, null if none are found or the current user does not have access to it.</returns>
         public async Task<Project> GetProject(int projectId)
         {
             return await GetProject(projectId, false);
@@ -99,6 +107,10 @@
             return result;
         }
 
+        /// <summary>
+        /// Decrypts all project properties.
+        /// </summary>
+        /// <param name="result">The Project to decrypt</param>
         private void DecryptProject(Project result)
         {
             result.Title = _encryptionService.DecryptStringAsync(result.Title);

@@ -12,7 +12,7 @@
         /// </summary>
         /// <param name="identity">The created Claims Identity during sign-ing.</param>
         /// <param name="accessIpAddress">The IP address of the originating request.</param>
-        /// <returns></returns>
+        /// <returns>A void Task object</returns>
         Task StoreLoginEventAsync(ClaimsIdentity identity, string remoteIpAddress);
 
         /// <summary>

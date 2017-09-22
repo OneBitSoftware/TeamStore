@@ -7,10 +7,19 @@
     using System.Text;
     using TeamStore.Interfaces;
 
+    /// <summary>
+    /// Coordinates data encryption and decryption through the AspNetCore.DataProtection API.
+    /// Relies on a valid key existing in the \Keys folder of the running application.
+    /// </summary>
     public class EncryptionService : IEncryptionService
     {
         IDataProtector _protector;
 
+        /// <summary>
+        /// Constructor for the EncryptionService.
+        /// Validates that a valid key exists in the \Keys folder of the running application and will 
+        /// throw on any Cryptographic exception.
+        /// </summary>
         public EncryptionService()
         {
             var protectionProvider = DataProtectionProvider.Create(
@@ -35,11 +44,21 @@
             }
         }
 
+        /// <summary>
+        /// Encrypts a string using AES.
+        /// </summary>
+        /// <param name="stringToEncrypt">The string/text to encrypt</param>
+        /// <returns>The encrypted cipher</returns>
         public string EncryptStringAsync(string stringToEncrypt)
         {
             return _protector.Protect(stringToEncrypt);
         }
 
+        /// <summary>
+        /// Decrypts a passed cipher to its original text/string
+        /// </summary>
+        /// <param name="stringToDecrypt">The cipher to be decrypted</param>
+        /// <returns>The decrypted text/ciper</returns>
         public string DecryptStringAsync(string stringToDecrypt)
         {
             var bytes = Encoding.UTF8.GetBytes(stringToDecrypt);
