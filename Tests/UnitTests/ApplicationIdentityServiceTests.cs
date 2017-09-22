@@ -1,15 +1,14 @@
 ﻿namespace UnitTests
 {
     using Microsoft.AspNetCore.Http;
+    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
     using Moq;
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Reflection;
     using System.Security.Claims;
-    using System.Text;
     using TeamStore.DataAccess;
     using TeamStore.Interfaces;
     using TeamStore.Models;
@@ -33,13 +32,18 @@
             _httpContextAccessor = new HttpContextAccessor();
             _httpContextAccessor.HttpContext = _testHttpContext;
 
-            _dbContext = new ApplicationDbContext(new Microsoft.EntityFrameworkCore.DbContextOptions<ApplicationDbContext>());
+            var dbContextOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            dbContextOptionsBuilder.UseInMemoryDatabase(Guid.NewGuid().ToString());
+            _dbContext = new ApplicationDbContext(dbContextOptionsBuilder.Options);
 
             _applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor);
 
             SetApplicationUser();
         }
 
+        /// <summary>
+        /// Reads testsettings.json and builds out the configuration
+        /// </summary>
         private void BuildTestConfiguration()
         {
             var builder = new ConfigurationBuilder()
@@ -49,6 +53,9 @@
             _configuration = builder.Build();
         }
 
+        /// <summary>
+        /// Fakes an ApplicationUser in the HttpContext of the current request
+        /// </summary>
         private void SetApplicationUser()
         {
             var newApplicationUser = new ApplicationUser();
@@ -60,6 +67,9 @@
             _testHttpContext.Items[ApplicationIdentityService.CURRENTUSERKEY] = newApplicationUser;
         }
 
+        /// <summary>
+        /// Ensures we have a valid Http Context Accessor as this service depends on HttpContext
+        /// </summary>
         [Fact]
         public void GetCurrentUser_ShouldReturnArgumentNullException()
         {
@@ -69,6 +79,9 @@
             });
         }
 
+        /// <summary>
+        /// Validates that a null item in the items collection returns null and doesn't throw
+        /// </summary>
         [Fact]
         public async void GetCurrentUser_UnauthenticatedIdentityShouldReturnNull()
         {
@@ -84,6 +97,9 @@
             Assert.Null(nullUser);
         }
 
+        /// <summary>
+        /// Checks that a null parameter returns null and doesn't throw
+        /// </summary>
         [Fact]
         public async void GetCurrentUser_NullIdentityShouldReturnNull()
         {
@@ -98,6 +114,9 @@
             Assert.Null(nullUser);
         }
 
+        /// <summary>
+        /// Fakes an ApplicationUser, which is then retrieved by GetCurrentUser
+        /// </summary>
         [Fact]
         public async void GetCurrentUser_ShouldReturnUser()
         {
@@ -124,6 +143,10 @@
             Assert.Equal(newApplicationUser.Upn, returnedUser.Upn);
         }
 
+        /// <summary>
+        /// Mocks a ClaimsIdentity, then tests the conversion to ApplicationUser.
+        /// Asserts all parameters are the same.
+        /// </summary>
         [Fact]
         public async void GetCurrentUser_ShouldReturnCorrectClaimsIdentity()
         {
@@ -143,10 +166,12 @@
             mockContext.SetupGet(p => p.IsAuthenticated).Returns(true);
             mockContext.SetupGet(p => p.Claims).Returns(claimsList);
 
-            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor);
+            ApplicationIdentityService applicationIdentityService;
+            ApplicationUser retrievedUser;
 
             // Act
-            ApplicationUser retrievedUser = await applicationIdentityService.GetCurrentUser(mockContext.Object);
+            applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor);
+            retrievedUser = await applicationIdentityService.GetCurrentUser(mockContext.Object);
 
             // Assert
             Assert.NotNull(retrievedUser);
@@ -159,14 +184,17 @@
         }
 
         [Fact]
-        public async void GetCurrentUserByString_ShouldReturnCorrectClaimsIdentity()
+        public async void FindUserByRandomString_ShouldReturnNull()
         {
+            // Arrange
             ApplicationIdentityService applicationIdentityService = 
                 new ApplicationIdentityService(_dbContext, _httpContextAccessor);
 
-            ApplicationUser retrievedUser = await applicationIdentityService.FindUserAsync("my unit test object id");
+            // Act
+            ApplicationUser retrievedUser = await applicationIdentityService.FindUserAsync(Guid.NewGuid().ToString());
 
-
+            // Assert
+            Assert.Null(retrievedUser);
         }
     }
 }
