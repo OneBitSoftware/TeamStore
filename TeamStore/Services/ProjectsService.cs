@@ -40,7 +40,7 @@
         public async Task<List<Project>> GetProjects()
         {
             // Get user to validate access
-            var currentUser = _applicationIdentityService.GetCurrentUser();
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) return null;
 
             // Get projects with access
@@ -77,7 +77,7 @@
             if (projectId < 0) throw new ArgumentException("You must pass a valid project id.");
 
             // Validate access
-            var currentUser = _applicationIdentityService.GetCurrentUser();
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) return null;
 
             // NOTE: we can't use the permission service, the below results in an infinite loop

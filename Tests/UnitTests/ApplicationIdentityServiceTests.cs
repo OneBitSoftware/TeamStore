@@ -157,5 +157,16 @@
             Assert.Equal("upn@rtest.com", retrievedUser.Upn);
             Assert.Equal("12345678-1234-1234-1234-123982828122", retrievedUser.TenantId);
         }
+
+        [Fact]
+        public async void GetCurrentUserByString_ShouldReturnCorrectClaimsIdentity()
+        {
+            ApplicationIdentityService applicationIdentityService = 
+                new ApplicationIdentityService(_dbContext, _httpContextAccessor);
+
+            ApplicationUser retrievedUser = await applicationIdentityService.GetUserAsync("my unit test object id");
+
+
+        }
     }
 }

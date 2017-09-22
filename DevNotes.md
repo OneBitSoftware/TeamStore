@@ -33,7 +33,7 @@ Manage secrets with these commands:
 * dotnet user-secrets list - This will list all secrets for the project
 * dotnet user-secrets set Authentication:AzureAd:ClientSecret ValueOfMySecret12345 - you MUST be in the correct project folder (TeamStore for web, IntegrationTests for tests) unless you use the --project parameter
 
-## Data Protection API Key
+## Data Protection API Key - Database Encryption
 
 ASP.NET Core authentication and cookies use it's normal key DP API. We use a seperate key for DB encryption before writing to the DB. 
 This key must be managed securely.
@@ -44,5 +44,7 @@ You can generate your own DB encryption key by running the integration tests aft
 commentiing out the following:
 * options.DisableAutomaticKeyGeneration(); from EncryptionService.cs, line 19
 * copy the key from the IntegrationTests\Keys folder to the TeamStore\Keys folder (in the web application)
+
+I haven't figured out a CLI way to generate the keys yet.
 
 ## Azure AD Setup

@@ -28,6 +28,7 @@
             var retrievedProject = await _projectsService.GetProject(createdProjectId);
 
             // Assert before Grant - should be 1 default user
+            Assert.NotNull(retrievedProject);
             Assert.Equal(1, retrievedProject.AccessIdentifiers.Count);
 
             // Act - Grant access
