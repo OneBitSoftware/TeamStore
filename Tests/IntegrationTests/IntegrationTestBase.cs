@@ -14,6 +14,9 @@ using TeamStore.Services;
 
 namespace IntegrationTests
 {
+    /// <summary>
+    /// Base class for integration tests. Sets up HttpContext, a test user and the DB Context.
+    /// </summary>
     public abstract class IntegrationTestBase
     {
         protected IConfigurationRoot _configuration;
@@ -39,13 +42,11 @@ namespace IntegrationTests
             _httpContextAccessor.HttpContext = _testHttpContext;
             _fakeHttpContextItems = new Dictionary<object, object>();
 
-
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { });
             _graphService = new GraphService(memoryCache, _configuration);
             _encryptionService = new EncryptionService();
             _applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor, _fakeHttpContextItems);
             _eventService = new EventService(_dbContext, _applicationIdentityService);
-
             _permissionService = new PermissionService(_dbContext, _graphService, _eventService, _applicationIdentityService);
             _projectsService = new ProjectsService(_dbContext, _encryptionService, _applicationIdentityService, _permissionService);
 

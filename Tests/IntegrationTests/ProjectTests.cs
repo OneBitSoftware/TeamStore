@@ -17,13 +17,15 @@ namespace IntegrationTests
 
     public class ProjectTests : IntegrationTestBase
     {
-      
-
         public ProjectTests()
         {
 
         }
 
+        /// <summary>
+        /// Creates a project, then retrieves it. Validates that the properties are the same.
+        /// Goes through encryption
+        /// </summary>
         [Fact]
         public async void CreateProject_ShouldReturnCorrectData()
         {
@@ -53,6 +55,9 @@ namespace IntegrationTests
             Assert.Null(archivedProject);
         }
 
+        /// <summary>
+        /// Validates that a project wiith no title throws.
+        /// </summary>
         [Fact]
         public async void CreateProject_ShouldFailOnEmptyTitle()
         {
@@ -65,6 +70,9 @@ namespace IntegrationTests
             });
         }
 
+        /// <summary>
+        /// Tests projet access identifier storage and retrieval.
+        /// </summary>
         [Fact]
         public async void CreateProject_ShouldReturnCorrectAccess()
         {

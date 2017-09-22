@@ -15,6 +15,9 @@
 
         }
 
+        /// <summary>
+        /// Creates a project, retrieves it. Grants access, revokes access. Cleans up.
+        /// </summary>
         [Fact]
         public async void GrantRevokeAccess_ShouldReturnCorrectACL()
         {
@@ -38,12 +41,15 @@
             await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", _testUser, "127.0.0.1", _projectsService);
             await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Read", _testUser, "127.0.0.1", _projectsService);
 
-            Assert.Equal(6, retrievedProject.AccessIdentifiers.Count);
+            // Assert - Grant access
+            Assert.Equal(6, retrievedProject.AccessIdentifiers.Count); // 5 + the owner
 
+            // Act - Revoke access
             await _permissionService.RevokeAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", _testUser, "127.0.1.1", _projectsService);
             retrievedProject = await _projectsService.GetProject(createdProjectId);
 
-            Assert.Equal(3, retrievedProject.AccessIdentifiers.Count);
+            // Assert - Revoke access
+            Assert.Equal(3, retrievedProject.AccessIdentifiers.Count); // 2 + the owner
             Assert.Equal(_testUser, retrievedProject.AccessIdentifiers
                 .FirstOrDefault(ai => ai.Identity.AzureAdObjectIdentifier == "4444555511-6666-7777-8888-12345678" && ai.Role == "Read").CreatedBy);
             Assert.Equal(retrievedProject, retrievedProject.AccessIdentifiers
