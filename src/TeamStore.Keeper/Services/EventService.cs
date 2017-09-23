@@ -63,7 +63,7 @@
         /// <param name="azureAdObjectIdentifier">The Azure AD Object Identifier.</param>
         /// <param name="revokingUser">The ApplicationUser performing the event.</param>
         /// <returns>A Task object</returns>
-        public async Task StoreGrantAccessEventAsync(int projectId, string remoteIpAddress, string newRole, string azureAdObjectIdentifier, ApplicationUser grantingUser)
+        public async Task StoreGrantAccessEventAsync(int projectId, string remoteIpAddress, string newRole, string upn, ApplicationUser grantingUser)
         {
             var grantAccess = new Event();
             grantAccess.DateTime = DateTime.UtcNow;
@@ -71,7 +71,7 @@
             grantAccess.NewValue = newRole;
             grantAccess.RemoteIpAddress = remoteIpAddress;
             grantAccess.ActedByUser = grantingUser;
-            grantAccess.Data = "ProjectId: " + projectId + " GrantedTo: " + azureAdObjectIdentifier;
+            grantAccess.Data = "ProjectId: " + projectId + " GrantedTo: " + upn;
 
             await _dbContext.Events.AddAsync(grantAccess);
             await _dbContext.SaveChangesAsync();
