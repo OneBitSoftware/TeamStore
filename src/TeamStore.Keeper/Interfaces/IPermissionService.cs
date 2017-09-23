@@ -40,12 +40,11 @@
         Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService, string role);
 
         /// <summary>
-        /// Grants access to a project
+        /// Grants access to a project. Checks if the calling user has access to give access.
         /// </summary>
         /// <param name="projectId">The Id of the project</param>
         /// <param name="azureAdObjectIdentifier">The identifier of the identity for which access will be granted to</param>
         /// <param name="role">The role/level of access that will be granted</param>
-        /// <param name="grantingUser">The ApplicationUser granting the access</param>
         /// <param name="remoteIpAddress">The IP address of the incoming request</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>A Task object</returns>
@@ -53,7 +52,6 @@
             int projectId,
             string azureAdObjectIdentifier,
             string role,
-            ApplicationUser grantingUser,
             string remoteIpAddress,
             IProjectsService projectsService
             );
@@ -87,6 +85,15 @@
         /// <returns>True if the user has the specified role, false if not.</returns>
         bool CheckAccess(Project project, ApplicationUser targetUser, string role, IProjectsService projectsService);
 
+        /// <summary>
+        /// Checks if an ApplicationUser has the requested role against a project
+        /// </summary>
+        /// <param name="project">The Project to check</param>
+        /// <param name="targetUserUpn">The Upn of the ApplicationUser to check</param>
+        /// <param name="role">The role of interest</param>
+        /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
+        /// <returns>True if the user has the specified role, false if not.</returns>
+        bool CheckAccess(Project project, string targetUserUpn, string role, IProjectsService projectsService);
 
         /// <summary>
         /// Checks if an ApplicationUser has the requested role against a project
