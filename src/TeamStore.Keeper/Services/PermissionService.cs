@@ -50,8 +50,8 @@
         /// <param name="grantingUser">The ApplicationUser granting the access</param>
         /// <param name="remoteIpAddress">The IP address of the incoming request</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
-        /// <returns>A Task object</returns>
-        public async Task GrantAccessAsync(
+        /// <returns>A Task object with an AccessChangeResult representing the result</returns>
+        public async Task<AccessChangeResult> GrantAccessAsync(
             int projectId,
             string upn,
             string role,
@@ -82,7 +82,7 @@
             if (CheckAccess(project, upn, "Owner", projectsService))
             {
                 // TODO: LOG
-                return; // no need to grant
+                return new AccessChangeResult() { Success = false, Message = $"User {upn} already has access." }; // no need to grant
             }
 
             // Save Grant event
@@ -106,6 +106,8 @@
             }
 
             await _dbContext.SaveChangesAsync();
+
+            return new AccessChangeResult() { Success = true }; 
         }
 
         /// <summary>
@@ -117,8 +119,8 @@
         /// <param name="revokingUser">The ApplicationUser revoking the access</param>
         /// <param name="remoteIpAddress">The IP address of the incoming request</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
-        /// <returns>A Task object</returns>
-        public async Task RevokeAccessAsync(
+        /// <returns>A Task object with an AccessChangeResult representing the result</returns>
+        public async Task<AccessChangeResult> RevokeAccessAsync(
             int projectId,
             string azureAdObjectIdentifier,
             string role,
@@ -158,6 +160,8 @@
             }
 
             await _dbContext.SaveChangesAsync();
+
+            return new AccessChangeResult() { Success = true };
         }
 
         /// <summary>

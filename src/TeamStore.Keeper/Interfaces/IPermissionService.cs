@@ -47,8 +47,8 @@
         /// <param name="role">The role/level of access that will be granted</param>
         /// <param name="remoteIpAddress">The IP address of the incoming request</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
-        /// <returns>A Task object</returns>
-        Task GrantAccessAsync(
+        /// <returns>A Task object with an AccessChangeResult representing the result</returns>
+        Task<AccessChangeResult> GrantAccessAsync(
             int projectId,
             string azureAdObjectIdentifier,
             string role,
@@ -65,8 +65,8 @@
         /// <param name="revokingUser">The ApplicationUser revoking the access</param>
         /// <param name="remoteIpAddress">The IP address of the incoming request</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
-        /// <returns>A Task object</returns>
-        Task RevokeAccessAsync(
+        /// <returns>A Task object with an AccessChangeResult representing the result</returns>
+        Task<AccessChangeResult> RevokeAccessAsync(
             int projectId,
             string azureAdObjectIdentifier,
             string role,
