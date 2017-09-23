@@ -4,6 +4,7 @@
     using Microsoft.Extensions.Configuration;
     using Microsoft.Graph;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -182,15 +183,42 @@
             return items;
         }
 
-        public async Task<ApplicationUser> ResolveUserAsync(string azureAdObjectIdentifier, string currentUserId)
+        public async Task<ApplicationUser> ResolveUserByObjectIdAsync(string azureAdObjectIdentifier, string currentUserId)
+        {
+            var graphClient = GetAuthenticatedClient(currentUserId);
+            try
+            {
+                var user = await graphClient.Users[azureAdObjectIdentifier].Request().GetAsync();
+                var mappedUser = UserIdentityFactory.MapApplicationUser(user);
+                return mappedUser;
+
+            }
+            catch (ServiceException graphException)
+            {
+                // TODO LOG and return null;
+
+                throw;
+            }
+        }
+
+        public async Task<ApplicationUser> ResolveUserByUpnAsync(string upn, string currentUserId)
         {
             var graphClient = GetAuthenticatedClient(currentUserId);
 
-            var user = await graphClient.Users[currentUserId].Request().GetAsync();
+            try
+            {
+                var user = await graphClient.Users[upn].Request().GetAsync();
+                var mappedUser = UserIdentityFactory.MapApplicationUser(user);
+                mappedUser.TenantId = _tenantId;
+                return mappedUser;
 
-            var mappedUser = UserIdentityFactory.MapApplicationUser(user);
+            }
+            catch (ServiceException graphException)
+            {
+                // TODO LOG
 
-            return mappedUser;
+                throw;
+            }
         }
     }
 }
