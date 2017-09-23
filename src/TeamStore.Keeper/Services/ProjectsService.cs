@@ -1,6 +1,7 @@
 ﻿namespace TeamStore.Keeper.Services
 {
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -52,15 +53,15 @@
                 .Include(p => p.AccessIdentifiers)
                 .ToListAsync();
 
-            var projectsWiithAccess = projects.Where(p =>
+            var projectsWiihAccess = projects.Where(p =>
                 p.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id));
 
-            foreach (var project in projects)
+            foreach (var project in projectsWiihAccess)
             {
                 DecryptProject(project);
             }
 
-            return projects;
+            return projectsWiihAccess.ToList();
         }
 
         /// <summary>
@@ -88,15 +89,13 @@
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) return null;
 
-            // NOTE: we can't use the permission service, the below results in an infinite loop
-            //if(await _permissionService.CurrentUserHasAccessAsync(projectId, this) == false) return null;
-
             // Get project
-            var result = await _dbContext.Projects.Where(p => 
-                p.Id == projectId && 
+            var result = await _dbContext.Projects.Where(p =>
+                p.Id == projectId &&
                 p.IsArchived == false &&
                 p.AccessIdentifiers.Any(ai=>ai.Identity.Id == currentUser.Id))
                 .Include(p => p.AccessIdentifiers)
+                .ThenInclude(p=>p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
                 .FirstOrDefaultAsync();
 
             if (result == null) return null;
@@ -149,9 +148,9 @@
             foreach (var accessItem in project.AccessIdentifiers)
             {
                 accessItem.Created = DateTime.UtcNow;
-                accessItem.Modified = DateTime.UtcNow;
+                //accessItem.Modified = DateTime.UtcNow;
                 accessItem.CreatedBy = currentUser;
-                accessItem.ModifiedBy = currentUser;
+                //accessItem.ModifiedBy = currentUser;
 
                 // Access Item Validation
                 if (accessItem.CreatedBy == null) throw new ArgumentException("The current user could not be resolved during project createion.");
