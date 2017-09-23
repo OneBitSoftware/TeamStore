@@ -55,7 +55,6 @@
             int projectId,
             string upn,
             string role,
-            ApplicationUser grantingUser,
             string remoteIpAddress,
             IProjectsService projectsService)
         {
@@ -63,7 +62,7 @@
             if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentNullException(nameof(remoteIpAddress));
             if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             if (projectId == 0) throw new ArgumentException("You must provide a valid project id.");
-            if (grantingUser == null) throw new ArgumentNullException(nameof(grantingUser));
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
 
             // Get/find the project
             var project = await projectsService.GetProject(projectId, true);
@@ -73,24 +72,28 @@
             _dbContext.Entry(project).State = EntityState.Unchanged; // project will be encrypted here
 
             // Verify current user has permissions to grant access, aka Owner
-            if (await CurrentUserHasAccessAsync(projectId, projectsService, "Owner") == false)
+            if (await CurrentUserHasAccess(project, projectsService, "Owner") == false)
             {
+                // TODO: LOG
                 throw new Exception("The current user does not have permissions to grant access.");
             }
 
             // Check if the target user already has access
+            if (CheckAccess(project, upn, "Owner", projectsService))
+            {
+                // TODO: LOG
+                return; // no need to grant
+            }
 
+            // Save Grant event
+            await _eventService.StoreGrantAccessEventAsync(projectId, remoteIpAddress, role, upn, currentUser);
 
+            // TODO: grant access to AD group
             var newAccessIdentifier = new AccessIdentifier();
             newAccessIdentifier.Project = project ?? throw new ArgumentNullException(nameof(project));
             newAccessIdentifier.Role = role;
             newAccessIdentifier.Created = DateTime.UtcNow;
-            newAccessIdentifier.CreatedBy = grantingUser ?? throw new ArgumentNullException(nameof(grantingUser));
-
-            // Save Grant event
-            await _eventService.StoreGrantAccessEventAsync(projectId, remoteIpAddress, role, upn, grantingUser);
-
-            // TODO: grant access to AD group
+            newAccessIdentifier.CreatedBy = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
             newAccessIdentifier.Identity = await _applicationIdentityService.EnsureUserByUpnAsync(upn);
 
             project.AccessIdentifiers.Add(newAccessIdentifier);
@@ -259,6 +262,33 @@
             var result = project.AccessIdentifiers.Where(ai => 
                 ai.Project == project && 
                 ai.Identity == targetUser && 
+                ai.Role == role).FirstOrDefault();
+
+            if (result != null)
+                return true;
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// Checks if an ApplicationUser has the requested role against a project
+        /// </summary>
+        /// <param name="project">The Project to check</param>
+        /// <param name="targetUserUpn">The UPN of the ApplicationUser to check</param>
+        /// <param name="role">The role of interest</param>
+        /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
+        /// <returns>True if the user has the specified role, false if not.</returns>
+        public bool CheckAccess(Project project, string targetUserUpn, string role, IProjectsService projectsService)
+        {
+            if (project == null) throw new ArgumentNullException(nameof(project));
+            if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
+            if (string.IsNullOrWhiteSpace(targetUserUpn)) throw new ArgumentNullException(nameof(targetUserUpn));
+
+            // We probably need to improve this query so it has less casts
+            var result = project.AccessIdentifiers.Where(ai =>
+                ai.Project == project &&
+                string.IsNullOrWhiteSpace(((ApplicationUser)ai.Identity).Upn) == false && // avoid nulls
+                ((ApplicationUser)ai.Identity).Upn == targetUserUpn &&
                 ai.Role == role).FirstOrDefault();
 
             if (result != null)
