@@ -182,23 +182,12 @@
         [HttpPost]
         public async Task<IActionResult> Share(ShareProjectViewModel shareProjectViewModel, int id)
         {
-            // check if current user has access to the project
-            var project = await _projectsService.GetProject(id);
-
-            if (project == null)
-            {
-                return NotFound();
-            }
-
-            if (await _permissionService.CurrentUserHasAccessAsync(id, _projectsService, "Owner") == false) return Unauthorized();
-
             // Build user
             var remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress.ToString();
             await _permissionService.GrantAccessAsync(
-                project.Id,
+                id,
                 shareProjectViewModel.ShareDetails,
                 "Owner",
-                await _applicationIdentityService.GetCurrentUser(),
                 HttpContext.Connection.RemoteIpAddress.ToString(),
                 _projectsService);
 

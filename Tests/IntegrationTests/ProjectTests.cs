@@ -131,13 +131,14 @@ namespace IntegrationTests
         public async void GetProjects_ShouldGiveProjectsWithRightAccess()
         {
             // Arrange
+            _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, _testUser);
             var newDecryptedProject = CreateTestProject();
             var newAzureAdObjectId = "newazureaduser";
 
             // Act
             var createdProjectId = await _projectsService.CreateProject(newDecryptedProject);
             var retrievedProject = await _projectsService.GetProject(createdProjectId);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, newAzureAdObjectId, "Edit", _testUser, "1.2.3.4", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, newAzureAdObjectId, "Edit", "1.2.3.4", _projectsService);
             
             // Assert
         }
