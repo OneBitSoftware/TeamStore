@@ -76,5 +76,26 @@
             string remoteIpAddress,
             IProjectsService projectsService
             );
+
+        /// <summary>
+        /// Checks if an ApplicationUser has the requested role against a project
+        /// </summary>
+        /// <param name="project">The Project to check</param>
+        /// <param name="targetUser">The ApplicationUser to check</param>
+        /// <param name="role">The role of interest</param>
+        /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
+        /// <returns>True if the user has the specified role, false if not.</returns>
+        bool CheckAccess(Project project, ApplicationUser targetUser, string role, IProjectsService projectsService);
+
+
+        /// <summary>
+        /// Checks if an ApplicationUser has the requested role against a project
+        /// </summary>
+        /// <param name="projectId">The ID of the Project to check</param>
+        /// <param name="targetUser">The ApplicationUser to check</param>
+        /// <param name="role">The role of interest</param>
+        /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
+        /// <returns>A task of True if the user has the specified role, false if not.</returns>
+        Task<bool> CheckAccessAsync(int projectId, ApplicationUser targetUser, string role, IProjectsService projectsService);
     }
 }

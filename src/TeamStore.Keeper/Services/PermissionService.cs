@@ -53,13 +53,13 @@
         /// <returns>A Task object</returns>
         public async Task GrantAccessAsync(
             int projectId,
-            string azureAdObjectIdentifier,
+            string upn,
             string role,
             ApplicationUser grantingUser,
             string remoteIpAddress,
             IProjectsService projectsService)
         {
-            if (string.IsNullOrWhiteSpace(azureAdObjectIdentifier)) throw new ArgumentNullException(nameof(azureAdObjectIdentifier));
+            if (string.IsNullOrWhiteSpace(upn)) throw new ArgumentNullException(nameof(upn));
             if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentNullException(nameof(remoteIpAddress));
             if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             if (projectId == 0) throw new ArgumentException("You must provide a valid project id.");
@@ -78,6 +78,9 @@
                 throw new Exception("The current user does not have permissions to grant access.");
             }
 
+            // Check if the target user already has access
+
+
             var newAccessIdentifier = new AccessIdentifier();
             newAccessIdentifier.Project = project ?? throw new ArgumentNullException(nameof(project));
             newAccessIdentifier.Role = role;
@@ -85,12 +88,19 @@
             newAccessIdentifier.CreatedBy = grantingUser ?? throw new ArgumentNullException(nameof(grantingUser));
 
             // Save Grant event
-            await _eventService.StoreGrantAccessEventAsync(projectId, remoteIpAddress, role, azureAdObjectIdentifier, grantingUser);
+            await _eventService.StoreGrantAccessEventAsync(projectId, remoteIpAddress, role, upn, grantingUser);
 
             // TODO: grant access to AD group
-            newAccessIdentifier.Identity = await _applicationIdentityService.EnsureUserAsync(azureAdObjectIdentifier);
+            newAccessIdentifier.Identity = await _applicationIdentityService.EnsureUserByUpnAsync(upn);
 
             project.AccessIdentifiers.Add(newAccessIdentifier);
+
+            // Validation of the access identifiers before save
+            foreach (var item in project.AccessIdentifiers)
+            {
+                if (item.Identity == null) throw new ArgumentException("The project access identifier is not valid.");
+                if (string.IsNullOrWhiteSpace(item.Role)) throw new ArgumentException("A project access identifier role is not valid.");
+            }
 
             await _dbContext.SaveChangesAsync();
         }
@@ -230,6 +240,49 @@
                 return true;
 
             return false;
+        }
+
+        /// <summary>
+        /// Checks if an ApplicationUser has the requested role against a project
+        /// </summary>
+        /// <param name="project">The Project to check</param>
+        /// <param name="targetUser">The ApplicationUser to check</param>
+        /// <param name="role">The role of interest</param>
+        /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
+        /// <returns>True if the user has the specified role, false if not.</returns>
+        public bool CheckAccess(Project project, ApplicationUser targetUser, string role, IProjectsService projectsService)
+        {
+            if (project == null) throw new ArgumentNullException(nameof(project));
+            if (targetUser == null) throw new ArgumentNullException(nameof(targetUser));
+            if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
+
+            var result = project.AccessIdentifiers.Where(ai => 
+                ai.Project == project && 
+                ai.Identity == targetUser && 
+                ai.Role == role).FirstOrDefault();
+
+            if (result != null)
+                return true;
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// Checks if an ApplicationUser has the requested role against a project
+        /// </summary>
+        /// <param name="projectId">The ID of the Project to check</param>
+        /// <param name="targetUser">The ApplicationUser to check</param>
+        /// <param name="role">The role of interest</param>
+        /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
+        /// <returns>A task of True if the user has the specified role, false if not.</returns>
+        public async Task<bool> CheckAccessAsync(int projectId, ApplicationUser targetUser, string role, IProjectsService projectsService)
+        {
+            if (targetUser == null) throw new ArgumentNullException(nameof(targetUser));
+            if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
+            if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
+            var project = await projectsService.GetProject(projectId, true);
+
+            return CheckAccess(project, targetUser, role, projectsService);
         }
     }
 }
