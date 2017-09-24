@@ -13,6 +13,7 @@
     using TeamStore.Keeper.Interfaces;
     using TeamStore.Keeper.Models;
     using TeamStore.Keeper.Services;
+    using UnitTests.Framework;
     using Xunit;
 
     public class ApplicationIdentityServiceTests
@@ -29,7 +30,8 @@
             BuildTestConfiguration();
 
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { });
-            _graphService = new GraphService(memoryCache, _configuration);
+            var accessTokenRetriever = new TestAccessTokenRetriever();
+            _graphService = new GraphService(memoryCache, _configuration, accessTokenRetriever);
             _testHttpContext = new DefaultHttpContext();
             _httpContextAccessor = new HttpContextAccessor();
             _httpContextAccessor.HttpContext = _testHttpContext;
@@ -193,7 +195,7 @@
                 new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor);
 
             // Act
-            ApplicationUser retrievedUser = await applicationIdentityService.FindUserAsync(Guid.NewGuid().ToString());
+            ApplicationUser retrievedUser = await applicationIdentityService.FindUserByObjectIdAsync(Guid.NewGuid().ToString());
 
             // Assert
             Assert.Null(retrievedUser);
