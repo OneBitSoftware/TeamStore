@@ -290,3 +290,5 @@ __pycache__/
 *.xsd.cs
 
 TeamStore/Keys/
+
+src/TeamStore\.DevUI/Keys/key-f733fbca-9036-4abb-97e3-e2612feb7ede\.xml
