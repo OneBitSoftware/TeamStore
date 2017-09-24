@@ -16,5 +16,10 @@
         /// The claim value given by the "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name" claim
         /// </summary>
         public string AzureAdName { get; set; }
+
+        public override string ToString()
+        {
+            return $"{DisplayName} ({Upn})";
+        }
     }
 }
