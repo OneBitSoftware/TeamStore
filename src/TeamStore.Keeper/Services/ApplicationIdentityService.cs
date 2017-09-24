@@ -68,8 +68,9 @@
             //if (_itemsCollection.ContainsKey(CURRENTUSERKEY) == false) return null;
 
             // 1. Check context Item for Application User
-            var applicationUser = _itemsCollection[CURRENTUSERKEY] as ApplicationUser; // TODO: will throw!
-            if (applicationUser != null) return applicationUser;
+            if (_itemsCollection[CURRENTUSERKEY] != null && 
+                _itemsCollection[CURRENTUSERKEY] is ApplicationUser applicationUser)
+                return applicationUser;
 
             // 2. return from HttpContext.User if the context item collection does not have it
             return await GetCurrentUser(_httpContext.User?.Identity);
@@ -136,7 +137,22 @@
             if (claim == null) return null;
             if (string.IsNullOrWhiteSpace(claim.Value)) return null;
 
-            return await FindUserByObjectIdAsync(claim.Value);
+            return await FindUserAsync(ai=>ai.AzureAdObjectIdentifier == claim.Value);
+        }
+
+        /// <summary>
+        /// Retrieves an ApplicationUser from the database by looking up the passed condition.
+        /// </summary>
+        /// <param name="lookupCondition">A predicate of the condition to lookup</param>
+        /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
+        public async Task<ApplicationUser> FindUserAsync(Func<ApplicationUser, bool> lookupCondition)
+        {
+            var returnedObject = await _dbContext.ApplicationIdentities.Where
+              (ai => lookupCondition(ai as ApplicationUser)).FirstOrDefaultAsync();
+
+            if (returnedObject == null) return null;
+
+            return returnedObject as ApplicationUser;
         }
 
         /// <summary>
@@ -145,6 +161,7 @@
         /// </summary>
         /// <param name="azureAdObjectIdentifier">The value of the object identifier claim to lookup.</param>
         /// <returns>A Task with the ApplicationUser as a result</returns>
+        [Obsolete("Replaced with FindUserAsync")]
         public async Task<ApplicationUser> FindUserByObjectIdAsync(string azureAdObjectIdentifier)
         {
             if (string.IsNullOrWhiteSpace(azureAdObjectIdentifier)) return null;
@@ -162,6 +179,7 @@
         /// </summary>
         /// <param name="upn">The value of the UPN claim to lookup.</param>
         /// <returns>A Task with the ApplicationUser as a result</returns>
+        [Obsolete("Replaced with FindUserAsync")]
         public async Task<ApplicationUser> FindUserByUpnAsync(string upn)
         {
             if (string.IsNullOrWhiteSpace(upn)) return null;
@@ -180,7 +198,8 @@
         /// <returns>A Task with the ApplicationUser as a result</returns>
         public async Task<ApplicationUser> EnsureUserByObjectIdAsync(string azureAdObjectIdentifier)
         {
-            var existingUser = await FindUserByObjectIdAsync(azureAdObjectIdentifier);
+            // TODO: implement with Func!!
+            var existingUser = await FindUserAsync(ai => ai.AzureAdObjectIdentifier == azureAdObjectIdentifier);
             if (existingUser != null)
             {
                 return existingUser;
@@ -208,7 +227,8 @@
         /// <returns>A Task with the ApplicationUser as a result</returns>
         public async Task<ApplicationUser> EnsureUserByUpnAsync(string upn)
         {
-            var existingUser = await FindUserByUpnAsync(upn);
+            // TODO: implement with Func!!
+            var existingUser = await FindUserAsync(ai=>ai.Upn == upn);
             if (existingUser != null)
             {
                 return existingUser;

@@ -1,5 +1,6 @@
 ﻿namespace TeamStore.Keeper.Interfaces
 {
+    using System;
     using System.Security.Claims;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -22,6 +23,13 @@
         /// <param name="identity">The IIdentity to resolve and map to an ApplicationUser</param>
         /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
         Task<ApplicationUser> GetCurrentUser(IIdentity identity);
+
+        /// <summary>
+        /// Retrieves an ApplicationUser from the database by looking up the passed condition.
+        /// </summary>
+        /// <param name="lookupCondition">A predicate of the condition to lookup</param>
+        /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
+        Task<ApplicationUser> FindUserAsync(Func<ApplicationUser, bool> lookupCondition);
 
         /// <summary>
         /// Retrieves an ApplicationUser from the database by looking up the 

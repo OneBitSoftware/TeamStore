@@ -182,7 +182,8 @@
             }
             return items;
         }
-
+        
+        // TODO: Implement with Func
         public async Task<ApplicationUser> ResolveUserByObjectIdAsync(string azureAdObjectIdentifier, string currentUserId)
         {
             var graphClient = GetAuthenticatedClient(currentUserId);
@@ -200,6 +201,7 @@
             }
         }
 
+        // TODO: Implement with Func
         public async Task<ApplicationUser> ResolveUserByUpnAsync(string upn, string currentUserId)
         {
             var graphClient = GetAuthenticatedClient(currentUserId);
