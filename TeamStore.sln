@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeamStore", "TeamStore\TeamStore.csproj", "{E2ED3172-928D-4423-802B-905F3A20626E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeamStore.DevUI", "TeamStore\TeamStore.DevUI.csproj", "{E2ED3172-928D-4423-802B-905F3A20626E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "Tests\UnitTests\UnitTests.csproj", "{BE20024A-BA81-4F62-B269-2D89456FBB79}"
 EndProject
