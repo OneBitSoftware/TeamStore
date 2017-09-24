@@ -184,14 +184,16 @@
         {
             // Build user
             var remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress.ToString();
-            await _permissionService.GrantAccessAsync(
+            var accessResult = await _permissionService.GrantAccessAsync(
                 id,
                 shareProjectViewModel.ShareDetails,
                 "Owner",
                 HttpContext.Connection.RemoteIpAddress.ToString(),
                 _projectsService);
 
-            return View();
+            shareProjectViewModel.ShareResult = accessResult.Message;
+
+            return View(shareProjectViewModel);
         }
 
         // GET: Projects/Edit/5
