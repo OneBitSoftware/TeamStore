@@ -195,7 +195,7 @@
                 new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor);
 
             // Act
-            ApplicationUser retrievedUser = await applicationIdentityService.FindUserByObjectIdAsync(Guid.NewGuid().ToString());
+            ApplicationUser retrievedUser = await applicationIdentityService.FindUserAsync(u=>u.AzureAdObjectIdentifier == Guid.NewGuid().ToString());
 
             // Assert
             Assert.Null(retrievedUser);
