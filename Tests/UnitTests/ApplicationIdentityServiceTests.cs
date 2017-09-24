@@ -13,6 +13,7 @@
     using TeamStore.Keeper.Interfaces;
     using TeamStore.Keeper.Models;
     using TeamStore.Keeper.Services;
+    using UnitTests.Framework;
     using Xunit;
 
     public class ApplicationIdentityServiceTests
@@ -22,12 +23,15 @@
         ApplicationDbContext _dbContext;
         HttpContext _testHttpContext;
         IHttpContextAccessor _httpContextAccessor;
+        IGraphService _graphService;
 
         public ApplicationIdentityServiceTests()
         {
             BuildTestConfiguration();
 
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { });
+            var accessTokenRetriever = new TestAccessTokenRetriever();
+            _graphService = new GraphService(memoryCache, _configuration, accessTokenRetriever);
             _testHttpContext = new DefaultHttpContext();
             _httpContextAccessor = new HttpContextAccessor();
             _httpContextAccessor.HttpContext = _testHttpContext;
@@ -36,7 +40,7 @@
             dbContextOptionsBuilder.UseInMemoryDatabase(Guid.NewGuid().ToString());
             _dbContext = new ApplicationDbContext(dbContextOptionsBuilder.Options);
 
-            _applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor);
+            _applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor);
 
             SetApplicationUser();
         }
@@ -75,7 +79,7 @@
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
-                ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, null);
+                ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, null);
             });
         }
 
@@ -87,7 +91,7 @@
         {
             // Arrange
             ApplicationUser nullUser;
-            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, new HttpContextAccessor());
+            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, new HttpContextAccessor());
             _testHttpContext.Items[ApplicationIdentityService.CURRENTUSERKEY] = null; // need to clear singleton context
 
             // Act
@@ -105,7 +109,7 @@
         {
             // Arrange
             ApplicationUser nullUser;
-            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, new HttpContextAccessor());
+            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, new HttpContextAccessor());
 
             // Act
             nullUser = await applicationIdentityService.GetCurrentUser(null);
@@ -130,7 +134,7 @@
             _testHttpContext.Items[ApplicationIdentityService.CURRENTUSERKEY] = newApplicationUser;
 
             ApplicationUser returnedUser;
-            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor);
+            ApplicationIdentityService applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor);
 
             // Act
             returnedUser = await applicationIdentityService.GetCurrentUser();
@@ -170,7 +174,7 @@
             ApplicationUser retrievedUser;
 
             // Act
-            applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor);
+            applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor);
             retrievedUser = await applicationIdentityService.GetCurrentUser(mockContext.Object);
 
             // Assert
@@ -188,10 +192,10 @@
         {
             // Arrange
             ApplicationIdentityService applicationIdentityService = 
-                new ApplicationIdentityService(_dbContext, _httpContextAccessor);
+                new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor);
 
             // Act
-            ApplicationUser retrievedUser = await applicationIdentityService.FindUserAsync(Guid.NewGuid().ToString());
+            ApplicationUser retrievedUser = await applicationIdentityService.FindUserAsync(u=>u.AzureAdObjectIdentifier == Guid.NewGuid().ToString());
 
             // Assert
             Assert.Null(retrievedUser);

@@ -5,5 +5,6 @@
         public int ProjectId { get; set; }
         public string Title { get; set; }
         public string ShareDetails { get; set; }
+        public string ShareResult { get; set; }
     }
 }

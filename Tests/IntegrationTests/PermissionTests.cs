@@ -35,11 +35,11 @@
             Assert.Equal(1, retrievedProject.AccessIdentifiers.Count);
 
             // Act - Grant access
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "1234123412-1234-1312-1234-12341234", "Edit", _testUser, "127.0.0.1", _projectsService);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", _testUser, "127.0.0.1", _projectsService);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", _testUser, "127.0.0.1", _projectsService);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", _testUser, "127.0.0.1", _projectsService);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Read", _testUser, "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "1234123412-1234-1312-1234-12341234", "Edit", "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Read", "127.0.0.1", _projectsService);
 
             // Assert - Grant access
             Assert.Equal(6, retrievedProject.AccessIdentifiers.Count); // 5 + the owner

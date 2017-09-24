@@ -1,5 +1,6 @@
 ﻿namespace TeamStore.Keeper.Interfaces
 {
+    using System;
     using System.Security.Claims;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -24,6 +25,13 @@
         Task<ApplicationUser> GetCurrentUser(IIdentity identity);
 
         /// <summary>
+        /// Retrieves an ApplicationUser from the database by looking up the passed condition.
+        /// </summary>
+        /// <param name="lookupCondition">A predicate of the condition to lookup</param>
+        /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
+        Task<ApplicationUser> FindUserAsync(Func<ApplicationUser, bool> lookupCondition);
+
+        /// <summary>
         /// Retrieves an ApplicationUser from the database by looking up the 
         /// passed ClaimsIdentity object. Matches a user by the object identifier claim within the ClaimsIdentity 
         /// claims collection.
@@ -38,13 +46,28 @@
         /// </summary>
         /// <param name="azureAdObjectIdentifier">The value of the object identifier claim to lookup.</param>
         /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
-        Task<ApplicationUser> FindUserAsync(string azureAdObjectIdentifier);
+        Task<ApplicationUser> FindUserByObjectIdAsync(string azureAdObjectIdentifier);
 
         /// <summary>
-        /// Attempts to Find a user by the object identifier claim. TODO
+        /// Retrieves an ApplicationUser from the database by looking up the 
+        /// UPN. Matches a user by the UPN claim.
+        /// </summary>
+        /// <param name="upn">The value of the UPN claim to lookup.</param>
+        /// <returns>A Task with the ApplicationUser as a result</returns>
+        Task<ApplicationUser> FindUserByUpnAsync(string upn);
+
+        /// <summary>
+        /// Attempts to Find a user by the object identifier claim.
         /// </summary>
         /// <param name="azureAdObjectIdentifier">The value of the object identifier claim to lookup.</param>
         /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
-        Task<ApplicationUser> EnsureUserAsync(string azureAdObjectIdentifier);
+        Task<ApplicationUser> EnsureUserByObjectIdAsync(string azureAdObjectIdentifier);
+
+        /// <summary>
+        /// Attempts to Find a user by the UPN.
+        /// </summary>
+        /// <param name="upn">The value of the object identifier claim to lookup.</param>
+        /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
+        Task<ApplicationUser> EnsureUserByUpnAsync(string upn);
     }
 }

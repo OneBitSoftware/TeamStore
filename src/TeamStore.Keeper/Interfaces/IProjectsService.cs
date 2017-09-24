@@ -10,14 +10,14 @@
     public interface IProjectsService
     {
         /// <summary>
-        /// Retrieves a Project by Project Id, if the user has access to it.
+        /// Retrieves a Project by Project Id, if the user has access to it. Decrypts any encrypted data.
         /// </summary>
         /// <param name="projectId">The Project Id to lookup.</param>
         /// <returns>A Project object, null if none are found or the current user does not have access to it.</returns>
         Task<Project> GetProject(int projectId);
 
         /// <summary>
-        /// Retrieves a Project by Project Id, if the user has access to it.
+        /// Retrieves a Project by Project Id, if the user has access to it, and can skip decryption if specified.
         /// </summary>
         /// <param name="projectId">The Project Id to lookup.</param>
         /// <param name="skipDecryption">Set to True if the project should not be decrypted.</param>
@@ -25,7 +25,7 @@
         Task<Project> GetProject(int projectId, bool skipDecryption);
 
         /// <summary>
-        /// Gets all projects for which the current user has access to. Excludes archived projects.
+        /// Gets all projects for which the current user has access to. Excludes archived projects. All data is decrypted.
         /// </summary>
         /// <returns>A list of Project objects</returns>
         Task<List<Project>> GetProjects();

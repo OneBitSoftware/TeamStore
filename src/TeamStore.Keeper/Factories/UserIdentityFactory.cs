@@ -1,5 +1,6 @@
 ﻿namespace TeamStore.Keeper.Factories
 {
+    using Microsoft.Graph;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -33,6 +34,18 @@
             {
                 return claimValue.Value;
             }
+        }
+
+        public static ApplicationUser MapApplicationUser(User user)
+        {
+            var newUser = new ApplicationUser();
+
+            newUser.AzureAdObjectIdentifier = user.Id;
+            newUser.Upn = user.UserPrincipalName;
+            newUser.DisplayName = user.DisplayName;
+            // TODO: figure out TenantId and AzureName and Azure Name ID
+
+            return newUser;
         }
     }
 }

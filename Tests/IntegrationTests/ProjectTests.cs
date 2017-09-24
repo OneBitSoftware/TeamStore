@@ -63,7 +63,8 @@ namespace IntegrationTests
             Project newDecryptedProject = new Project();
 
             // Act
-            await Assert.ThrowsAsync<ArgumentException>(async () => {
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+            {
                 await _projectsService.CreateProject(newDecryptedProject);
             });
         }
@@ -119,7 +120,7 @@ namespace IntegrationTests
             Assert.Equal("TestAdObjectId1", retrievedProject.AccessIdentifiers.First().Identity.AzureAdObjectIdentifier);
             Assert.Equal("test@test.com", ((ApplicationUser)retrievedProject.AccessIdentifiers.First().Identity).Upn);
             Assert.Equal("TestAdIdentity1", ((ApplicationUser)retrievedProject.AccessIdentifiers.First().Identity).AzureAdNameIdentifier);
-            
+
             // Cleanup
             await _projectsService.ArchiveProject(retrievedProject);
             var archivedProject = await _projectsService.GetProject(createdProjectId);
@@ -129,15 +130,24 @@ namespace IntegrationTests
         [Fact]
         public async void GetProjects_ShouldGiveProjectsWithRightAccess()
         {
+            // Arrange
+            _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, _testUser);
             var newDecryptedProject = CreateTestProject();
+            var newAzureAdObjectId = "newazureaduser";
 
+            // Act
+            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject);
+            var retrievedProject = await _projectsService.GetProject(createdProjectId);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, newAzureAdObjectId, "Edit", "1.2.3.4", _projectsService);
+            
+            // Assert
         }
 
         private Project CreateTestProject()
         {
-            string testTitle = "Project 1234 Access Test";
+            string testTitle = "Project 1234 Test";
             string testDescription = "Created during integration tests";
-            string testCategory = "Access Tests";
+            string testCategory = "Category Tests";
             Project newDecryptedProject = new Project();
             newDecryptedProject.Title = testTitle;
             newDecryptedProject.Description = testDescription;

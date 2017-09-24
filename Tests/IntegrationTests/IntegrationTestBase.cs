@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using IntegrationTests.Framework;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -31,6 +32,7 @@ namespace IntegrationTests
         protected HttpContext _testHttpContext;
         protected IHttpContextAccessor _httpContextAccessor;
         protected IDictionary<object, object> _fakeHttpContextItems;
+        protected IAccessTokenRetriever accessTokenRetriever;
 
         public IntegrationTestBase()
         {
@@ -43,14 +45,15 @@ namespace IntegrationTests
             _fakeHttpContextItems = new Dictionary<object, object>();
 
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { });
-            _graphService = new GraphService(memoryCache, _configuration);
+            var accessTokenRetriever = new TestAccessTokenRetriever();
+            _graphService = new GraphService(memoryCache, _configuration, accessTokenRetriever);
             _encryptionService = new EncryptionService();
-            _applicationIdentityService = new ApplicationIdentityService(_dbContext, _httpContextAccessor, _fakeHttpContextItems);
+            _applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor, _fakeHttpContextItems);
             _eventService = new EventService(_dbContext, _applicationIdentityService);
             _permissionService = new PermissionService(_dbContext, _graphService, _eventService, _applicationIdentityService);
             _projectsService = new ProjectsService(_dbContext, _encryptionService, _applicationIdentityService, _permissionService);
 
-            _testUser = _applicationIdentityService.FindUserAsync("TestAdObjectId11234567890").Result;
+            _testUser = _applicationIdentityService.FindUserAsync(u=>u.AzureAdObjectIdentifier == "TestAdObjectId11234567890").Result;
             if (_testUser == null)
             {
                 _testUser = new ApplicationUser()

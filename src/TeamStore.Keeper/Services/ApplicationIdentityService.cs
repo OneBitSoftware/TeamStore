@@ -25,6 +25,7 @@
         private ApplicationDbContext _dbContext;
         private HttpContext _httpContext;
         private IDictionary<object, object> _itemsCollection;
+        private IGraphService _graphService; 
 
         /// <summary>
         /// Constructor for the ApplicationIdentityService
@@ -34,11 +35,13 @@
         /// <param name="itemsCollection">An items collection override to retrieve per-request instantiated users</param>
         public ApplicationIdentityService(
             ApplicationDbContext context,
+            IGraphService graphService,
             IHttpContextAccessor httpContextAccessor,
             IDictionary<object, object> itemsCollection = null
             )
         {
             _dbContext = context ?? throw new ArgumentNullException(nameof(context));
+            _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
 
             // we depend on an HttpContext
             _httpContext = httpContextAccessor?.HttpContext ?? throw new ArgumentNullException(nameof(_httpContext));
@@ -65,8 +68,9 @@
             //if (_itemsCollection.ContainsKey(CURRENTUSERKEY) == false) return null;
 
             // 1. Check context Item for Application User
-            var applicationUser = _itemsCollection[CURRENTUSERKEY] as ApplicationUser;
-            if (applicationUser != null) return applicationUser;
+            if (_itemsCollection[CURRENTUSERKEY] != null && 
+                _itemsCollection[CURRENTUSERKEY] is ApplicationUser applicationUser)
+                return applicationUser;
 
             // 2. return from HttpContext.User if the context item collection does not have it
             return await GetCurrentUser(_httpContext.User?.Identity);
@@ -133,7 +137,22 @@
             if (claim == null) return null;
             if (string.IsNullOrWhiteSpace(claim.Value)) return null;
 
-            return await FindUserAsync(claim.Value);
+            return await FindUserAsync(ai=>ai.AzureAdObjectIdentifier == claim.Value);
+        }
+
+        /// <summary>
+        /// Retrieves an ApplicationUser from the database by looking up the passed condition.
+        /// </summary>
+        /// <param name="lookupCondition">A predicate of the condition to lookup</param>
+        /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
+        public async Task<ApplicationUser> FindUserAsync(Func<ApplicationUser, bool> lookupCondition)
+        {
+            var returnedObject = await _dbContext.ApplicationIdentities.Where
+              (ai => lookupCondition(ai as ApplicationUser)).FirstOrDefaultAsync();
+
+            if (returnedObject == null) return null;
+
+            return returnedObject as ApplicationUser;
         }
 
         /// <summary>
@@ -142,7 +161,8 @@
         /// </summary>
         /// <param name="azureAdObjectIdentifier">The value of the object identifier claim to lookup.</param>
         /// <returns>A Task with the ApplicationUser as a result</returns>
-        public async Task<ApplicationUser> FindUserAsync(string azureAdObjectIdentifier)
+        [Obsolete("Replaced with FindUserAsync")]
+        public async Task<ApplicationUser> FindUserByObjectIdAsync(string azureAdObjectIdentifier)
         {
             if (string.IsNullOrWhiteSpace(azureAdObjectIdentifier)) return null;
 
@@ -154,28 +174,78 @@
         }
 
         /// <summary>
-        /// Attempts to Find a user by the object identifier claim. TODO
+        /// Retrieves an ApplicationUser from the database by looking up the 
+        /// UPN. Matches a user by the UPN claim.
+        /// </summary>
+        /// <param name="upn">The value of the UPN claim to lookup.</param>
+        /// <returns>A Task with the ApplicationUser as a result</returns>
+        [Obsolete("Replaced with FindUserAsync")]
+        public async Task<ApplicationUser> FindUserByUpnAsync(string upn)
+        {
+            if (string.IsNullOrWhiteSpace(upn)) return null;
+
+            var returnedObject = await _dbContext.ApplicationIdentities.Where
+                (u => ((ApplicationUser)u).Upn == upn).FirstOrDefaultAsync();
+
+            var returnUser = returnedObject as ApplicationUser;
+            return returnUser;
+        }
+
+        /// <summary>
+        /// Attempts to Find a user by the object identifier claim.
         /// </summary>
         /// <param name="azureAdObjectIdentifier">The value of the object identifier claim to lookup.</param>
         /// <returns>A Task with the ApplicationUser as a result</returns>
-        public async Task<ApplicationUser> EnsureUserAsync(string azureAdObjectIdentifier)
+        public async Task<ApplicationUser> EnsureUserByObjectIdAsync(string azureAdObjectIdentifier)
         {
-            var existingUser = await FindUserAsync(azureAdObjectIdentifier);
+            // TODO: implement with Func!!
+            var existingUser = await FindUserAsync(ai => ai.AzureAdObjectIdentifier == azureAdObjectIdentifier);
             if (existingUser != null)
             {
                 return existingUser;
             }
             else
             {
-                // TODO: RESOLVE USER from Azure AD
-                existingUser = new ApplicationUser()
+                var currentUser = await GetCurrentUser();
+                var resolvedUser = await _graphService.ResolveUserByObjectIdAsync(azureAdObjectIdentifier, currentUser.AzureAdObjectIdentifier);
+
+                if (resolvedUser == null)
                 {
-                    AzureAdObjectIdentifier = azureAdObjectIdentifier
-                };
+                    return null;// not sure if we should rather throw
+                }
+
+                existingUser = resolvedUser;
             }
-            //throw new NotImplementedException();
 
             return existingUser;
+        }
+
+        /// <summary>
+        /// Attempts to Find a user by the UPN claim.
+        /// </summary>
+        /// <param name="upn">The value of the UPN claim to lookup.</param>
+        /// <returns>A Task with the ApplicationUser as a result</returns>
+        public async Task<ApplicationUser> EnsureUserByUpnAsync(string upn)
+        {
+            // TODO: implement with Func!!
+            var existingUser = await FindUserAsync(ai=>ai.Upn == upn);
+            if (existingUser != null)
+            {
+                return existingUser;
+            }
+            else
+            {
+                var currentUser = await GetCurrentUser();
+                var resolvedUser = await _graphService.ResolveUserByUpnAsync(upn, currentUser.AzureAdObjectIdentifier);
+
+                if (resolvedUser == null)
+                {
+                    // TODO: LOG
+                    return null;// not sure if we should rather throw
+                }
+
+                return resolvedUser;
+            }
         }
     }
 }

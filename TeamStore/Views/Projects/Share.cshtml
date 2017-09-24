@@ -3,19 +3,19 @@
     ViewData["Title"] = "Create";
 }
 <h2>Share Project</h2>
-<h4>@Html.DisplayNameFor(model => model.Title)</h4>
+<h4>Share with:</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Share">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
+                <label asp-for="ShareDetails" class="control-label"></label>
+                <input asp-for="ShareDetails" class="form-control" />
+                <span asp-validation-for="ShareDetails" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-default" />
+                <input type="submit" value="Share" class="btn btn-default" />
             </div>
         </form>
     </div>
