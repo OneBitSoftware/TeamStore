@@ -13,7 +13,7 @@ using TeamStore.Keeper.Enums;
 namespace TeamStore.Keeper.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20170922081419_FreshDatabase")]
+    [Migration("20170924111036_FreshDatabase")]
     partial class FreshDatabase
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -82,16 +82,24 @@ namespace TeamStore.Keeper.Migrations
 
                     b.Property<DateTime>("Created");
 
+                    b.Property<int?>("CreatedById");
+
                     b.Property<string>("Discriminator")
                         .IsRequired();
 
                     b.Property<bool>("IsEnabled");
 
-                    b.Property<DateTime>("LastModified");
+                    b.Property<DateTime>("Modified");
+
+                    b.Property<int?>("ModifiedById");
 
                     b.Property<int>("ProjectForeignKey");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("ModifiedById");
 
                     b.HasIndex("ProjectForeignKey");
 
@@ -177,6 +185,8 @@ namespace TeamStore.Keeper.Migrations
                 {
                     b.HasBaseType("TeamStore.Keeper.Models.Asset");
 
+                    b.Property<string>("Domain");
+
                     b.Property<string>("Login");
 
                     b.ToTable("Credential");
@@ -219,6 +229,14 @@ namespace TeamStore.Keeper.Migrations
 
             modelBuilder.Entity("TeamStore.Keeper.Models.Asset", b =>
                 {
+                    b.HasOne("TeamStore.Keeper.Models.ApplicationUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("TeamStore.Keeper.Models.ApplicationUser", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById");
+
                     b.HasOne("TeamStore.Keeper.Models.Project", "Project")
                         .WithMany("Assets")
                         .HasForeignKey("ProjectForeignKey")

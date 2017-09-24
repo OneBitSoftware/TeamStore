@@ -93,10 +93,13 @@ namespace TeamStore.Keeper.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatedById = table.Column<int>(type: "INTEGER", nullable: true),
                     Discriminator = table.Column<string>(type: "TEXT", nullable: false),
                     IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    LastModified = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Modified = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ModifiedById = table.Column<int>(type: "INTEGER", nullable: true),
                     ProjectForeignKey = table.Column<int>(type: "INTEGER", nullable: false),
+                    Domain = table.Column<string>(type: "TEXT", nullable: true),
                     Login = table.Column<string>(type: "TEXT", nullable: true),
                     Body = table.Column<string>(type: "TEXT", nullable: true),
                     Title = table.Column<string>(type: "TEXT", nullable: true)
@@ -104,6 +107,18 @@ namespace TeamStore.Keeper.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Assets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Assets_ApplicationIdentities_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "ApplicationIdentities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Assets_ApplicationIdentities_ModifiedById",
+                        column: x => x.ModifiedById,
+                        principalTable: "ApplicationIdentities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Assets_Projects_ProjectForeignKey",
                         column: x => x.ProjectForeignKey,
@@ -165,6 +180,16 @@ namespace TeamStore.Keeper.Migrations
                 column: "ProjectForeignKey");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Assets_CreatedById",
+                table: "Assets",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Assets_ModifiedById",
+                table: "Assets",
+                column: "ModifiedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Assets_ProjectForeignKey",
                 table: "Assets",
                 column: "ProjectForeignKey");
@@ -189,10 +214,10 @@ namespace TeamStore.Keeper.Migrations
                 name: "Events");
 
             migrationBuilder.DropTable(
-                name: "ApplicationIdentities");
+                name: "Assets");
 
             migrationBuilder.DropTable(
-                name: "Assets");
+                name: "ApplicationIdentities");
 
             migrationBuilder.DropTable(
                 name: "Projects");
