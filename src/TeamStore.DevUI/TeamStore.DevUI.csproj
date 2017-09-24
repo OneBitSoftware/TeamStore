@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\TeamStore.Keeper\TeamStore.Keeper.csproj" />
+    <ProjectReference Include="..\TeamStore.Keeper\TeamStore.Keeper.csproj" />
   </ItemGroup>
 
 </Project>

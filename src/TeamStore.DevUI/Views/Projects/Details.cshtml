@@ -31,17 +31,36 @@
             @Html.DisplayFor(model => model.Category)
         </dd>
     </dl>
+    <h4>Access Details</h4>
+    <table>
+        @foreach (var item in Model.AccessList)
+        {
+            <tr>
+                <td>@item</td>
+            </tr>
+        }
+    </table>
+    <h4>Assets</h4>
+    <table>
+        @foreach (var item in Model.AssetsList)
+        {
+            <tr>
+                <td>@item.DisplayTitle</td>
+                <td>@item.Created</td>
+                <td>@item.CreatedBy</td>
+                <td>@item.Modified</td>
+                <td>@item.ModifiedBy</td>
+                <td>@item.IsEnabled</td>
+            </tr>
+        }
+    </table>
+
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
-   
 </div>
 <div>
     <a asp-action="CreateCredential" asp-route-id="@Model.Id">Create Credential</a> |
     <a asp-action="CreateNote" asp-route-id="@Model.Id">Create Note</a>
-    <!--
-    <input type="button" value="Create Credential" onclick="location.href='@Url.Action("Details","Projects")'" />
-    <input type="button" value="Create Note" onclick="location.href='@Url.Action("Details","Projects")'" />
-        -->
 </div>
