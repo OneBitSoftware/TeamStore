@@ -16,7 +16,7 @@
 
 
     // NOTE: This is copied from somewhere and is quite shit.
-    // Need to move userId around.
+    // Need to move userId/currentUser around.
     public class GraphService : IGraphService
     {
         private readonly IMemoryCache _memoryCache;
@@ -217,7 +217,7 @@
             catch (ServiceException graphException)
             {
                 // TODO LOG
-
+                // user UPN not found log
                 return null;
             }
         }
