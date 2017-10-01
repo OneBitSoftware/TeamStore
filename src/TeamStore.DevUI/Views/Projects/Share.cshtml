@@ -1,4 +1,4 @@
-﻿@model TeamStore.ViewModels.ShareProjectViewModel
+﻿@model TeamStore.ViewModels.AccessChangeProjectViewModel
 @{
     ViewData["Title"] = "Create";
 }
@@ -10,14 +10,27 @@
         <form asp-action="Share">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="ShareDetails" class="control-label"></label>
-                <input asp-for="ShareDetails" class="form-control" />
-                <span asp-validation-for="ShareDetails" class="text-danger"></span>
+                <label asp-for="Details" class="control-label"></label>
+                <input asp-for="Details" class="form-control" />
+                <span asp-validation-for="Details" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Share" class="btn btn-default" />
             </div>
         </form>
+
+        @if (Model.Result == false)
+        {
+            <div class="alert-warning">
+                @Model.Details
+            </div>
+        }
+        else if (Model.Result == true)
+        {
+            <div>
+                The identity @Model.Details was successfully added.
+            </div>
+        }
     </div>
 </div>
 <div>

@@ -11,6 +11,7 @@
     using TeamStore.Factories;
     using TeamStore.Keeper.Interfaces;
     using TeamStore.Keeper.Models;
+    using TeamStore.DevUI.ViewModels;
 
     public class ProjectsController : Controller
     {
@@ -59,10 +60,19 @@
             return View(projectViewModel);
         }
 
-        // GET: Projects/CreateCredential
-        public IActionResult CreateCredential()
+        // GET: Projects/CreateCredential/5
+        public async Task<IActionResult> CreateCredential(int id)
         {
-            return View();
+            var project = await _projectsService.GetProject(id);
+
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            var projectViewModel = ProjectFactory.GetCredentialViewModel(project);
+
+            return View(projectViewModel);
         }
 
         // POST: Projects/CreateCredential
@@ -70,13 +80,8 @@
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateCredential(int id, [Bind("Id,Title,Description,Category")] Project project)
+        public async Task<IActionResult> CreateCredential(CreateCredentialViewModel createViewModel)
         {
-            if (id != project.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
                 try
@@ -86,18 +91,12 @@
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProjectExists(project.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
                         throw;
-                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(project);
+
+            return View();
         }
 
         // GET: Projects/CreateNote
@@ -127,14 +126,7 @@
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProjectExists(project.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
                         throw;
-                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -180,18 +172,24 @@
         }
 
         [HttpPost]
-        public async Task<IActionResult> Share(ShareProjectViewModel shareProjectViewModel, int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Share(AccessChangeProjectViewModel shareProjectViewModel, int id)
         {
             // Build user
             var remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress.ToString();
             var accessResult = await _permissionService.GrantAccessAsync(
                 id,
-                shareProjectViewModel.ShareDetails,
+                shareProjectViewModel.Details,
                 "Owner",
                 HttpContext.Connection.RemoteIpAddress.ToString(),
                 _projectsService);
 
-            shareProjectViewModel.ShareResult = accessResult.Message;
+            shareProjectViewModel.Result = accessResult.Success;
+
+            if (string.IsNullOrWhiteSpace(accessResult.Message) == false)
+            {
+                shareProjectViewModel.Details = accessResult.Message;
+            }
 
             return View(shareProjectViewModel);
         }
@@ -233,14 +231,8 @@
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProjectExists(project.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
+                    
                         throw;
-                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
