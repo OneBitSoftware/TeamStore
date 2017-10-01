@@ -176,12 +176,12 @@
         public async Task<IActionResult> Share(AccessChangeProjectViewModel shareProjectViewModel, int id)
         {
             // Build user
-            var remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress.ToString();
+            var remoteIpAddress = this.HttpContext?.Connection?.RemoteIpAddress?.ToString();
             var accessResult = await _permissionService.GrantAccessAsync(
                 id,
                 shareProjectViewModel.Details,
                 "Owner",
-                HttpContext.Connection.RemoteIpAddress.ToString(),
+                remoteIpAddress,
                 _projectsService);
 
             shareProjectViewModel.Result = accessResult.Success;
@@ -270,12 +270,12 @@
         // TODO: need to change this to HttpPost called from AJAX and validate the antiforgerytoken
         public async Task<IActionResult> RevokeAccess(int id, string upn)
         {
-            var remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress.ToString();
+            var remoteIpAddress = this.HttpContext?.Connection?.RemoteIpAddress?.ToString();
             var accessResult = await _permissionService.RevokeAccessAsync(
                 id,
                 upn,
                 "Owner",
-                HttpContext.Connection.RemoteIpAddress.ToString(),
+                remoteIpAddress,
                 _projectsService);
 
             return RedirectToAction(nameof(Details), new { id = id });
