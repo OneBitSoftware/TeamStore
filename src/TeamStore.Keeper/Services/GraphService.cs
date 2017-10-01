@@ -191,6 +191,7 @@
             {
                 var user = await graphClient.Users[azureAdObjectIdentifier].Request().GetAsync();
                 var mappedUser = UserIdentityFactory.MapApplicationUser(user);
+                mappedUser.TenantId = _tenantId;
                 return mappedUser;
             }
             catch (ServiceException graphException)
