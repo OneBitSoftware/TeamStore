@@ -45,7 +45,7 @@
             Assert.Equal(6, retrievedProject.AccessIdentifiers.Count); // 5 + the owner
 
             // Act - Revoke access
-            await _permissionService.RevokeAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", _testUser, "127.0.1.1", _projectsService);
+            await _permissionService.RevokeAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", "127.0.1.1", _projectsService);
             retrievedProject = await _projectsService.GetProject(createdProjectId);
 
             // Assert - Revoke access

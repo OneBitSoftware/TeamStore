@@ -60,7 +60,7 @@
         /// Revokes access to a project
         /// </summary>
         /// <param name="projectId">The Id of the project</param>
-        /// <param name="azureAdObjectIdentifier">The identifier of the identity for which access will be granted to</param>
+        /// <param name="upn">The UPN of the identity for which access will be granted to</param>
         /// <param name="role">The role/level of access that will be granted</param>
         /// <param name="revokingUser">The ApplicationUser revoking the access</param>
         /// <param name="remoteIpAddress">The IP address of the incoming request</param>
@@ -68,9 +68,8 @@
         /// <returns>A Task object with an AccessChangeResult representing the result</returns>
         Task<AccessChangeResult> RevokeAccessAsync(
             int projectId,
-            string azureAdObjectIdentifier,
+            string upn,
             string role,
-            ApplicationUser revokingUser,
             string remoteIpAddress,
             IProjectsService projectsService
             );
