@@ -275,11 +275,18 @@
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProjectExists(int id)
+        // TODO: need to change this to HttpPost called from AJAX and validate the antiforgerytoken
+        public async Task<IActionResult> RevokeAccess(int id, string upn)
         {
-            var retrievedProject = _projectsService.GetProject(id);
-            if (retrievedProject != null) return true;
-            return false;
+            var remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress.ToString();
+            var accessResult = await _permissionService.RevokeAccessAsync(
+                id,
+                upn,
+                "Owner",
+                HttpContext.Connection.RemoteIpAddress.ToString(),
+                _projectsService);
+
+            return RedirectToAction(nameof(Details), new { id = id });
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿@model TeamStore.ViewModels.ProjectViewModel
-
 @{
     ViewData["Title"] = "Details";
 }
@@ -36,7 +35,10 @@
         @foreach (var item in Model.AccessList)
         {
             <tr>
-                <td>@item</td>
+                <td>@item.DisplayName (@item.Upn) </td>
+                <td>
+                    @Html.ActionLink("Revoke Access", "RevokeAccess", new { id = Model.Id, upn = item.Upn }, new { @id = "btnDelete" })
+                </td>
             </tr>
         }
     </table>
