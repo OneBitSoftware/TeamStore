@@ -1,0 +1,10 @@
+
+
+TODO's:
+
+
+
+New Functionality:
+- Access Roles - currently not implemented, sharing gives Owner roles
+- Logging
+- Azure AD Groups sharing
