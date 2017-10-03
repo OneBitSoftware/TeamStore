@@ -16,7 +16,7 @@
 
 
     // NOTE: This is copied from somewhere and is quite shit.
-    // Need to move userId around.
+    // Need to move userId/currentUser around.
     public class GraphService : IGraphService
     {
         private readonly IMemoryCache _memoryCache;
@@ -193,6 +193,7 @@
             {
                 var user = await graphClient.Users[azureAdObjectIdentifier].Request().GetAsync();
                 var mappedUser = UserIdentityFactory.MapApplicationUser(user);
+                mappedUser.TenantId = _tenantId;
                 return mappedUser;
             }
             catch (ServiceException graphException)
@@ -218,7 +219,7 @@
             catch (ServiceException graphException)
             {
                 // TODO LOG
-
+                // user UPN not found log
                 return null;
             }
         }

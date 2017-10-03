@@ -47,7 +47,6 @@
         /// <param name="projectId">The Id of the project</param>
         /// <param name="azureAdObjectIdentifier">The identifier of the identity for which access will be granted to</param>
         /// <param name="role">The role/level of access that will be granted</param>
-        /// <param name="grantingUser">The ApplicationUser granting the access</param>
         /// <param name="remoteIpAddress">The IP address of the incoming request</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>A Task object with an AccessChangeResult representing the result</returns>
@@ -63,6 +62,7 @@
             if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             if (projectId == 0) throw new ArgumentException("You must provide a valid project id.");
             var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new ArgumentException("The current user could not be retrieved.");
 
             // Get/find the project
             var project = await projectsService.GetProject(projectId, true);
@@ -101,8 +101,10 @@
             // Validation of the access identifiers before save
             foreach (var item in project.AccessIdentifiers)
             {
-                if (item.Identity == null) throw new ArgumentException("The project access identifier is not valid.");
-                if (string.IsNullOrWhiteSpace(item.Role)) throw new ArgumentException("A project access identifier role is not valid.");
+                if ((item.Identity == null) || string.IsNullOrWhiteSpace(item.Role))
+                {
+                    return new AccessChangeResult() { Success = false, Message = $"The user or group '{upn}' was not found." };
+                }
             }
 
             await _dbContext.SaveChangesAsync();
@@ -114,7 +116,7 @@
         /// Revokes access to a project
         /// </summary>
         /// <param name="projectId">The Id of the project</param>
-        /// <param name="azureAdObjectIdentifier">The identifier of the identity for which access will be granted to</param>
+        /// <param name="upn">The UPN of the identity for which access will be granted to</param>
         /// <param name="role">The role/level of access that will be granted</param>
         /// <param name="revokingUser">The ApplicationUser revoking the access</param>
         /// <param name="remoteIpAddress">The IP address of the incoming request</param>
@@ -122,24 +124,24 @@
         /// <returns>A Task object with an AccessChangeResult representing the result</returns>
         public async Task<AccessChangeResult> RevokeAccessAsync(
             int projectId,
-            string azureAdObjectIdentifier,
+            string upn,
             string role,
-            ApplicationUser revokingUser,
             string remoteIpAddress,
             IProjectsService projectsService)
         {
-            if (string.IsNullOrWhiteSpace(azureAdObjectIdentifier)) throw new ArgumentNullException(nameof(azureAdObjectIdentifier));
+            if (string.IsNullOrWhiteSpace(upn)) throw new ArgumentNullException(nameof(upn));
             if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentNullException(nameof(remoteIpAddress));
             if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
-            if (revokingUser == null) throw new ArgumentNullException(nameof(revokingUser));
-           
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new ArgumentException("The current user could not be retrieved.");
+
             // Get/find the project
             var project = await projectsService.GetProject(projectId, true);
             if (project == null) throw new ArgumentNullException(nameof(project));
 
             // Save Revoke Access event
-            await _eventService.LogRevokeAccessEventAsync(projectId, remoteIpAddress, azureAdObjectIdentifier, role, revokingUser);
+            await _eventService.LogRevokeAccessEventAsync(projectId, remoteIpAddress, upn, role, currentUser);
 
             // Verify that the current user has permissions to grant access, aka Owner
             if (await CurrentUserHasAccessAsync(projectId, projectsService, "Owner") == false)
@@ -150,14 +152,14 @@
             // Validate that the AzureAD Object Identifier has access
             var existingAccess = _dbContext.AccessIdentifiers.Where(a => 
                 a.Project.Id == projectId && 
-                a.Identity.AzureAdObjectIdentifier == azureAdObjectIdentifier &&
+                ((ApplicationUser)a.Identity).Upn == upn &&
                 a.Role == role);
 
             // we remove all in case there are two grants with the same role
             foreach (var item in existingAccess)
             {
                 project.AccessIdentifiers.Remove(item);
-            }
+            } // this will not error out when there are no results, which should be OK
 
             await _dbContext.SaveChangesAsync();
 

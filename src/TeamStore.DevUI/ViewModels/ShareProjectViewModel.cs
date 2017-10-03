@@ -1,10 +1,10 @@
 ﻿namespace TeamStore.ViewModels
 {
-    public class ShareProjectViewModel
+    public class AccessChangeProjectViewModel
     {
         public int ProjectId { get; set; }
         public string Title { get; set; }
-        public string ShareDetails { get; set; }
-        public string ShareResult { get; set; }
+        public string Details { get; set; }
+        public bool? Result { get; set; }
     }
 }
