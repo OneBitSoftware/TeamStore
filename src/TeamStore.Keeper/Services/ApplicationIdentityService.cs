@@ -149,13 +149,12 @@
         public async Task<ApplicationUser> FindUserAsync(Expression<Func<ApplicationIdentity, bool>> lookupCondition)
         {
 
-            var returnedObject = _dbContext.ApplicationIdentities.Where
-              (lookupCondition);
+            var returnedObject = await _dbContext.ApplicationIdentities
+                .Where(lookupCondition).FirstOrDefaultAsync();
 
-            var tttt = await returnedObject.FirstOrDefaultAsync();
-            if (tttt == null) return null;
+            if (returnedObject == null) return null;
 
-            return tttt as ApplicationUser;
+            return returnedObject as ApplicationUser;
         }
 
         /// <summary>
