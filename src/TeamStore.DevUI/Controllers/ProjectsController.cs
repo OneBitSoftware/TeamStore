@@ -86,14 +86,17 @@
             {
                 try
                 {
-                    //_context.Update(project);
-                    //await _context.SaveChangesAsync();
+                    await _projectsService.CreateCredential(
+                        createViewModel.ProjectId,
+                        createViewModel.Login,
+                        createViewModel.Domain,
+                        createViewModel.Password);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                         throw;
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), createViewModel.ProjectId);
             }
 
             return View();
