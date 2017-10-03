@@ -45,5 +45,6 @@
         Task ArchiveProject(Project decryptedProject);
 
         Task CreateCredential(Project project, string login, string domain, string password);
+        Task CreateCredential(int projectId, string login, string domain, string password);
     }
 }

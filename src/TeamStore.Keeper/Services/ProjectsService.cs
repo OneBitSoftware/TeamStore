@@ -181,6 +181,17 @@
             await _dbContext.SaveChangesAsync(); // save db
         }
 
+
+        public async Task CreateCredential(int projectId, string login, string domain, string password)
+        {
+            if (string.IsNullOrWhiteSpace(login)) throw new ArgumentNullException(nameof(login));
+            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentNullException(nameof(password));
+            if (projectId < 0) throw new ArgumentException("You must pass a valid project id.");
+
+            var project = await GetProject(projectId);
+            await CreateCredential(project, login, domain, password);
+        }
+
         public async Task CreateCredential(Project project, string login, string domain, string password)
         {
             if (string.IsNullOrWhiteSpace(login)) throw new ArgumentNullException(nameof(login));
@@ -192,7 +203,7 @@
             newCredential.Domain = domain;
             newCredential.Login = login;
             newCredential.Project = project;
-            newCredential.IsArchived = true;
+            newCredential.IsArchived = false;
 
             // Validate
             if (newCredential.CreatedBy == null) throw new ArgumentNullException(nameof(newCredential.CreatedBy));
