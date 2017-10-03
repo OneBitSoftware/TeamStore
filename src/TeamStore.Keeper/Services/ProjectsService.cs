@@ -148,8 +148,8 @@
             foreach (var accessItem in project.AccessIdentifiers)
             {
                 accessItem.Created = DateTime.UtcNow;
-                //accessItem.Modified = DateTime.UtcNow;
                 accessItem.CreatedBy = currentUser;
+                //accessItem.Modified = DateTime.UtcNow;
                 //accessItem.ModifiedBy = currentUser;
 
                 // Access Item Validation
@@ -181,6 +181,28 @@
             await _dbContext.SaveChangesAsync(); // save db
         }
 
+        public async Task CreateCredential(Project project, string login, string domain, string password)
+        {
+            if (string.IsNullOrWhiteSpace(login)) throw new ArgumentNullException(nameof(login));
+            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentNullException(nameof(password));
+
+            var newCredential = new Credential();
+            newCredential.Created = DateTime.UtcNow;
+            newCredential.CreatedBy = await _applicationIdentityService.GetCurrentUser();
+            newCredential.Domain = domain;
+            newCredential.Login = login;
+            newCredential.Project = project;
+            newCredential.IsArchived = true;
+
+            // Validate
+            if (newCredential.CreatedBy == null) throw new ArgumentNullException(nameof(newCredential.CreatedBy));
+            if (newCredential.Project == null) throw new ArgumentNullException(nameof(newCredential.Project));
+
+            project.Assets.Add(newCredential);
+            await _dbContext.SaveChangesAsync();
+
+            // Potentially upgrade to return CreateAssetResult
+        }
 
         /// <summary>
         /// Sets a Project's Created/CreatedBy and Modified/ModifiedBy values
