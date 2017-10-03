@@ -14,11 +14,12 @@
     using TeamStore.Keeper.Factories;
     using System.Linq.Expressions;
 
+    // NOTE: I am rethinking the dependency on HttpContext. The idea is to "get the current user" at 
+    // different life cycle events.
+
     /// <summary>
     /// This service is responsible for retrieving and creating Application Identities (users or groups)
     /// </summary>
-    /// NOTE: I am rethinking the dependency on HttpContext. The idea is to "get the current user" at 
-    /// different life cycle events.
     public class ApplicationIdentityService : IApplicationIdentityService
     {
         public const string CURRENTUSERKEY = "Auth_CurrentUser";
@@ -26,12 +27,12 @@
         private ApplicationDbContext _dbContext;
         private HttpContext _httpContext;
         private IDictionary<object, object> _itemsCollection;
-        private IGraphService _graphService; 
+        private IGraphService _graphService;
 
         /// <summary>
         /// Constructor for the ApplicationIdentityService
         /// </summary>
-        /// <param name="context">The database context with ApplicationIdentity entities</param>
+        /// <param name="context">The database context with <see cref="ApplicationIdentity"/> entities</param>
         /// <param name="httpContextAccessor">The ASP.NET Core IHttpContextAccessor to reference a current HttpContext</param>
         /// <param name="itemsCollection">An items collection override to retrieve per-request instantiated users</param>
         public ApplicationIdentityService(
@@ -61,7 +62,7 @@
         /// <summary>
         /// Retrieves the current logged in user Application Identity
         /// </summary>
-        /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
+        /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
         public async Task<ApplicationUser> GetCurrentUser()
         {
             if (_httpContext == null) return null;
@@ -78,11 +79,11 @@
         }
 
         /// <summary>
-        /// Creates or returns the <see cref="ApplicationUser "/> representing a passed IIdentity.
+        /// Creates or returns the <see cref="ApplicationUser"/> representing a passed IIdentity.
         /// This method checks the database first.
         /// </summary>
-        /// <param name="identity">The IIdentity to resolve and map to an <see cref="ApplicationUser "/></param>
-        /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
+        /// <param name="identity">The IIdentity to resolve and map to an <see cref="ApplicationUser"/></param>
+        /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
         public async Task<ApplicationUser> GetCurrentUser(IIdentity identity)
         {
             if (identity == null) return null;
@@ -107,9 +108,9 @@
         }
 
         /// <summary>
-        /// Sets the passed <see cref="ApplicationUser "/> as the current logged in user in the items collection
+        /// Sets the passed <see cref="ApplicationUser"/> as the current logged in user in the items collection
         /// </summary>
-        /// <param name="currentApplicationUser">The <see cref="ApplicationUser "/> object to set as the current user</param>
+        /// <param name="currentApplicationUser">The <see cref="ApplicationUser"/> object to set as the current user</param>
         private void UpdateUserInItemsCollection(ApplicationUser currentApplicationUser)
         {
             // Update the HttpContext requet object if it is not set. On the next Get it will get it from the context.
@@ -126,12 +127,12 @@
         }
 
         /// <summary>
-        /// Retrieves an ApplicationUser from the database by looking up the 
+        /// Retrieves an <see cref="ApplicationUser"/> from the database by looking up the 
         /// passed ClaimsIdentity object. Matches a user by the object identifier claim within the ClaimsIdentity 
         /// claims collection.
         /// </summary>
         /// <param name="identity">The ClaimsIdentity holding the object identifier claim to lookup.</param>
-        /// <returns>A Task with the ApplicationUser as a result</returns>
+        /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
         public async Task<ApplicationUser> FindUserAsync(ClaimsIdentity identity)
         {
             var claim = identity.Claims.FirstOrDefault(c => c.Type == Constants.CLAIMS_OBJECTIDENTIFIER);
@@ -142,10 +143,10 @@
         }
 
         /// <summary>
-        /// Retrieves an ApplicationUser from the database by looking up the passed condition.
+        /// Retrieves an <see cref="ApplicationUser"/> from the database by looking up the passed condition.
         /// </summary>
         /// <param name="lookupCondition">A predicate of the condition to lookup</param>
-        /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
+        /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
         public async Task<ApplicationUser> FindUserAsync(Expression<Func<ApplicationIdentity, bool>> lookupCondition)
         {
 
@@ -158,11 +159,11 @@
         }
 
         /// <summary>
-        /// Retrieves an ApplicationUser from the database by looking up the 
+        /// Retrieves an <see cref="ApplicationUser"/> from the database by looking up the 
         /// AzureAdObjectIdentifier. Matches a user by the object identifier claim.
         /// </summary>
         /// <param name="azureAdObjectIdentifier">The value of the object identifier claim to lookup.</param>
-        /// <returns>A Task with the ApplicationUser as a result</returns>
+        /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
         [Obsolete("Replaced with FindUserAsync")]
         public async Task<ApplicationUser> FindUserByObjectIdAsync(string azureAdObjectIdentifier)
         {
@@ -176,11 +177,11 @@
         }
 
         /// <summary>
-        /// Retrieves an ApplicationUser from the database by looking up the 
+        /// Retrieves an <see cref="ApplicationUser"/> from the database by looking up the 
         /// UPN. Matches a user by the UPN claim.
         /// </summary>
         /// <param name="upn">The value of the UPN claim to lookup.</param>
-        /// <returns>A Task with the ApplicationUser as a result</returns>
+        /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
         [Obsolete("Replaced with FindUserAsync")]
         public async Task<ApplicationUser> FindUserByUpnAsync(string upn)
         {
@@ -197,7 +198,7 @@
         /// Attempts to Find a user by the object identifier claim.
         /// </summary>
         /// <param name="azureAdObjectIdentifier">The value of the object identifier claim to lookup.</param>
-        /// <returns>A Task with the ApplicationUser as a result</returns>
+        /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
         public async Task<ApplicationUser> EnsureUserByObjectIdAsync(string azureAdObjectIdentifier)
         {
             // TODO: implement with Func!!
@@ -226,7 +227,7 @@
         /// Attempts to Find a user by the UPN claim.
         /// </summary>
         /// <param name="upn">The value of the UPN claim to lookup.</param>
-        /// <returns>A Task with the ApplicationUser as a result</returns>
+        /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
         public async Task<ApplicationUser> EnsureUserByUpnAsync(string upn)
         {
             // TODO: implement with Func!!
