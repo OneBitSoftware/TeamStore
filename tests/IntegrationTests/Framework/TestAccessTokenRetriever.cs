@@ -47,6 +47,9 @@ namespace IntegrationTests.Framework
                 string responseContent = responseTask.Result;
                 jResult = JObject.Parse(responseContent);
             }
+
+            if (jResult == null) return null;
+
             var accessToken = (string)jResult["access_token"];
 
             if (!String.IsNullOrEmpty(accessToken))

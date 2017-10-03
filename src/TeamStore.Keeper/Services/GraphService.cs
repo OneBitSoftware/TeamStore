@@ -51,6 +51,8 @@
         // Get an authenticated Microsoft Graph Service client.
         public GraphServiceClient GetAuthenticatedClient(string userId)
         {
+            //RA: here we could add a if (_graphClient != null) return _graphClient;
+
             _graphClient = new GraphServiceClient(new DelegateAuthenticationProvider(
                 async (requestMessage) =>
                 {
