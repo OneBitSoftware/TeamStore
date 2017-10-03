@@ -12,6 +12,7 @@
     using TeamStore.Keeper.DataAccess;
     using TeamStore.Keeper.Models;
     using TeamStore.Keeper.Factories;
+    using System.Linq.Expressions;
 
     /// <summary>
     /// This service is responsible for retrieving and creating Application Identities (users or groups)
@@ -145,14 +146,16 @@
         /// </summary>
         /// <param name="lookupCondition">A predicate of the condition to lookup</param>
         /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
-        public async Task<ApplicationUser> FindUserAsync(Func<ApplicationUser, bool> lookupCondition)
+        public async Task<ApplicationUser> FindUserAsync(Expression<Func<ApplicationIdentity, bool>> lookupCondition)
         {
-            var returnedObject = await _dbContext.ApplicationIdentities.Where
-              (ai => lookupCondition(ai as ApplicationUser)).FirstOrDefaultAsync();
 
-            if (returnedObject == null) return null;
+            var returnedObject = _dbContext.ApplicationIdentities.Where
+              (lookupCondition);
 
-            return returnedObject as ApplicationUser;
+            var tttt = await returnedObject.FirstOrDefaultAsync();
+            if (tttt == null) return null;
+
+            return tttt as ApplicationUser;
         }
 
         /// <summary>
@@ -228,7 +231,7 @@
         public async Task<ApplicationUser> EnsureUserByUpnAsync(string upn)
         {
             // TODO: implement with Func!!
-            var existingUser = await FindUserAsync(ai=>ai.Upn == upn);
+            var existingUser = await FindUserAsync(ai=>((ApplicationUser)ai).Upn == upn);
             if (existingUser != null)
             {
                 return existingUser;

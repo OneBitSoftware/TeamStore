@@ -1,6 +1,7 @@
 ﻿namespace TeamStore.Keeper.Interfaces
 {
     using System;
+    using System.Linq.Expressions;
     using System.Security.Claims;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -29,7 +30,7 @@
         /// </summary>
         /// <param name="lookupCondition">A predicate of the condition to lookup</param>
         /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
-        Task<ApplicationUser> FindUserAsync(Func<ApplicationUser, bool> lookupCondition);
+        Task<ApplicationUser> FindUserAsync(Expression<Func<ApplicationIdentity, bool>> lookupCondition);
 
         /// <summary>
         /// Retrieves an ApplicationUser from the database by looking up the 
