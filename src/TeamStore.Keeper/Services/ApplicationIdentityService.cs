@@ -69,7 +69,8 @@
             //if (_itemsCollection.ContainsKey(CURRENTUSERKEY) == false) return null;
 
             // 1. Check context Item for Application User
-            if (_itemsCollection[CURRENTUSERKEY] != null && 
+            if (_itemsCollection.ContainsKey(CURRENTUSERKEY) && 
+                _itemsCollection[CURRENTUSERKEY] != null && 
                 _itemsCollection[CURRENTUSERKEY] is ApplicationUser applicationUser)
                 return applicationUser;
 
@@ -201,7 +202,7 @@
         /// <returns>A Task with the ApplicationUser as a result</returns>
         public async Task<ApplicationUser> EnsureUserByObjectIdAsync(string azureAdObjectIdentifier)
         {
-            // TODO: implement with Func!!
+            // TODO: implement EnsureUserByUpnAsync and EnsureUserByObjectIdAsync with Func!!
             var existingUser = await FindUserAsync(ai => ai.AzureAdObjectIdentifier == azureAdObjectIdentifier);
             if (existingUser != null)
             {
@@ -230,7 +231,7 @@
         /// <returns>A Task with the ApplicationUser as a result</returns>
         public async Task<ApplicationUser> EnsureUserByUpnAsync(string upn)
         {
-            // TODO: implement with Func!!
+            // TODO: implement EnsureUserByUpnAsync and EnsureUserByObjectIdAsync with Func!!
             var existingUser = await FindUserAsync(ai=>((ApplicationUser)ai).Upn == upn);
             if (existingUser != null)
             {
