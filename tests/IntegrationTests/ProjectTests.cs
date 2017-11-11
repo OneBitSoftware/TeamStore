@@ -141,19 +141,8 @@ namespace IntegrationTests
             await _permissionService.GrantAccessAsync(retrievedProject.Id, newAzureAdObjectId, "Edit", "1.2.3.4", _projectsService);
             
             // Assert
-        }
 
-        private Project CreateTestProject()
-        {
-            string testTitle = "Project 1234 Test";
-            string testDescription = "Created during integration tests";
-            string testCategory = "Category Tests";
-            Project newDecryptedProject = new Project();
-            newDecryptedProject.Title = testTitle;
-            newDecryptedProject.Description = testDescription;
-            newDecryptedProject.Category = testCategory;
-
-            return newDecryptedProject;
+            // Cleanup
         }
     }
 }

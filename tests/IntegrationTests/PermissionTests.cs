@@ -36,6 +36,8 @@
 
             // Act - Grant access
             await _permissionService.GrantAccessAsync(retrievedProject.Id, "1234123412-1234-1312-1234-12341234", "Edit", "127.0.0.1", _projectsService);
+
+            // The following lines will fail, as the Graph Service cannot resolve 4444555511....
             await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", "127.0.0.1", _projectsService);
             await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", "127.0.0.1", _projectsService);
             await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", "127.0.0.1", _projectsService);

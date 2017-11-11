@@ -27,6 +27,7 @@ namespace IntegrationTests
         protected IApplicationIdentityService _applicationIdentityService;
         protected IGraphService _graphService;
         protected IEventService _eventService;
+        protected IAssetService _assetService;
         protected ApplicationUser _testUser;
         protected ApplicationDbContext _dbContext;
         protected HttpContext _testHttpContext;
@@ -51,7 +52,8 @@ namespace IntegrationTests
             _applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor, _fakeHttpContextItems);
             _eventService = new EventService(_dbContext, _applicationIdentityService);
             _permissionService = new PermissionService(_dbContext, _graphService, _eventService, _applicationIdentityService);
-            _projectsService = new ProjectsService(_dbContext, _encryptionService, _applicationIdentityService, _permissionService);
+            _projectsService = new ProjectsService(_dbContext, _encryptionService, _eventService, _applicationIdentityService, _permissionService);
+            _assetService = new AssetService(_dbContext, _projectsService, _encryptionService, _eventService, _applicationIdentityService);
 
             _testUser = _applicationIdentityService.FindUserAsync(u=>u.AzureAdObjectIdentifier == "TestAdObjectId11234567890").Result;
             if (_testUser == null)
@@ -92,6 +94,55 @@ namespace IntegrationTests
 
             // Set up the DbContext for data access
             return dbContext;
+        }
+
+        /// <summary>
+        /// Creates a project for testing purposes
+        /// </summary>
+        /// <remarks>
+        /// Sets title, description & category properties
+        /// </remarks>
+        /// <returns></returns>
+        protected Project CreateTestProject()
+        {
+            string testTitle = "Project 1234 Test";
+            string testDescription = "Created during integration tests";
+            string testCategory = "Category Tests";
+
+            Project newDecryptedProject = new Project();
+            newDecryptedProject.Title = testTitle;
+            newDecryptedProject.Description = testDescription;
+            newDecryptedProject.Category = testCategory;
+
+            return newDecryptedProject;
+        }
+
+        protected Credential CreateTestCredential()
+        {
+            var login = "Login123";
+            var pass = "Password";
+            var domain = "DOMAIN";
+
+            var testCredential = new Credential();
+            testCredential.Login = login;
+            testCredential.Password = pass;
+            testCredential.Domain = domain;
+            testCredential.IsArchived = false;
+
+            return testCredential;
+        }
+
+        protected Note CreateTestNote()
+        {
+            var title = "Test note 12345";
+            var body = "Test body test body Test body test body Test body test body Test body test body";
+
+            var testNote = new Note();
+            testNote.Title = title;
+            testNote.Body = body;
+            testNote.IsArchived = false;
+
+            return testNote;
         }
     }
 }

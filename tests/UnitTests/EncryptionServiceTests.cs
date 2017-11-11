@@ -27,10 +27,10 @@ namespace UnitTests
 
             // Act
             encryptionService = new EncryptionService();
-            var encryptedString = encryptionService.EncryptStringAsync(originalString);
-            var decryptedString = encryptionService.DecryptStringAsync(encryptedString);
-            var decryptedString2 = encryptionService.DecryptStringAsync(encryptedString);
-            var decryptedString3 = encryptionService.DecryptStringAsync(encryptedString);
+            var encryptedString = encryptionService.EncryptString(originalString);
+            var decryptedString = encryptionService.DecryptString(encryptedString);
+            var decryptedString2 = encryptionService.DecryptString(encryptedString);
+            var decryptedString3 = encryptionService.DecryptString(encryptedString);
 
             // Assert
             Assert.Equal<string>(originalString, decryptedString);
