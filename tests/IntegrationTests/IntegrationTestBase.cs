@@ -30,6 +30,7 @@ namespace IntegrationTests
         protected IAssetService _assetService;
         protected ApplicationUser _testUser;
         protected ApplicationDbContext _dbContext;
+        protected EventDbContext _eventDbContext;
         protected HttpContext _testHttpContext;
         protected IHttpContextAccessor _httpContextAccessor;
         protected IDictionary<object, object> _fakeHttpContextItems;
@@ -39,6 +40,7 @@ namespace IntegrationTests
         {
             BuildTestConfiguration();
             _dbContext = GetDbContext();
+            _eventDbContext = GetEventDbContext();
 
             _testHttpContext = new DefaultHttpContext();
             _httpContextAccessor = new HttpContextAccessor();
@@ -50,7 +52,7 @@ namespace IntegrationTests
             _graphService = new GraphService(memoryCache, _configuration, accessTokenRetriever);
             _encryptionService = new EncryptionService();
             _applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor, _fakeHttpContextItems);
-            _eventService = new EventService(_dbContext, _applicationIdentityService);
+            _eventService = new EventService(_eventDbContext, _applicationIdentityService);
             _permissionService = new PermissionService(_dbContext, _graphService, _eventService, _applicationIdentityService);
             _projectsService = new ProjectsService(_dbContext, _encryptionService, _eventService, _applicationIdentityService, _permissionService);
             _assetService = new AssetService(_dbContext, _projectsService, _encryptionService, _eventService, _applicationIdentityService);
@@ -66,7 +68,10 @@ namespace IntegrationTests
                     AzureAdName = "Test User Name",
                     AzureAdNameIdentifier = "123123kl21j3lk12j31",
                     Upn = "123123123@12312312.com",
-                }; 
+                };
+
+                _dbContext.ApplicationIdentities.Add(_testUser);
+                _dbContext.SaveChanges();
             }
         }
 
@@ -91,6 +96,21 @@ namespace IntegrationTests
 
             // When in tests, we use context.EnsureCreated() instead of migrations
             var dbContext = new ApplicationDbContext(optionsBuilder.Options, true);
+
+            // Set up the DbContext for data access
+            return dbContext;
+        }
+
+        protected EventDbContext GetEventDbContext()
+        {
+            var fileName = _configuration["DataAccess:SQLiteDbFileName"];
+            var connectionString = "Data Source=" + fileName;
+
+            var optionsBuilder = new DbContextOptionsBuilder<EventDbContext>();
+            optionsBuilder.UseSqlite(connectionString);
+
+            // When in tests, we use context.EnsureCreated() instead of migrations
+            var dbContext = new EventDbContext(optionsBuilder.Options, true);
 
             // Set up the DbContext for data access
             return dbContext;
