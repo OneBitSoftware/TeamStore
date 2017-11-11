@@ -58,7 +58,10 @@
                 .ToListAsync();
 
             var projectsWithAccess = projects.Where(p =>
-                p.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id));
+                p.AccessIdentifiers.Any(ai => ai.Identity != null && ai.Identity.Id == currentUser.Id))
+                .ToList();
+
+            if (projectsWithAccess == null) return null;
 
             if (skipDecryption == false)
             {

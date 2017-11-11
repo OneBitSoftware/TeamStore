@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using System;
 using TeamStore.Keeper.DataAccess;
-using TeamStore.Keeper.Enums;
 
 namespace TeamStore.Keeper.Migrations
 {
@@ -105,36 +104,6 @@ namespace TeamStore.Keeper.Migrations
                     b.ToTable("Assets");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Asset");
-                });
-
-            modelBuilder.Entity("TeamStore.Keeper.Models.Event", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int?>("ActedByUserId");
-
-                    b.Property<int?>("AssetForeignKey");
-
-                    b.Property<string>("Data");
-
-                    b.Property<DateTime>("DateTime");
-
-                    b.Property<string>("NewValue");
-
-                    b.Property<string>("OldValue");
-
-                    b.Property<string>("RemoteIpAddress");
-
-                    b.Property<int>("Type");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActedByUserId");
-
-                    b.HasIndex("AssetForeignKey");
-
-                    b.ToTable("Events");
                 });
 
             modelBuilder.Entity("TeamStore.Keeper.Models.Project", b =>
@@ -242,17 +211,6 @@ namespace TeamStore.Keeper.Migrations
                         .WithMany("Assets")
                         .HasForeignKey("ProjectForeignKey")
                         .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("TeamStore.Keeper.Models.Event", b =>
-                {
-                    b.HasOne("TeamStore.Keeper.Models.ApplicationUser", "ActedByUser")
-                        .WithMany()
-                        .HasForeignKey("ActedByUserId");
-
-                    b.HasOne("TeamStore.Keeper.Models.Asset", "Asset")
-                        .WithMany()
-                        .HasForeignKey("AssetForeignKey");
                 });
 #pragma warning restore 612, 618
         }

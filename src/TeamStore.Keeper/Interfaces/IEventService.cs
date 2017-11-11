@@ -12,7 +12,7 @@
         /// <param name="identity">The created Claims Identity during sign-ing.</param>
         /// <param name="accessIpAddress">The IP address of the originating request.</param>
         /// <returns>A void Task object</returns>
-        Task StoreLoginEventAsync(ClaimsIdentity identity, string remoteIpAddress);
+        Task LogLoginEventAsync(ClaimsIdentity identity, string remoteIpAddress);
 
         /// <summary>
         /// Logs a Grant Access event
@@ -23,12 +23,13 @@
         /// <param name="azureAdObjectIdentifier">The Azure AD Object Identifier.</param>
         /// <param name="revokingUser">The ApplicationUser performing the event.</param>
         /// <returns>A Task object</returns>
-        Task StoreGrantAccessEventAsync(
+        Task LogGrantAccessEventAsync(
             int projectId,
             string remoteIpAddress,
             string newRole,
-            string azureAdObjectIdentifier,
-            ApplicationUser grantingUser);
+            int targetUserId,
+            int grantingUserId,
+            string customData);
 
         /// <summary>
         /// Logs a Revoke Access event
@@ -41,8 +42,11 @@
         Task LogRevokeAccessEventAsync(
             int projectId,
             string remoteIpAddress,
+            int targetUserId,
             string role,
-            string azureAdObjectIdentifier,
-            ApplicationUser revokingUser);
+            int revokingUserId,
+            string customData);
+
+        Task LogCustomEvent(string actingUserId, string customData);
     }
 }

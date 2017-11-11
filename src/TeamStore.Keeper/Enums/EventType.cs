@@ -9,6 +9,7 @@
         DeleteAsset = 5,
         CreateAsset = 6,
         GrantAccess = 7,
-        RevokeAccess = 8
+        RevokeAccess = 8,
+        CustomEvent = 9
     }
 }

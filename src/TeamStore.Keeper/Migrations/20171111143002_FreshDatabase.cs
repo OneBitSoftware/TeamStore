@@ -128,38 +128,6 @@ namespace TeamStore.Keeper.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Events",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    ActedByUserId = table.Column<int>(type: "INTEGER", nullable: true),
-                    AssetForeignKey = table.Column<int>(type: "INTEGER", nullable: true),
-                    Data = table.Column<string>(type: "TEXT", nullable: true),
-                    DateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    NewValue = table.Column<string>(type: "TEXT", nullable: true),
-                    OldValue = table.Column<string>(type: "TEXT", nullable: true),
-                    RemoteIpAddress = table.Column<string>(type: "TEXT", nullable: true),
-                    Type = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Events", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Events_ApplicationIdentities_ActedByUserId",
-                        column: x => x.ActedByUserId,
-                        principalTable: "ApplicationIdentities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Events_Assets_AssetForeignKey",
-                        column: x => x.AssetForeignKey,
-                        principalTable: "Assets",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_AccessIdentifiers_CreatedById",
                 table: "AccessIdentifiers",
@@ -194,25 +162,12 @@ namespace TeamStore.Keeper.Migrations
                 name: "IX_Assets_ProjectForeignKey",
                 table: "Assets",
                 column: "ProjectForeignKey");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Events_ActedByUserId",
-                table: "Events",
-                column: "ActedByUserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Events_AssetForeignKey",
-                table: "Events",
-                column: "AssetForeignKey");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
                 name: "AccessIdentifiers");
-
-            migrationBuilder.DropTable(
-                name: "Events");
 
             migrationBuilder.DropTable(
                 name: "Assets");

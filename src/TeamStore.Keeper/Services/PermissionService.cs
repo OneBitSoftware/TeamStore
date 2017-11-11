@@ -85,9 +85,6 @@
                 return new AccessChangeResult() { Success = false, Message = $"User {upn} already has access." }; // no need to grant
             }
 
-            // Save Grant event
-            await _eventService.StoreGrantAccessEventAsync(projectId, remoteIpAddress, role, upn, currentUser);
-
             // TODO: grant access to AD group
             var newAccessIdentifier = new AccessIdentifier();
             newAccessIdentifier.Project = project ?? throw new ArgumentNullException(nameof(project));
@@ -107,6 +104,9 @@
                 }
             }
 
+            // Save Grant event
+            await _eventService.LogGrantAccessEventAsync(projectId, remoteIpAddress, role, newAccessIdentifier.Identity.Id, currentUser.Id, "UPN: " + upn);
+
             await _dbContext.SaveChangesAsync();
 
             return new AccessChangeResult() { Success = true }; 
@@ -116,7 +116,7 @@
         /// Revokes access to a project
         /// </summary>
         /// <param name="projectId">The Id of the project</param>
-        /// <param name="upn">The UPN of the identity for which access will be granted to</param>
+        /// <param name="upn">The UPN of the identity for which access will be revoked</param>
         /// <param name="role">The role/level of access that will be granted</param>
         /// <param name="revokingUser">The ApplicationUser revoking the access</param>
         /// <param name="remoteIpAddress">The IP address of the incoming request</param>
@@ -140,9 +140,6 @@
             var project = await projectsService.GetProject(projectId, true);
             if (project == null) throw new ArgumentNullException(nameof(project));
 
-            // Save Revoke Access event
-            await _eventService.LogRevokeAccessEventAsync(projectId, remoteIpAddress, upn, role, currentUser);
-
             // Verify that the current user has permissions to grant access, aka Owner
             if (await CurrentUserHasAccessAsync(projectId, projectsService, "Owner") == false)
             {
@@ -159,6 +156,10 @@
             foreach (var item in existingAccess)
             {
                 project.AccessIdentifiers.Remove(item);
+
+                // Save Revoke Access event
+                await _eventService.LogRevokeAccessEventAsync(projectId, remoteIpAddress, item.Id, role, currentUser.Id, "AADObjectId:" + item.Identity.AzureAdObjectIdentifier );
+
             } // this will not error out when there are no results, which should be OK
 
             await _dbContext.SaveChangesAsync();

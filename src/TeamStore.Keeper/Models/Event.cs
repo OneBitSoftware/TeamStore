@@ -14,17 +14,25 @@
         /// </summary>
         public int Id { get; set; }
 
+        /// <summary>
+        /// The type of event performed
+        /// </summary>
         public EventType Type { get; set; }
 
         /// <summary>
-        /// Stores the logged in user who performed the event.
+        /// Details about the Azure AD Object Id or the primary key of the user who performed the event.
         /// </summary>
-        public ApplicationUser ActedByUser { get; set; }
+        public string ActedByUser { get; set; }
 
-        public int? AssetForeignKey { get; set; }
+        /// <summary>
+        /// If this is an access grant/revoke event, this stores the primary key of the added or removed user/group
+        /// </summary>
+        public int? TargetUserId { get; set; }
 
-        [ForeignKey("AssetForeignKey")]
-        public Asset Asset { get; set; }
+        /// <summary>
+        /// The database primary key of the asset of the operation
+        /// </summary>
+        public int? AssetId { get; set; }
 
         /// <summary>
         /// The time of the event.
