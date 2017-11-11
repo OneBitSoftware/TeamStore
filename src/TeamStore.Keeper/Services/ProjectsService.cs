@@ -51,23 +51,24 @@
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
             // Get projects with access
+            // TODO: attempt to make this in 1 query
             var projects = await _dbContext.Projects.Where(p =>
                 p.IsArchived == false)
                 .Include(p => p.AccessIdentifiers)
                 .ToListAsync();
 
-            var projectsWiihAccess = projects.Where(p =>
+            var projectsWithAccess = projects.Where(p =>
                 p.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id));
 
             if (skipDecryption == false)
             {
-                foreach (var project in projectsWiihAccess)
+                foreach (var project in projectsWithAccess)
                 {
                     DecryptProject(project);
                 } 
             }
 
-            return projectsWiihAccess.ToList();
+            return projectsWithAccess.ToList();
         }
 
         /// <summary>
