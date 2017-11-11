@@ -28,7 +28,7 @@
         /// Gets all projects for which the current user has access to. Excludes archived projects. All data is decrypted.
         /// </summary>
         /// <returns>A list of Project objects</returns>
-        Task<List<Project>> GetProjects();
+        Task<List<Project>> GetProjects(bool skipDecryption = false);
 
         /// <summary>
         /// Encrypts and persists a Project in the database

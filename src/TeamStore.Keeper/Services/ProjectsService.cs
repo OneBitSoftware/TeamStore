@@ -17,6 +17,7 @@
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly IEncryptionService _encryptionService;
+        private readonly IEventService _eventService;
         private readonly IPermissionService _permissionService;
         private readonly IApplicationIdentityService _applicationIdentityService;
 
@@ -28,11 +29,13 @@
         public ProjectsService(
             ApplicationDbContext context,
             IEncryptionService encryptionService,
+            IEventService eventService,
             IApplicationIdentityService applicationIdentityService,
             IPermissionService permissionService)
         {
             _dbContext = context ?? throw new ArgumentNullException(nameof(context));
             _encryptionService = encryptionService ?? throw new ArgumentNullException(nameof(encryptionService));
+            _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _applicationIdentityService = applicationIdentityService ?? throw new ArgumentNullException(nameof(applicationIdentityService));
         }
@@ -41,11 +44,11 @@
         /// Gets all projects for which the current user has access to. Excludes archived projects.
         /// </summary>
         /// <returns>A list of Project objects</returns>
-        public async Task<List<Project>> GetProjects()
+        public async Task<List<Project>> GetProjects(bool skipDecryption = false)
         {
             // Get user to validate access
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) return null;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
             // Get projects with access
             var projects = await _dbContext.Projects.Where(p =>
@@ -56,9 +59,12 @@
             var projectsWiihAccess = projects.Where(p =>
                 p.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id));
 
-            foreach (var project in projectsWiihAccess)
+            if (skipDecryption == false)
             {
-                DecryptProject(project);
+                foreach (var project in projectsWiihAccess)
+                {
+                    DecryptProject(project);
+                } 
             }
 
             return projectsWiihAccess.ToList();
@@ -87,9 +93,9 @@
 
             // Validate access
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) return null;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
 
-            // Get project
+            // Get project - ensures user has access to it
             var result = await _dbContext.Projects.Where(p =>
                 p.Id == projectId &&
                 p.IsArchived == false &&
@@ -99,6 +105,11 @@
                 .FirstOrDefaultAsync();
 
             if (result == null) return null;
+
+            // this line makes sure that the retrieved project is not retrieved
+            // from EF's cache, as it will go through decryption and fail
+            // It might be better to have a decrypted status rather than tinker with EF's state
+            _dbContext.Entry(result).State = EntityState.Unchanged;
 
             if (skipDecryption == false) // decrypt project
             {
@@ -114,9 +125,9 @@
         /// <param name="result">The Project to decrypt</param>
         private void DecryptProject(Project result)
         {
-            result.Title = _encryptionService.DecryptStringAsync(result.Title);
-            result.Description = _encryptionService.DecryptStringAsync(result.Description);
-            result.Category = _encryptionService.DecryptStringAsync(result.Category);
+            result.Title = _encryptionService.DecryptString(result.Title);
+            result.Description = _encryptionService.DecryptString(result.Description);
+            result.Category = _encryptionService.DecryptString(result.Category);
         }
 
         /// <summary>
@@ -130,12 +141,12 @@
             if (string.IsNullOrWhiteSpace(project.Title)) throw new ArgumentException("A project must have a title.");
 
             // Encrypt
-            project.Title = _encryptionService.EncryptStringAsync(project.Title);
-            project.Description = _encryptionService.EncryptStringAsync(project.Description);
-            project.Category = _encryptionService.EncryptStringAsync(project.Category);
+            project.Title = _encryptionService.EncryptString(project.Title);
+            project.Description = _encryptionService.EncryptString(project.Description);
+            project.Category = _encryptionService.EncryptString(project.Category);
 
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new ArgumentNullException(nameof(currentUser)); // we fail on no current user
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); // we fail on no current user
 
             // Ensure the creating user has Owner permissions to be able to grant access to other users
             project.AccessIdentifiers.Add(new AccessIdentifier() {
@@ -148,7 +159,7 @@
             foreach (var accessItem in project.AccessIdentifiers)
             {
                 accessItem.Created = DateTime.UtcNow;
-                //accessItem.Modified = DateTime.UtcNow;
+                //accessItem.Modified = DateTime.UtcNow; // We should only set Modified/By when an update occurs
                 accessItem.CreatedBy = currentUser;
                 //accessItem.ModifiedBy = currentUser;
 
@@ -159,6 +170,8 @@
             // Save
             await _dbContext.Projects.AddAsync(project);
             await _dbContext.SaveChangesAsync();
+
+            // LOG event
 
             return project.Id;
         }
@@ -173,26 +186,23 @@
             // Validation
             if (decryptedProject == null) throw new ArgumentException("You must pass a valid project.");
 
+            // TODO: ensure the current user has access to archive this project
+
             // Refresh the entity to discard changes and avoid saving a decrypted project
             _dbContext.Entry(decryptedProject).State = EntityState.Unchanged;
 
+            // Refresh assets and set to archived
+            foreach (var asset in decryptedProject.Assets)
+            {
+                _dbContext.Entry(asset).State = EntityState.Unchanged;
+                asset.IsArchived = true;
+            }
+
             decryptedProject.IsArchived = true; // set archive status
+
+            // LOG EVENT
 
             await _dbContext.SaveChangesAsync(); // save db
         }
-
-
-        /// <summary>
-        /// Sets a Project's Created/CreatedBy and Modified/ModifiedBy values
-        /// </summary>
-        /// <param name="project">The Project to set</param>
-        //private void SetModifiedAccessControl(Project project)
-        //{
-        //    foreach (var item in project.AccessIdentifiers)
-        //    {
-        //        item.Modified = DateTime.UtcNow;
-        //        item.ModifiedBy = _permissionService.GetCurrentUser();
-        //    }
-        //}
     }
 }
