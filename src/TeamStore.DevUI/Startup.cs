@@ -39,6 +39,10 @@ namespace TeamStore
             {
                 options.UseSqlite(connectionString, b => b.MigrationsAssembly("TeamStore.Keeper"));
             });
+            services.AddDbContext<EventDbContext>(options =>
+            {
+                options.UseSqlite(connectionString, b => b.MigrationsAssembly("TeamStore.Keeper"));
+            });
 
             // We use Session and In-memory cache for token storage
             // This will not scale across applications and users need ro re-authenticate on restart

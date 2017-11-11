@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Authentication
                             accessIpAddress = context.HttpContext.Connection.RemoteIpAddress.ToString();
                         }
 
-                        await eventService.StoreLoginEventAsync(claimIdentity, accessIpAddress);
+                        await eventService.LogLoginEventAsync(claimIdentity, accessIpAddress);
                     }
                     ,
                     OnAuthorizationCodeReceived = async context =>
