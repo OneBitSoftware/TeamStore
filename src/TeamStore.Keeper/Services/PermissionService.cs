@@ -45,7 +45,7 @@
         /// Grants access to a project
         /// </summary>
         /// <param name="projectId">The Id of the project</param>
-        /// <param name="azureAdObjectIdentifier">The identifier of the identity for which access will be granted to</param>
+        /// <param name="upn">The UPN identifier of the identity for which access will be granted to</param>
         /// <param name="role">The role/level of access that will be granted</param>
         /// <param name="remoteIpAddress">The IP address of the incoming request</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>

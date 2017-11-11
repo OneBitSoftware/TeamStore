@@ -49,7 +49,7 @@
         /// </summary>
         /// <param name="stringToEncrypt">The string/text to encrypt</param>
         /// <returns>The encrypted cipher</returns>
-        public string EncryptStringAsync(string stringToEncrypt)
+        public string EncryptString(string stringToEncrypt)
         {
             return _protector.Protect(stringToEncrypt);
         }
@@ -59,7 +59,7 @@
         /// </summary>
         /// <param name="stringToDecrypt">The cipher to be decrypted</param>
         /// <returns>The decrypted text/ciper</returns>
-        public string DecryptStringAsync(string stringToDecrypt)
+        public string DecryptString(string stringToDecrypt)
         {
             var bytes = Encoding.UTF8.GetBytes(stringToDecrypt);
             var base64 = Convert.ToBase64String(bytes);
