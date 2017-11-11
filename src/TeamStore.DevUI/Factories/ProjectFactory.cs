@@ -50,7 +50,7 @@
                 assetViewModel.CreatedBy = a.CreatedBy.ToString();
                 assetViewModel.Modified = a.Modified.ToString();
                 assetViewModel.ModifiedBy = a.ModifiedBy.ToString();
-                assetViewModel.IsEnabled = a.IsEnabled;
+                assetViewModel.IsArchived = a.IsArchived;
 
                 return assetViewModel;
             });
