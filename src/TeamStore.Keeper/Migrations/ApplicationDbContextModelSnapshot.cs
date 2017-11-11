@@ -86,7 +86,7 @@ namespace TeamStore.Keeper.Migrations
                     b.Property<string>("Discriminator")
                         .IsRequired();
 
-                    b.Property<bool>("IsEnabled");
+                    b.Property<bool>("IsArchived");
 
                     b.Property<DateTime>("Modified");
 
@@ -187,6 +187,8 @@ namespace TeamStore.Keeper.Migrations
                     b.Property<string>("Domain");
 
                     b.Property<string>("Login");
+
+                    b.Property<string>("Password");
 
                     b.ToTable("Credential");
 
