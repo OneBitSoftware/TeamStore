@@ -18,8 +18,11 @@
         public Project Project { get; set; }
 
         public ApplicationUser CreatedBy { get; set; }
+
         public DateTime Created{ get; set; }
+
         public DateTime Modified { get; set; }
+
         public ApplicationUser ModifiedBy { get; set; }
     }
 }

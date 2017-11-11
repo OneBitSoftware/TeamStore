@@ -1,14 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
-using TeamStore.Keeper.Enums;
-
-namespace TeamStore.Keeper.Models
+﻿namespace TeamStore.Keeper.Models
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations.Schema;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using TeamStore.Keeper.Enums;
+
     public class Event
     {
+        /// <summary>
+        /// Primary key for the Event entity
+        /// </summary>
         public int Id { get; set; }
 
         public EventType Type { get; set; }
@@ -32,8 +35,20 @@ namespace TeamStore.Keeper.Models
         /// The IP address of the machine from which the event originated.
         /// </summary>
         public string RemoteIpAddress { get; set; }
+
+        /// <summary>
+        /// Stores details of the value before a change
+        /// </summary>
         public string OldValue { get; set; }
+
+        /// <summary>
+        /// Stores details of the new value
+        /// </summary>
         public string NewValue { get; set; }
+
+        /// <summary>
+        /// Custom data about the event
+        /// </summary>
         public string Data { get; set; }
     }
 }

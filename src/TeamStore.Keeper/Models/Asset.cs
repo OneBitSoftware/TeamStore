@@ -12,11 +12,10 @@
         public DateTime Modified { get; set; }
         public ApplicationUser ModifiedBy { get; set; }
 
-        public bool IsEnabled { get; set; }
+        public bool IsArchived { get; set; }
         public int ProjectForeignKey { get; set; }
 
         [ForeignKey("ProjectForeignKey")]
         public Project Project { get; set; }
-
     }
 }
