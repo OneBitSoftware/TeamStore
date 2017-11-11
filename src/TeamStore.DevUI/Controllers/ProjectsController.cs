@@ -37,7 +37,7 @@
         public async Task<IActionResult> Index()
         {
             // TODO: return ProjectViewModel not DB Project
-            return View(await _projectsService.GetProjects());
+            return View(await _projectsService.GetProjects(false));
         }
 
         // GET: Projects/Details/5
@@ -76,27 +76,25 @@
         }
 
         // POST: Projects/CreateCredential
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateCredential(CreateCredentialViewModel createViewModel)
+        public async Task<IActionResult> CreateCredential([Bind("ProjectId,Login,Domain,Password")] CreateCredentialViewModel createViewModel)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid == false)
             {
-                try
-                {
-                    //_context.Update(project);
-                    //await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                        throw;
-                }
-                return RedirectToAction(nameof(Index));
+                return BadRequest("The posted message is not valid.");
             }
 
-            return View();
+            try
+            {
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return RedirectToAction(nameof(Index));
+
         }
 
         // GET: Projects/CreateNote
@@ -126,7 +124,7 @@
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                        throw;
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -231,8 +229,8 @@
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    
-                        throw;
+
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
