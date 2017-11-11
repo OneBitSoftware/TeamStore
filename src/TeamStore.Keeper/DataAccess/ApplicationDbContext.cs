@@ -11,19 +11,15 @@
             // EnsureCreated builds the DB based on this context, creating all tables. 
             // Migrations then fails on migrationBuilder.CreateTable(name: "ApplicationIdentities", because
             // the DB is already created with the schema from EnsureCreated.
-            if (ensureFullDbCreated)
+            if (Database != null && Database.IsSqlite())
             {
-                var created = Database.EnsureCreated();
-
-                // Running all tests after a Clean and delete of the bin results in a DB creation
-                // exception. Running again passes. Sleeping seems to resolve it.
-                System.Threading.Thread.Sleep(1000);
+                Database.Migrate();
             }
         }
 
         public DbSet<Asset> Assets { get; set; }
         public DbSet<Project> Projects { get; set; }
-        public DbSet<Event> Events { get; set; }
+        //public DbSet<Event> Events { get; set; }
         public DbSet<AccessIdentifier> AccessIdentifiers { get; set; }
         public DbSet<ApplicationIdentity> ApplicationIdentities { get; set; }
 
