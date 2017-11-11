@@ -23,10 +23,14 @@ To create/update the local database, run the following from the [ProjectRoot]\Te
 
 1. Build the project
 2. dotnet ef database update - creates the DB and applies the last migration. You should be ready to go.
+
+To add a new migration to the source, run from the TeamStore.Keeper project:
 3. dotnet ef migrations add [MigrationName666] - this is used when the Models need updating.
 
 NOTE: if you have issues, delete "data.db" in the project root to start over. EF Migrations will recreate it.
 
+To reset migrations:
+4. dotnet ef migrations remove - until you delete the first migration. Then just add it again.
 
 ## Graph API Secret
 
