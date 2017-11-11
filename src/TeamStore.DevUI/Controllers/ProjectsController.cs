@@ -82,7 +82,19 @@
         {
             if (ModelState.IsValid == false)
             {
-                return BadRequest("The posted message is not valid.");
+                try
+                {
+                    await _projectsService.CreateCredential(
+                        createViewModel.ProjectId,
+                        createViewModel.Login,
+                        createViewModel.Domain,
+                        createViewModel.Password);
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                        throw;
+                }
+                return RedirectToAction(nameof(Details), createViewModel.ProjectId);
             }
 
             try
