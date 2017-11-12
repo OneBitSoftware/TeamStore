@@ -44,14 +44,14 @@
         }
 
         // GET: Projects/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
+            if (id < 0)
             {
                 return NotFound();
             }
 
-            var project = await _projectsService.GetProject(id.Value);
+            var project = await _projectsService.GetProject(id);
 
             if (project == null)
             {
@@ -83,7 +83,7 @@
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCredential([Bind("ProjectId,Login,Domain,Password")] CreateCredentialViewModel createViewModel)
         {
-            if (ModelState.IsValid == false)
+            if (ModelState.IsValid == true)
             {
                 try
                 {
