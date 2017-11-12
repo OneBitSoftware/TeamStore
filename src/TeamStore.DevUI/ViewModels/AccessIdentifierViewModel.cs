@@ -10,5 +10,6 @@ namespace TeamStore.DevUI.ViewModels
         public string DisplayName { get; set; }
         public string Role { get; set; }
         public string Upn { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }

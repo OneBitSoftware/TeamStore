@@ -36,14 +36,16 @@
             <tr>
                 <th>Identity</th>
                 <th>Role</th>
+                <th>Last Modified</th>
                 <th>Actions</th>
             </tr>
         </thead>
         @foreach (var item in Model.AccessList)
         {
             <tr>
-                <td>@item.DisplayName (@item.Upn) </td>
-                <td>@item. (@item.Upn) </td>
+                <td>@item.DisplayName (@item.Upn)</td>
+                <td>@item.Role</td>
+                <td>@item.LastModified</td>
                 <td>
                     @Html.ActionLink("Revoke Access", "RevokeAccess", new { id = Model.Id, upn = item.Upn }, new { @id = "btnDelete" })
                 </td>
@@ -67,7 +69,12 @@
         @foreach (var item in Model.AssetsList)
         {
             <tr>
-                <td>@item.DisplayTitle</td>
+                <td>
+                    @Html.ActionLink(item.DisplayTitle, "Details", "Projects", null)
+                </td>
+                <td>@item.Login</td>
+                <td>@item.Domain</td>
+                <td>******</td>
                 <td>@item.Created</td>
                 <td>@item.CreatedBy</td>
                 <td>@item.Modified</td>

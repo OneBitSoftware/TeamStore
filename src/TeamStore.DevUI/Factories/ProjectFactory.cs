@@ -1,5 +1,6 @@
 ﻿namespace TeamStore.Factories
 {
+    using System;
     using System.Linq;
     using TeamStore.DevUI.ViewModels;
     using TeamStore.Keeper.Models;
@@ -28,29 +29,41 @@
                 (ai) => BuildAccessIdentityViewModel(ai)
             );
 
-            projectViewModel.AssetsList = project.Assets.Select(a =>
+            projectViewModel.AssetsList = project.Assets.Select(asset =>
             {
                 var assetViewModel = new ProjectAssetViewModel();
 
-                switch (a.GetType().Name)
+                switch (asset.GetType().Name)
                 {
                     case "Note":
-                        var assetNote = a as Note;
+                        var assetNote = asset as Note;
                         assetViewModel.DisplayTitle = assetNote.Title;
                         break;
                     case "Credential":
-                        var assetCredential = a as Credential;
-                        assetViewModel.DisplayTitle = assetCredential.Login;
+                        var assetCredential = asset as Credential;
+                        assetViewModel.DisplayTitle = assetCredential.Title;
+                        assetViewModel.Login = assetCredential.Login;
+                        assetViewModel.Domain = assetCredential.Domain;
                         break;
                     default:
                         return null;
                 }
-                
-                assetViewModel.Created = a.Created.ToString();
-                assetViewModel.CreatedBy = a.CreatedBy.ToString();
-                assetViewModel.Modified = a.Modified != null ? a.Modified.ToString() : "Never";
-                assetViewModel.ModifiedBy = a.ModifiedBy != null ? a.ModifiedBy?.DisplayName?.ToString() : "Never";
-                assetViewModel.IsArchived = a.IsArchived;
+
+                assetViewModel.Created = asset.Created != null ? asset.Created.ToString() : "Never";
+                assetViewModel.CreatedBy = asset.CreatedBy != null ? asset.CreatedBy.ToString() : string.Empty;
+                assetViewModel.ModifiedBy = asset.ModifiedBy != null ? asset.ModifiedBy?.DisplayName?.ToString() : string.Empty;
+                assetViewModel.IsArchived = asset.IsArchived;
+
+                if (asset.Modified != null && asset.Modified == DateTime.MinValue)
+                {
+                    assetViewModel.Modified = "Never";
+                }
+                else
+                {
+                    assetViewModel.Modified = asset.Modified != null ? asset.Modified.ToString() : "Never";
+                }
+
+                if (assetViewModel.DisplayTitle == null) assetViewModel.DisplayTitle = string.Empty;
 
                 return assetViewModel;
             });
@@ -64,7 +77,9 @@
             var appIdentity = (ApplicationUser)accessIdentifier.Identity;
 
             newAccessIdentifierViewModel.DisplayName = appIdentity.DisplayName;
+            newAccessIdentifierViewModel.Role = accessIdentifier.Role;
             newAccessIdentifierViewModel.Upn = appIdentity.Upn;
+            newAccessIdentifierViewModel.LastModified = accessIdentifier.Modified == null ? accessIdentifier.Created : accessIdentifier.Modified;
 
             return newAccessIdentifierViewModel;
         }

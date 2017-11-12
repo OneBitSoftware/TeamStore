@@ -82,13 +82,15 @@
         // POST: Projects/CreateCredential
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateCredential([Bind("ProjectId,Login,Domain,Password")] CreateCredentialViewModel createViewModel)
+        public async Task<IActionResult> CreateCredential([Bind("ProjectId,Login,Domain,Password,Title")] CreateCredentialViewModel createViewModel)
         {
             if (ModelState.IsValid == true)
             {
                 try
                 {
                     var asset = new Credential();
+
+                    asset.Title = createViewModel.Title;
                     asset.Domain = createViewModel.Domain;
                     asset.Login = createViewModel.Login;
                     asset.Password = createViewModel.Password;
@@ -109,16 +111,7 @@
                 return RedirectToAction(nameof(Details), new { id = createViewModel.ProjectId } );
             }
 
-            try
-            {
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-
             return RedirectToAction(nameof(Index));
-
         }
 
         // GET: Projects/CreateNote
