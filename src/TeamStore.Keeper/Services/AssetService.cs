@@ -124,7 +124,7 @@
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
 
             // Get assets with appropriate access checks
-            var retrievedAsset = await _dbContext.Assets.Where(a => 
+            var retrievedAsset = await _dbContext.Assets.Where(a =>
                 a.Id == assetId &&
                 a.IsArchived == false &&
                 a.Project.Id == projectId &&
@@ -137,7 +137,7 @@
             await _eventService.LogAssetAccessEventAsync(projectId, currentUser.Id, remoteIpAddress, assetId);
 
             // decrypt
-            if (retrievedAsset == null) return null; 
+            if (retrievedAsset == null) return null;
             DecryptAsset(retrievedAsset);
 
             return retrievedAsset;
@@ -198,6 +198,22 @@
         }
 
         /// <summary>
+        /// Loads the Assets for a given Project explicitly. Used when the initial Projects query does not
+        /// explicitly include them.
+        /// </summary>
+        /// <param name="project">The Project for which to populate the assets</param>
+        /// <returns>The populated Project</returns>
+        public async Task LoadAssets(Project project)
+        {
+            await _dbContext.Entry(project).Collection(p => p.Assets).LoadAsync();
+
+            foreach (var asset in project.Assets)
+            {
+                DecryptAsset(asset);
+            }
+        }
+
+        /// <summary>
         /// Performs in-memory encryption of the sensitive properties of an Asset object
         /// </summary>
         /// <param name="asset">The asset to encrypt</param>
@@ -219,9 +235,9 @@
         }
 
         /// <summary>
-        /// Decrypts a passed Asset object
+        /// Decrypts all properties of given asset, excluding the Password.
         /// </summary>
-        /// <param name="asset"></param>
+        /// <param name="asset">The Asset to decrypt</param>
         public void DecryptAsset(Asset asset)
         {
             if (asset.GetType() == typeof(Credential))
@@ -229,7 +245,6 @@
                 var credential = asset as Credential;
                 credential.Login = _encryptionService.DecryptString(credential.Login);
                 credential.Domain = _encryptionService.DecryptString(credential.Domain);
-                credential.Password = _encryptionService.DecryptString(credential.Password);
             }
             else if (asset.GetType() == typeof(Note))
             {
@@ -237,6 +252,15 @@
                 note.Title = _encryptionService.DecryptString(note.Title);
                 note.Body = _encryptionService.DecryptString(note.Body);
             }
+        }
+
+        /// <summary>
+        /// Decrypts a given password.
+        /// </summary>
+        /// <param name="password">The password to decrypt</param>
+        public string DecryptPassword(string encryptedPassword)
+        {
+            return _encryptionService.DecryptString(encryptedPassword);
         }
     }
 }
