@@ -74,14 +74,14 @@
             // Verify current user has permissions to grant access, aka Owner
             if (await CurrentUserHasAccess(project, projectsService, "Owner") == false)
             {
-                await _eventService.LogCustomEvent(currentUser.Id.ToString(), $"User {currentUser.Upn} attepted to give access to {upn} without having access to project with ID: {projectId}.");
+                await _eventService.LogCustomEventAsync(currentUser.Id.ToString(), $"User {currentUser.Upn} attepted to give access to {upn} without having access to project with ID: {projectId}.");
                 throw new Exception("The current user does not have permissions to grant access.");
             }
 
             // Check if the target user already has access
             if (CheckAccess(project, upn, "Owner", projectsService))
             {
-                await _eventService.LogCustomEvent(currentUser.Id.ToString(), $"The user {currentUser.Upn} attepted to give access to {upn} who already has access to project with ID: {projectId}.");
+                await _eventService.LogCustomEventAsync(currentUser.Id.ToString(), $"The user {currentUser.Upn} attepted to give access to {upn} who already has access to project with ID: {projectId}.");
                 return new AccessChangeResult() { Success = false, Message = $"User {upn} already has access." }; // no need to grant
             }
 
@@ -100,7 +100,7 @@
             {
                 if ((item.Identity == null) || string.IsNullOrWhiteSpace(item.Role))
                 {
-                    await _eventService.LogCustomEvent(currentUser.Upn, $"Ensure did not return a user for {upn}");
+                    await _eventService.LogCustomEventAsync(currentUser.Upn, $"Ensure did not return a user for {upn}");
                     return new AccessChangeResult() { Success = false, Message = $"The user or group '{upn}' was not found." };
                 }
             }
@@ -143,7 +143,7 @@
             // Verify that the current user has permissions to grant access, aka Owner
             if (await CurrentUserHasAccessAsync(projectId, projectsService, "Owner") == false)
             {
-                await _eventService.LogCustomEvent(currentUser.Id.ToString(), $"User {currentUser.Upn} attepted to revoke access to {upn} without having access to project with ID: {projectId}.");
+                await _eventService.LogCustomEventAsync(currentUser.Id.ToString(), $"User {currentUser.Upn} attepted to revoke access to {upn} without having access to project with ID: {projectId}.");
                 throw new Exception("The current user does not have permissions to revoke access.");
             }
 

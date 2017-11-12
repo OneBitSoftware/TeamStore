@@ -7,7 +7,14 @@
     public interface IEventService
     {
 
-        Task LogCreateAssetEvent(int projectId, int actingUserId, string remoteIpAddress, int assetId, string assetDescription);
+        Task LogAssetAccessEventAsync(int projectId, int actingUserId, string remoteIpAddress, int assetId);
+
+        Task LogCreateAssetEventAsync(
+            int projectId,
+            int actingUserId,
+            string remoteIpAddress,
+            int assetId,
+            string assetDescription);
 
         /// <summary>
         /// Logs a project archive event
@@ -59,6 +66,6 @@
             int revokingUserId,
             string customData);
 
-        Task LogCustomEvent(string actingUserId, string customData);
+        Task LogCustomEventAsync(string actingUserId, string customData);
     }
 }

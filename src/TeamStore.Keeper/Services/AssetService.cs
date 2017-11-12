@@ -110,11 +110,11 @@
             await _dbContext.SaveChangesAsync();
 
             // LOG event TODO: added login or title
-            await _eventService.LogCreateAssetEvent(projectId, currentUser.Id, remoteIpAddress, asset.Id, string.Empty);
+            await _eventService.LogCreateAssetEventAsync(projectId, currentUser.Id, remoteIpAddress, asset.Id, string.Empty);
             return asset;
         }
 
-        public async Task<Asset> GetAssetAsync(int projectId, int assetId)
+        public async Task<Asset> GetAssetAsync(int projectId, int assetId, string remoteIpAddress)
         {
             if (projectId < 0) throw new ArgumentException("You must pass a valid project id.");
             if (assetId < 0) throw new ArgumentException("You must pass a valid asset id.");
@@ -134,6 +134,7 @@
                 .FirstOrDefaultAsync();
 
             // LOG access asset
+            await _eventService.LogAssetAccessEventAsync(projectId, currentUser.Id, remoteIpAddress, assetId);
 
             // decrypt
             if (retrievedAsset == null) return null; 

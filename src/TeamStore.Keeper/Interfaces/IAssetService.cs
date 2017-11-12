@@ -12,7 +12,7 @@
 
         Task ArchiveAssetAsync(int projectId, int assetId, string remoteIpAddress);
 
-        Task<Asset> GetAssetAsync(int projectId, int assetId);
+        Task<Asset> GetAssetAsync(int projectId, int assetId, string remoteIpAddress);
 
         Task<List<Asset>> GetAssetsAsync(int projectId);
 

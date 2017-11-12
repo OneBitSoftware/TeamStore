@@ -50,8 +50,8 @@
             revokeAccess.RemoteIpAddress = remoteIpAddress;
             revokeAccess.ActedByUser = revokingUserId.ToString();
             revokeAccess.TargetUserId = targetUserId;
-
-            revokeAccess.Data = "ProjectId: " + projectId + " CustomData: " + customData;
+            revokeAccess.ProjectId = projectId;
+            revokeAccess.Data = "CustomData: " + customData;
 
             await _dbContext.Events.AddAsync(revokeAccess);
             await _dbContext.SaveChangesAsync();
@@ -81,7 +81,8 @@
             grantAccess.TargetUserId = targetUserId;
             grantAccess.RemoteIpAddress = remoteIpAddress;
             grantAccess.ActedByUser = grantingUserId.ToString();
-            grantAccess.Data = customData + " ProjectId: " + projectId;
+            grantAccess.ProjectId = projectId;
+            grantAccess.Data = customData;
 
             await _dbContext.Events.AddAsync(grantAccess);
             await _dbContext.SaveChangesAsync();
@@ -101,7 +102,7 @@
             archiveEvent.Type = Enums.EventType.ArchiveProject.ToString();
             archiveEvent.RemoteIpAddress = remoteIpAddress;
             archiveEvent.ActedByUser = actingUserId.ToString();
-            archiveEvent.Data = "ProjectId: " + projectId;
+            archiveEvent.ProjectId = projectId;
 
             await _dbContext.Events.AddAsync(archiveEvent);
             await _dbContext.SaveChangesAsync();
@@ -115,17 +116,16 @@
         /// <returns>A void Task object</returns>
         public async Task LogLoginEventAsync(ClaimsIdentity identity, string accessIpAddress)
         {
-            var loginEvent = new Models.Event();
-            loginEvent.DateTime = DateTime.UtcNow;
-            loginEvent.Type = Enums.EventType.Signin.ToString();
-
             // Get/Create user
             var claim = identity.Claims.FirstOrDefault(c => c.Type == Constants.CLAIMS_OBJECTIDENTIFIER);
 
-            loginEvent.ActedByUser = claim.Value;
-
             // Set IP as extra data
             var signInIpAddress = UserIdentityFactory.GetClaimValue("ipaddr", identity.Claims);
+
+            var loginEvent = new Models.Event();
+            loginEvent.DateTime = DateTime.UtcNow;
+            loginEvent.ActedByUser = claim.Value;
+            loginEvent.Type = Enums.EventType.Signin.ToString();
             loginEvent.Data = "AADSignInIpAddress: " + signInIpAddress;
             loginEvent.RemoteIpAddress = accessIpAddress;
 
@@ -133,7 +133,7 @@
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task LogCustomEvent(string actingUserId, string customData)
+        public async Task LogCustomEventAsync(string actingUserId, string customData)
         {
             var loginEvent = new Models.Event();
             loginEvent.DateTime = DateTime.UtcNow;
@@ -145,18 +145,37 @@
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task LogCreateAssetEvent(int projectId, int actingUserId, string remoteIpAddress, int assetId, string assetDescription)
+        public async Task LogCreateAssetEventAsync(
+            int projectId,
+            int actingUserId,
+            string remoteIpAddress,
+            int assetId,
+            string assetDescription)
         {
             var createAssetEvent = new Models.Event();
             createAssetEvent.DateTime = DateTime.UtcNow;
             createAssetEvent.Type = Enums.EventType.CreateAsset.ToString();
             createAssetEvent.RemoteIpAddress = remoteIpAddress;
             createAssetEvent.ActedByUser = actingUserId.ToString();
-            createAssetEvent.Data = "ProjectId: " + projectId;
+            createAssetEvent.ProjectId = projectId;
             createAssetEvent.AssetId = assetId;
             createAssetEvent.NewValue = assetDescription;
 
             await _dbContext.Events.AddAsync(createAssetEvent);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task LogAssetAccessEventAsync(int projectId, int actingUserId, string remoteIpAddress, int assetId)
+        {
+            var retrieveAssetEvent = new Models.Event();
+            retrieveAssetEvent.DateTime = DateTime.UtcNow;
+            retrieveAssetEvent.Type = Enums.EventType.RetrieveAsset.ToString();
+            retrieveAssetEvent.RemoteIpAddress = remoteIpAddress;
+            retrieveAssetEvent.ActedByUser = actingUserId.ToString();
+            retrieveAssetEvent.ProjectId = projectId;
+            retrieveAssetEvent.AssetId = assetId;
+
+            await _dbContext.Events.AddAsync(retrieveAssetEvent);
             await _dbContext.SaveChangesAsync();
         }
     }
