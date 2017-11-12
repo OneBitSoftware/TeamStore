@@ -84,11 +84,11 @@
             {
                 try
                 {
-                    await _projectsService.CreateCredential(
-                        createViewModel.ProjectId,
-                        createViewModel.Login,
-                        createViewModel.Domain,
-                        createViewModel.Password);
+                    //await _projectsService.CreateCredential(
+                    //    createViewModel.ProjectId,
+                    //    createViewModel.Login,
+                    //    createViewModel.Domain,
+                    //    createViewModel.Password);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
