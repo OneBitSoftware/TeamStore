@@ -61,6 +61,9 @@
         /// <returns>The decrypted text/ciper</returns>
         public string DecryptString(string stringToDecrypt)
         {
+            // we return on null or empty. Whitespace is OK.
+            if (string.IsNullOrEmpty(stringToDecrypt)) return stringToDecrypt;
+
             var bytes = Encoding.UTF8.GetBytes(stringToDecrypt);
             var base64 = Convert.ToBase64String(bytes);
             return _protector.Unprotect(stringToDecrypt);
