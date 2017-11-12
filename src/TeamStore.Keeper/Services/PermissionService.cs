@@ -100,6 +100,7 @@
             {
                 if ((item.Identity == null) || string.IsNullOrWhiteSpace(item.Role))
                 {
+                    await _eventService.LogCustomEvent(currentUser.Upn, $"Ensure did not return a user for {upn}");
                     return new AccessChangeResult() { Success = false, Message = $"The user or group '{upn}' was not found." };
                 }
             }
@@ -153,7 +154,9 @@
                 a.Role == role);
 
             // we remove all in case there are two grants with the same role
-            foreach (var item in existingAccess)
+            // NOTE: ToListAsync is required, so a lock on the DB is released for the 
+            // Log Event call
+            foreach (var item in await existingAccess.ToListAsync())
             {
                 project.AccessIdentifiers.Remove(item);
 

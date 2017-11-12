@@ -1,5 +1,6 @@
 ﻿namespace IntegrationTests
 {
+    using IntegrationTests.Services;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -25,6 +26,27 @@
             Project newDecryptedProject = new Project();
             newDecryptedProject.Title = "Permission Test Project 1234";
             _fakeHttpContextItems[ApplicationIdentityService.CURRENTUSERKEY] = _testUser;
+            var _mockGraphService = _graphService as MockGraphService;
+            _mockGraphService.AddUserToInternalList(new ApplicationUser()
+            {
+                Id = 81,
+                AzureAdName = "Mock User 81",
+                AzureAdNameIdentifier = "AzureAdNameId-81",
+                AzureAdObjectIdentifier = "AzureAdObjectId-81",
+                DisplayName = "Mock User Display Name 81",
+                TenantId = "Mock Tenant Id 81",
+                Upn = "mock@upn.com-81"
+            });
+            _mockGraphService.AddUserToInternalList(new ApplicationUser()
+            {
+                Id = 82,
+                AzureAdName = "Mock User 82",
+                AzureAdNameIdentifier = "AzureAdNameId-82",
+                AzureAdObjectIdentifier = "AzureAdObjectId-82",
+                DisplayName = "Mock User Display Name 82",
+                TenantId = "Mock Tenant Id 82",
+                Upn = "mock@upn.com-82"
+            });
 
             // Act - Create and Get Project
             var createdProjectId = await _projectsService.CreateProject(newDecryptedProject);
@@ -35,27 +57,25 @@
             Assert.Equal(1, retrievedProject.AccessIdentifiers.Count);
 
             // Act - Grant access
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "1234123412-1234-1312-1234-12341234", "Edit", "127.0.0.1", _projectsService);
-
-            // The following lines will fail, as the Graph Service cannot resolve 4444555511....
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", "127.0.0.1", _projectsService);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", "127.0.0.1", _projectsService);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", "127.0.0.1", _projectsService);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Read", "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-81", "Edit", "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", "Edit", "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", "Edit", "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", "Edit", "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", "Read", "127.0.0.1", _projectsService);
 
             // Assert - Grant access
             Assert.Equal(6, retrievedProject.AccessIdentifiers.Count); // 5 + the owner
 
             // Act - Revoke access
-            await _permissionService.RevokeAccessAsync(retrievedProject.Id, "4444555511-6666-7777-8888-12345678", "Edit", "127.0.1.1", _projectsService);
+            await _permissionService.RevokeAccessAsync(retrievedProject.Id, "mock@upn.com-82", "Edit", "127.0.1.1", _projectsService);
             retrievedProject = await _projectsService.GetProject(createdProjectId);
 
             // Assert - Revoke access
             Assert.Equal(3, retrievedProject.AccessIdentifiers.Count); // 2 + the owner
             Assert.Equal(_testUser, retrievedProject.AccessIdentifiers
-                .FirstOrDefault(ai => ai.Identity.AzureAdObjectIdentifier == "4444555511-6666-7777-8888-12345678" && ai.Role == "Read").CreatedBy);
+                .FirstOrDefault(ai => ai.Identity.Id == 82 && ai.Role == "Read").CreatedBy);
             Assert.Equal(retrievedProject, retrievedProject.AccessIdentifiers
-                .FirstOrDefault(ai => ai.Identity.AzureAdObjectIdentifier == "1234123412-1234-1312-1234-12341234" && ai.Role == "Edit").Project);
+                .FirstOrDefault(ai => ai.Identity.Id == 81 && ai.Role == "Edit").Project);
 
             // Cleanup
             await _projectsService.ArchiveProject(retrievedProject);
