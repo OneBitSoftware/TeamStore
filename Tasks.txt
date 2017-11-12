@@ -1,5 +1,3 @@
-
-
 TODO's:
 1. Test create project and asset with user1, create asset and project with user2, ensure user1 has no access to assets of user1. Use GetAllAssets.
 2. Test and Ensure that archiving a project archives all assets. Ensure that all assets are still encrypted.
@@ -7,6 +5,7 @@ TODO's:
 4. GetProjects_ShouldGiveProjectsWithRightAccess() needs completing
 5. Update project with modified fields
 6. Update asset with two users, test valid modifiedby and modified
+7. move IP address retrieval to singleton so we don't pass it around everywhere
 
 Required New Functionality:
 - Access Roles - currently not implemented, sharing gives Owner roles

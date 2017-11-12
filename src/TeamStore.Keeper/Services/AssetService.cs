@@ -44,7 +44,7 @@
         /// <param name="projectId">The project owning the Asset</param>
         /// <param name="assetId">The Asset Id of the asset to archive</param>
         /// <returns>A Task result</returns>
-        public async Task ArchiveAssetAsync(int projectId, int assetId)
+        public async Task ArchiveAssetAsync(int projectId, int assetId, string remoteIpAddress)
         {
             // Validate
             if (projectId < 0) throw new ArgumentException("You must pass a valid project id.");
@@ -86,7 +86,7 @@
         /// <param name="projectId"></param>
         /// <param name="asset"></param>
         /// <returns></returns>
-        public async Task<Asset> AddAssetToProjectAsync(int projectId, Asset asset)
+        public async Task<Asset> AddAssetToProjectAsync(int projectId, Asset asset, string remoteIpAddress)
         {
             // Validate
             if (asset == null) throw new ArgumentNullException(nameof(asset));
@@ -110,7 +110,7 @@
             await _dbContext.SaveChangesAsync();
 
             // LOG event
-
+            await _eventService.LogArchiveProjectEventAsync(projectId, currentUser.Id, remoteIpAddress);
             return asset;
         }
 
