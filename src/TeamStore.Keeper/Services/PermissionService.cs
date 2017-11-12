@@ -74,14 +74,14 @@
             // Verify current user has permissions to grant access, aka Owner
             if (await CurrentUserHasAccess(project, projectsService, "Owner") == false)
             {
-                // TODO: LOG
+                await _eventService.LogCustomEvent(currentUser.Id.ToString(), $"User {currentUser.Upn} attepted to give access to {upn} without having access to project with ID: {projectId}.");
                 throw new Exception("The current user does not have permissions to grant access.");
             }
 
             // Check if the target user already has access
             if (CheckAccess(project, upn, "Owner", projectsService))
             {
-                // TODO: LOG
+                await _eventService.LogCustomEvent(currentUser.Id.ToString(), $"The user {currentUser.Upn} attepted to give access to {upn} who already has access to project with ID: {projectId}.");
                 return new AccessChangeResult() { Success = false, Message = $"User {upn} already has access." }; // no need to grant
             }
 
@@ -118,7 +118,6 @@
         /// <param name="projectId">The Id of the project</param>
         /// <param name="upn">The UPN of the identity for which access will be revoked</param>
         /// <param name="role">The role/level of access that will be granted</param>
-        /// <param name="revokingUser">The ApplicationUser revoking the access</param>
         /// <param name="remoteIpAddress">The IP address of the incoming request</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>A Task object with an AccessChangeResult representing the result</returns>
@@ -143,6 +142,7 @@
             // Verify that the current user has permissions to grant access, aka Owner
             if (await CurrentUserHasAccessAsync(projectId, projectsService, "Owner") == false)
             {
+                await _eventService.LogCustomEvent(currentUser.Id.ToString(), $"User {currentUser.Upn} attepted to revoke access to {upn} without having access to project with ID: {projectId}.");
                 throw new Exception("The current user does not have permissions to revoke access.");
             }
 
