@@ -78,7 +78,7 @@
                 .FirstOrDefault(ai => ai.Identity.Id == 81 && ai.Role == "Edit").Project);
 
             // Cleanup
-            await _projectsService.ArchiveProject(retrievedProject);
+            await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
             var archivedProject = await _projectsService.GetProject(createdProjectId, true);
             Assert.Null(archivedProject);
         }
