@@ -30,9 +30,14 @@
         public int? TargetUserId { get; set; }
 
         /// <summary>
-        /// The database primary key of the asset of the operation
+        /// The database primary key of the asset related to the operation
         /// </summary>
         public int? AssetId { get; set; }
+
+        /// <summary>
+        /// The database primary key of the project related to the operation
+        /// </summary>
+        public int? ProjectId { get; set; }
 
         /// <summary>
         /// The time of the event.
