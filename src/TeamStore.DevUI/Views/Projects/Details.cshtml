@@ -8,6 +8,7 @@
 <div>
     <h4>Project</h4>
     <hr />
+    @Html.Hidden("projectId", Model.Id, new { @id = "projectId" })
     <dl class="dl-horizontal">
         <dt>
             @Html.DisplayNameFor(model => model.Title)
@@ -46,14 +47,14 @@
         </thead>
         @foreach (var item in Model.AccessList)
         {
-        <tr>
-            <td>@item.DisplayName (@item.Upn)</td>
-            <td>@item.Role</td>
-            <td>@item.LastModified</td>
-            <td>
-                @Html.ActionLink("Revoke Access", "RevokeAccess", new { id = Model.Id, upn = item.Upn }, new { @id = "btnDelete" })
-            </td>
-        </tr>
+            <tr>
+                <td>@item.DisplayName (@item.Upn)</td>
+                <td>@item.Role</td>
+                <td>@item.LastModified</td>
+                <td>
+                    @Html.ActionLink("Revoke Access", "RevokeAccess", new { id = Model.Id, upn = item.Upn }, new { @id = "btnDelete" })
+                </td>
+            </tr>
         }
     </table>
     <h4>Assets</h4>
@@ -78,7 +79,14 @@
                 </td>
                 <td>@item.Login</td>
                 <td>@item.Domain</td>
-                <td>******</td>
+                <td>
+                    <span class="ob-passwordLabel ob-pointer" data-id="@item.AssetId" title="Click to reveal password">
+                        ******
+                    </span>
+                    <span class="ob-passwordLabel__copy">
+                        Copy
+                    </span>
+                </td>
                 <td>@item.Created</td>
                 <td>@item.CreatedBy</td>
                 <td>@item.Modified</td>
@@ -86,9 +94,12 @@
             </tr>
         }
     </table>
-
 </div>
 
 <div>
     <a asp-action="Index">Back to List</a>
+</div>
+
+<div class="hidden">
+    @Html.AntiForgeryToken()
 </div>

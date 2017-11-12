@@ -295,5 +295,35 @@
 
             return RedirectToAction(nameof(Details), new { id = id });
         }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GetPassword([FromBody] GetPasswordViewModel getPasswordViewModel)
+        {
+            // Given this is a sensitive method, we don't give the correct error
+            if (ModelState.IsValid == false) return BadRequest();
+            if (getPasswordViewModel.AssetId < 0) return BadRequest();
+            if (getPasswordViewModel.ProjectId < 0) return BadRequest();
+            if (string.IsNullOrWhiteSpace(getPasswordViewModel.FormDigest)) return BadRequest();
+
+            var remoteIpAddress = this.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) return BadRequest();
+
+            try
+            {
+
+                var asset = await _assetService.GetAssetAsync(getPasswordViewModel.ProjectId, getPasswordViewModel.AssetId, remoteIpAddress);
+                var credential = asset as Credential;
+                var decryptedPassword = _assetService.DecryptPassword(credential.Password);
+
+                return new OkObjectResult(decryptedPassword);
+            }
+            catch (Exception ex)
+            {
+                // LOG
+                return BadRequest();
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ namespace TeamStore.DevUI.ViewModels
 {
     public class ProjectAssetViewModel
     {
+        public int AssetId { get; set; }
         public bool IsArchived { get; set; }
         public string DisplayTitle { get; set; }
         public string Login { get; set; }

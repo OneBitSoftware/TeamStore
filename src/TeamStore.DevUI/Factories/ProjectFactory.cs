@@ -49,6 +49,7 @@
                         return null;
                 }
 
+                assetViewModel.AssetId = asset.Id;
                 assetViewModel.Created = asset.Created != null ? asset.Created.ToString() : "Never";
                 assetViewModel.CreatedBy = asset.CreatedBy != null ? asset.CreatedBy.ToString() : string.Empty;
                 assetViewModel.ModifiedBy = asset.ModifiedBy != null ? asset.ModifiedBy?.DisplayName?.ToString() : string.Empty;
