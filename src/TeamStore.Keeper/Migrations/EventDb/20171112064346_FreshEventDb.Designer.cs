@@ -7,13 +7,12 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using System;
 using TeamStore.Keeper.DataAccess;
-using TeamStore.Keeper.Enums;
 
 namespace TeamStore.Keeper.Migrations.EventDb
 {
     [DbContext(typeof(EventDbContext))]
-    [Migration("20171111143203_FreshEventDatabase")]
-    partial class FreshEventDatabase
+    [Migration("20171112064346_FreshEventDb")]
+    partial class FreshEventDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -38,11 +37,13 @@ namespace TeamStore.Keeper.Migrations.EventDb
 
                     b.Property<string>("OldValue");
 
+                    b.Property<int?>("ProjectId");
+
                     b.Property<string>("RemoteIpAddress");
 
                     b.Property<int?>("TargetUserId");
 
-                    b.Property<int>("Type");
+                    b.Property<string>("Type");
 
                     b.HasKey("Id");
 

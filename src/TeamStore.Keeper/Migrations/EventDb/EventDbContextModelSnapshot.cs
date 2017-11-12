@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using System;
 using TeamStore.Keeper.DataAccess;
-using TeamStore.Keeper.Enums;
 
 namespace TeamStore.Keeper.Migrations.EventDb
 {
@@ -37,11 +36,13 @@ namespace TeamStore.Keeper.Migrations.EventDb
 
                     b.Property<string>("OldValue");
 
+                    b.Property<int?>("ProjectId");
+
                     b.Property<string>("RemoteIpAddress");
 
                     b.Property<int?>("TargetUserId");
 
-                    b.Property<int>("Type");
+                    b.Property<string>("Type");
 
                     b.HasKey("Id");
 

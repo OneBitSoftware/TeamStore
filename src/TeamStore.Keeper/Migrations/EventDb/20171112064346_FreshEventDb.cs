@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace TeamStore.Keeper.Migrations.EventDb
 {
-    public partial class FreshEventDatabase : Migration
+    public partial class FreshEventDb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -20,9 +20,10 @@ namespace TeamStore.Keeper.Migrations.EventDb
                     DateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
                     NewValue = table.Column<string>(type: "TEXT", nullable: true),
                     OldValue = table.Column<string>(type: "TEXT", nullable: true),
+                    ProjectId = table.Column<int>(type: "INTEGER", nullable: true),
                     RemoteIpAddress = table.Column<string>(type: "TEXT", nullable: true),
                     TargetUserId = table.Column<int>(type: "INTEGER", nullable: true),
-                    Type = table.Column<int>(type: "INTEGER", nullable: false)
+                    Type = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
