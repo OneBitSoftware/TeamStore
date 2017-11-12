@@ -11,7 +11,6 @@ namespace TeamStore.ViewModels
         public string Title { get; set; }
         public IEnumerable<AccessIdentifierViewModel> AccessList { get; set; }
         public IEnumerable<ProjectAssetViewModel> AssetsList { get; set; }
-
         public bool RevokeAccessSuccess { get; set; }
         public string RevokeAccessMessage { get; set; }
     }

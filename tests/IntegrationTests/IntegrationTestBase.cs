@@ -145,6 +145,7 @@ namespace IntegrationTests
             var domain = "DOMAIN";
 
             var testCredential = new Credential();
+            testCredential.Title = "Test Credential";
             testCredential.Login = login;
             testCredential.Password = pass;
             testCredential.Domain = domain;
@@ -159,6 +160,7 @@ namespace IntegrationTests
             var body = "Test body test body Test body test body Test body test body Test body test body";
 
             var testNote = new Note();
+            testNote.Title = "Test Note";
             testNote.Title = title;
             testNote.Body = body;
             testNote.IsArchived = false;

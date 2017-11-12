@@ -74,6 +74,7 @@ namespace IntegrationTests
             newCredential.Login = login;
             newCredential.Password = password;
             newCredential.Domain = domain;
+            newCredential.Title = "Test Encryption Credential";
 
             // Act
             var retrievedProject = await _projectsService.GetProject(newProjectId);

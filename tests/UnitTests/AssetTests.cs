@@ -39,6 +39,7 @@ namespace UnitTests
         {
             // Arrange
             var newCredential = new Credential();
+            newCredential.Title = "Test Credential";
             newCredential.Login = login;
             newCredential.Password = password;
             newCredential.Domain = domain;
@@ -71,6 +72,7 @@ namespace UnitTests
         {
             // Arrange
             var newCredential = new Credential();
+            newCredential.Title = "Test Credential";
             newCredential.Login = login;
             newCredential.Password = password;
             newCredential.Domain = domain;

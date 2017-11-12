@@ -31,11 +31,19 @@
         </dd>
     </dl>
     <h4>Access Details</h4>
-    <table>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Identity</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
         @foreach (var item in Model.AccessList)
         {
             <tr>
                 <td>@item.DisplayName (@item.Upn) </td>
+                <td>@item. (@item.Upn) </td>
                 <td>
                     @Html.ActionLink("Revoke Access", "RevokeAccess", new { id = Model.Id, upn = item.Upn }, new { @id = "btnDelete" })
                 </td>
@@ -43,7 +51,19 @@
         }
     </table>
     <h4>Assets</h4>
-    <table>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Asset name</th>
+                <th>Login</th>
+                <th>Domain</th>
+                <th>Password</th>
+                <th>Created</th>
+                <th>Created By</th>
+                <th>Modified</th>
+                <th>Modified By</th>
+            </tr>
+        </thead>
         @foreach (var item in Model.AssetsList)
         {
             <tr>
@@ -52,7 +72,6 @@
                 <td>@item.CreatedBy</td>
                 <td>@item.Modified</td>
                 <td>@item.ModifiedBy</td>
-                <td>@item.IsArchived</td>
             </tr>
         }
     </table>

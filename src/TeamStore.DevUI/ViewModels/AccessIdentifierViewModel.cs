@@ -8,6 +8,7 @@ namespace TeamStore.DevUI.ViewModels
     public class AccessIdentifierViewModel
     {
         public string DisplayName { get; set; }
+        public string Role { get; set; }
         public string Upn { get; set; }
     }
 }
