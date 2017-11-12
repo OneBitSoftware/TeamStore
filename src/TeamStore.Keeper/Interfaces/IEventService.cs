@@ -7,7 +7,7 @@
     public interface IEventService
     {
 
-        Task LogCreateAssetEvent(int projectId, int actingUserId, string remoteIpAddress, int assetId);
+        Task LogCreateAssetEvent(int projectId, int actingUserId, string remoteIpAddress, int assetId, string assetDescription);
 
         /// <summary>
         /// Logs a project archive event

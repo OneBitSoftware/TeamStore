@@ -109,8 +109,8 @@
             await _dbContext.Assets.AddAsync(asset);
             await _dbContext.SaveChangesAsync();
 
-            // LOG event
-            await _eventService.LogArchiveProjectEventAsync(projectId, currentUser.Id, remoteIpAddress);
+            // LOG event TODO: added login or title
+            await _eventService.LogCreateAssetEvent(projectId, currentUser.Id, remoteIpAddress, asset.Id, string.Empty);
             return asset;
         }
 

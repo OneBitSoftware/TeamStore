@@ -144,5 +144,20 @@
             await _dbContext.Events.AddAsync(loginEvent);
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task LogCreateAssetEvent(int projectId, int actingUserId, string remoteIpAddress, int assetId, string assetDescription)
+        {
+            var createAssetEvent = new Models.Event();
+            createAssetEvent.DateTime = DateTime.UtcNow;
+            createAssetEvent.Type = Enums.EventType.CreateAsset.ToString();
+            createAssetEvent.RemoteIpAddress = remoteIpAddress;
+            createAssetEvent.ActedByUser = actingUserId.ToString();
+            createAssetEvent.Data = "ProjectId: " + projectId;
+            createAssetEvent.AssetId = assetId;
+            createAssetEvent.NewValue = assetDescription;
+
+            await _dbContext.Events.AddAsync(createAssetEvent);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }
