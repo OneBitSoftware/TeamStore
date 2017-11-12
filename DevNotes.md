@@ -19,10 +19,14 @@ To run/test/debug the project, various dependencies need to be set up:
 
 ## Database Setup
 
+The project is configured to create it's database automatically and apply the latest migration.
+Integration tests will also create the database.
+
+If that doesn't work, see the following:
 To create/update the local database, run the following from the [ProjectRoot]\TeamStore folder:
 
 1. Build the project
-..........2. dotnet ef database update - creates the DB and applies the last migration. You should be ready to go.
+2. dotnet ef database update - creates the DB and applies the last migration. You should be ready to go.
 
 To add a new migration to the source, run from the TeamStore.Keeper project:
 3. dotnet ef migrations add [MigrationName666] --context ApplicationDbContext - this is used when the Models need updating.
