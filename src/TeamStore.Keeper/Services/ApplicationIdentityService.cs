@@ -218,6 +218,8 @@
                     return null;// not sure if we should rather throw
                 }
 
+                var result = _dbContext.ApplicationIdentities.Add(resolvedUser);
+
                 existingUser = resolvedUser;
             }
 
