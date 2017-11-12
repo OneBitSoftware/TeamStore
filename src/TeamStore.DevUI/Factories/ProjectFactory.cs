@@ -48,8 +48,8 @@
                 
                 assetViewModel.Created = a.Created.ToString();
                 assetViewModel.CreatedBy = a.CreatedBy.ToString();
-                assetViewModel.Modified = a.Modified.ToString();
-                assetViewModel.ModifiedBy = a.ModifiedBy.ToString();
+                assetViewModel.Modified = a.Modified != null ? a.Modified.ToString() : "Never";
+                assetViewModel.ModifiedBy = a.ModifiedBy != null ? a.ModifiedBy?.DisplayName?.ToString() : "Never";
                 assetViewModel.IsArchived = a.IsArchived;
 
                 return assetViewModel;

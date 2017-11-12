@@ -44,15 +44,16 @@
         }
 
         // GET: Projects/Details/5
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int? id)
         {
-            if (id < 0)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var project = await _projectsService.GetProject(id);
-
+            var project = await _projectsService.GetProject(id.Value);
+            await _assetService.LoadAssets(project);
+            
             if (project == null)
             {
                 return NotFound();
@@ -105,7 +106,7 @@
                 {
                         throw;
                 }
-                return RedirectToAction(nameof(Details), createViewModel.ProjectId);
+                return RedirectToAction(nameof(Details), new { id = createViewModel.ProjectId } );
             }
 
             try

@@ -26,7 +26,7 @@ namespace TeamStore.Keeper.Factories
             var builder = new DbContextOptionsBuilder<EventDbContext>();
             builder.UseSqlite(connectionString);
 
-            return new EventDbContext(builder.Options);
+            return new EventDbContext(builder.Options, false, false, false);
         }
     }
 }
