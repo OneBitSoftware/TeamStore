@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using System;
 using TeamStore.Keeper.DataAccess;
@@ -91,6 +93,8 @@ namespace TeamStore.Keeper.Migrations
 
                     b.Property<int>("ProjectForeignKey");
 
+                    b.Property<string>("Title");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
@@ -167,8 +171,6 @@ namespace TeamStore.Keeper.Migrations
                     b.HasBaseType("TeamStore.Keeper.Models.Asset");
 
                     b.Property<string>("Body");
-
-                    b.Property<string>("Title");
 
                     b.ToTable("Note");
 

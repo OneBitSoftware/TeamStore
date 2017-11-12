@@ -104,6 +104,7 @@
             EncryptAsset(asset);
 
             if (asset.Project == null) throw new ArgumentNullException(nameof(asset.Project));
+            if (string.IsNullOrWhiteSpace(asset.Title)) throw new ArgumentNullException(nameof(asset.Title));
 
             // persist through context
             await _dbContext.Assets.AddAsync(asset);
@@ -229,9 +230,10 @@
             else if (asset.GetType() == typeof(Note))
             {
                 var note = asset as Note;
-                note.Title = _encryptionService.EncryptString(note.Title);
                 note.Body = _encryptionService.EncryptString(note.Body);
             }
+
+            asset.Title = _encryptionService.EncryptString(asset.Title);
         }
 
         /// <summary>
@@ -249,9 +251,10 @@
             else if (asset.GetType() == typeof(Note))
             {
                 var note = asset as Note;
-                note.Title = _encryptionService.DecryptString(note.Title);
                 note.Body = _encryptionService.DecryptString(note.Body);
             }
+
+            asset.Title = _encryptionService.DecryptString(asset.Title);
         }
 
         /// <summary>

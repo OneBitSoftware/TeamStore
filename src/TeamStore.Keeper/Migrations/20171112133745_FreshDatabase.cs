@@ -99,11 +99,11 @@ namespace TeamStore.Keeper.Migrations
                     Modified = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ModifiedById = table.Column<int>(type: "INTEGER", nullable: true),
                     ProjectForeignKey = table.Column<int>(type: "INTEGER", nullable: false),
+                    Title = table.Column<string>(type: "TEXT", nullable: true),
                     Domain = table.Column<string>(type: "TEXT", nullable: true),
                     Login = table.Column<string>(type: "TEXT", nullable: true),
                     Password = table.Column<string>(type: "TEXT", nullable: true),
-                    Body = table.Column<string>(type: "TEXT", nullable: true),
-                    Title = table.Column<string>(type: "TEXT", nullable: true)
+                    Body = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

@@ -12,7 +12,7 @@ using TeamStore.Keeper.DataAccess;
 namespace TeamStore.Keeper.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20171111143002_FreshDatabase")]
+    [Migration("20171112133745_FreshDatabase")]
     partial class FreshDatabase
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -94,6 +94,8 @@ namespace TeamStore.Keeper.Migrations
 
                     b.Property<int>("ProjectForeignKey");
 
+                    b.Property<string>("Title");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
@@ -170,8 +172,6 @@ namespace TeamStore.Keeper.Migrations
                     b.HasBaseType("TeamStore.Keeper.Models.Asset");
 
                     b.Property<string>("Body");
-
-                    b.Property<string>("Title");
 
                     b.ToTable("Note");
 
