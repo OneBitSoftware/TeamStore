@@ -17,7 +17,7 @@
         /// <summary>
         /// The type of event performed
         /// </summary>
-        public EventType Type { get; set; }
+        public string Type { get; set; }
 
         /// <summary>
         /// Details about the Azure AD Object Id or the primary key of the user who performed the event.

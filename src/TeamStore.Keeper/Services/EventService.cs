@@ -45,7 +45,7 @@
         {
             var revokeAccess = new Models.Event();
             revokeAccess.DateTime = DateTime.UtcNow;
-            revokeAccess.Type = Enums.EventType.RevokeAccess;
+            revokeAccess.Type = Enums.EventType.RevokeAccess.ToString();
             revokeAccess.OldValue = role;
             revokeAccess.RemoteIpAddress = remoteIpAddress;
             revokeAccess.ActedByUser = revokingUserId.ToString();
@@ -76,7 +76,7 @@
         {
             var grantAccess = new Models.Event();
             grantAccess.DateTime = DateTime.UtcNow;
-            grantAccess.Type = Enums.EventType.GrantAccess;
+            grantAccess.Type = Enums.EventType.GrantAccess.ToString();
             grantAccess.NewValue = newRole;
             grantAccess.TargetUserId = targetUserId;
             grantAccess.RemoteIpAddress = remoteIpAddress;
@@ -97,7 +97,7 @@
         {
             var loginEvent = new Models.Event();
             loginEvent.DateTime = DateTime.UtcNow;
-            loginEvent.Type = Enums.EventType.Signin;
+            loginEvent.Type = Enums.EventType.Signin.ToString();
 
             // Get/Create user
             var claim = identity.Claims.FirstOrDefault(c => c.Type == Constants.CLAIMS_OBJECTIDENTIFIER);
@@ -117,7 +117,7 @@
         {
             var loginEvent = new Models.Event();
             loginEvent.DateTime = DateTime.UtcNow;
-            loginEvent.Type = Enums.EventType.CustomEvent;
+            loginEvent.Type = Enums.EventType.CustomEvent.ToString();
             loginEvent.ActedByUser = actingUserId;
             loginEvent.Data = customData;
 
