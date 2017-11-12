@@ -18,11 +18,13 @@
         private readonly IPermissionService _permissionService;
         private readonly IProjectsService _projectsService;
         private readonly IGraphService _graphService;
+        private readonly IAssetService _assetService;
         private readonly IApplicationIdentityService _applicationIdentityService;
 
         public ProjectsController(
             IPermissionService permissionService,
             IProjectsService projectsService,
+            IAssetService assetService,
             IGraphService graphService,
             IApplicationIdentityService applicationIdentityService
             )
@@ -30,6 +32,7 @@
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _projectsService = projectsService ?? throw new ArgumentNullException(nameof(projectsService));
             _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
+            _assetService = assetService ?? throw new ArgumentNullException(nameof(assetService));
             _applicationIdentityService = applicationIdentityService ?? throw new ArgumentNullException(nameof(applicationIdentityService));
         }
 
@@ -84,11 +87,19 @@
             {
                 try
                 {
-                    //await _projectsService.CreateCredential(
-                    //    createViewModel.ProjectId,
-                    //    createViewModel.Login,
-                    //    createViewModel.Domain,
-                    //    createViewModel.Password);
+                    var asset = new Credential();
+                    asset.Domain = createViewModel.Domain;
+                    asset.Login = createViewModel.Login;
+                    asset.Password = createViewModel.Password;
+
+                    // get IP
+                    string accessIpAddress = string.Empty;
+                    if (HttpContext != null)
+                    {
+                        accessIpAddress = HttpContext.Connection.RemoteIpAddress.ToString();
+                    }
+
+                    await _assetService.AddAssetToProjectAsync(createViewModel.ProjectId, asset, accessIpAddress);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
