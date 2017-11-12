@@ -184,13 +184,16 @@
         /// Discards all tracked changes to the entity and marks it as archived in the database
         /// </summary>
         /// <param name="decryptedProject">The Project entity to archive.</param>
+        /// <param name="remoteIpAddress">The IP address of the request causing the event</param>
         /// <returns>A Task result</returns>
-        public async Task ArchiveProject(Project decryptedProject)
+        public async Task ArchiveProject(Project decryptedProject, string remoteIpAddress)
         {
             // Validation
             if (decryptedProject == null) throw new ArgumentException("You must pass a valid project.");
 
             // TODO: ensure the current user has access to archive this project
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); // we fail on no current user
 
             // Refresh the entity to discard changes and avoid saving a decrypted project
             _dbContext.Entry(decryptedProject).State = EntityState.Unchanged;
@@ -204,56 +207,9 @@
 
             decryptedProject.IsArchived = true; // set archive status
 
-            // LOG EVENT
+            await _eventService.LogArchiveProjectEventAsync(decryptedProject.Id, currentUser.Id, remoteIpAddress);
 
             await _dbContext.SaveChangesAsync(); // save db
         }
-
-
-        public async Task CreateCredential(int projectId, string login, string domain, string password)
-        {
-            if (string.IsNullOrWhiteSpace(login)) throw new ArgumentNullException(nameof(login));
-            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentNullException(nameof(password));
-            if (projectId < 0) throw new ArgumentException("You must pass a valid project id.");
-
-            var project = await GetProject(projectId);
-            await CreateCredential(project, login, domain, password);
-        }
-
-        public async Task CreateCredential(Project project, string login, string domain, string password)
-        {
-            if (string.IsNullOrWhiteSpace(login)) throw new ArgumentNullException(nameof(login));
-            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentNullException(nameof(password));
-
-            var newCredential = new Credential();
-            newCredential.Created = DateTime.UtcNow;
-            newCredential.CreatedBy = await _applicationIdentityService.GetCurrentUser();
-            newCredential.Domain = domain;
-            newCredential.Login = login;
-            newCredential.Project = project;
-            newCredential.IsArchived = false;
-
-            // Validate
-            if (newCredential.CreatedBy == null) throw new ArgumentNullException(nameof(newCredential.CreatedBy));
-            if (newCredential.Project == null) throw new ArgumentNullException(nameof(newCredential.Project));
-
-            project.Assets.Add(newCredential);
-            await _dbContext.SaveChangesAsync();
-
-            // Potentially upgrade to return CreateAssetResult
-        }
-
-        /// <summary>
-        /// Sets a Project's Created/CreatedBy and Modified/ModifiedBy values
-        /// </summary>
-        /// <param name="project">The Project to set</param>
-        //private void SetModifiedAccessControl(Project project)
-        //{
-        //    foreach (var item in project.AccessIdentifiers)
-        //    {
-        //        item.Modified = DateTime.UtcNow;
-        //        item.ModifiedBy = _permissionService.GetCurrentUser();
-        //    }
-        //}
     }
 }

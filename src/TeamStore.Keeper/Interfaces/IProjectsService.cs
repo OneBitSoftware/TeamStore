@@ -41,10 +41,8 @@
         /// Discards all tracked changes to the entity and marks it as archived in the database
         /// </summary>
         /// <param name="decryptedProject">The Project entity to archive.</param>
+        /// <param name="remoteIpAddress">The IP address of the request causing the event</param>
         /// <returns>A Task result</returns>
-        Task ArchiveProject(Project decryptedProject);
-
-        Task CreateCredential(Project project, string login, string domain, string password);
-        Task CreateCredential(int projectId, string login, string domain, string password);
+        Task ArchiveProject(Project decryptedProject, string remoteIpAddress);
     }
 }

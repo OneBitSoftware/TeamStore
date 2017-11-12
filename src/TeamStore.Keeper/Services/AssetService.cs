@@ -103,6 +103,8 @@
             // encrypt asset
             EncryptAsset(asset);
 
+            if (asset.Project == null) throw new ArgumentNullException(nameof(asset.Project));
+
             // persist through context
             await _dbContext.Assets.AddAsync(asset);
             await _dbContext.SaveChangesAsync();
@@ -131,6 +133,8 @@
                 .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
                 .FirstOrDefaultAsync();
 
+            // LOG access asset
+
             // decrypt
             if (retrievedAsset == null) return null; 
             DecryptAsset(retrievedAsset);
@@ -155,6 +159,8 @@
                 .Include(p => p.Project.AccessIdentifiers)
                 .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
                 .ToListAsync();
+
+            // LOG access asset
 
             foreach (var asset in retrievedAssets)
             {

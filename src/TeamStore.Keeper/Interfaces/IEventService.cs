@@ -13,7 +13,7 @@
         /// <param name="actingUserId">The id of the ApplicationUser performing the action</param>
         /// <param name="remoteIpAddress">The IP address of the user calling the action</param>
         /// <returns>A Task result</returns>
-        Task LogArchiveProjectEventAsync(int projectId, int actingUserId, string remoteIpAddress)
+        Task LogArchiveProjectEventAsync(int projectId, int actingUserId, string remoteIpAddress);
 
         /// <summary>
         /// Logs a Sign in event.
