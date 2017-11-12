@@ -231,6 +231,10 @@
         /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
         public async Task<ApplicationUser> EnsureUserByUpnAsync(string upn)
         {
+            // NOTE: this doesn't really ensure anything - it resolves it from the graph API, then
+            // returns it. Most likely it should be persisted and returned.
+
+
             // TODO: implement EnsureUserByUpnAsync and EnsureUserByObjectIdAsync with Func!!
             var existingUser = await FindUserAsync(ai=>((ApplicationUser)ai).Upn == upn);
             if (existingUser != null)
@@ -247,6 +251,8 @@
                     // TODO: LOG
                     return null;// not sure if we should rather throw
                 }
+
+                var result = _dbContext.ApplicationIdentities.Add(resolvedUser);
 
                 return resolvedUser;
             }
