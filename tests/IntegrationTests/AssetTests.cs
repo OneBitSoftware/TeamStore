@@ -42,7 +42,7 @@ namespace IntegrationTests
             Assert.NotNull(retrievedAssetNote);
 
             Assert.Equal("Login123", retrievedCredential.Login);
-            Assert.Equal("Password", retrievedCredential.Password);
+            //Assert.Equal("Password", retrievedCredential.Password);
             Assert.Equal("DOMAIN", retrievedCredential.Domain);
 
             Assert.Equal("Test note 12345", retrievedNote.Title);
@@ -167,7 +167,7 @@ namespace IntegrationTests
             var createdCredential = createdAsset as Credential;
             createdCredential.Login = "NewLogin";
             createdCredential.Domain = "NewDomain";
-            createdCredential.Password = "NewPass";
+            //createdCredential.Password = "NewPass";
             var updatedAsset = await _assetService.UpdateAssetAsync(newProjectId, createdCredential);
             var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, updatedAsset.Id, "127.0.1.1");
             var retrievedCredential = retrievedAsset as Credential;
@@ -175,7 +175,7 @@ namespace IntegrationTests
             // Assert
             Assert.Equal("NewLogin", retrievedCredential.Login);
             Assert.Equal("NewDomain", retrievedCredential.Domain);
-            Assert.Equal("NewPass", retrievedCredential.Password);
+            //Assert.Equal("NewPass", retrievedCredential.Password);
 
             // Cleanup
             await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");

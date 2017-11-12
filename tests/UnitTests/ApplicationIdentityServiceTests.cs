@@ -38,7 +38,7 @@
 
             var dbContextOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             dbContextOptionsBuilder.UseInMemoryDatabase(Guid.NewGuid().ToString());
-            _dbContext = new ApplicationDbContext(dbContextOptionsBuilder.Options);
+            _dbContext = new ApplicationDbContext(dbContextOptionsBuilder.Options, false, true, false);
 
             _applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor);
 

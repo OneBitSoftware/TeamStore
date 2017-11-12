@@ -95,8 +95,8 @@ namespace IntegrationTests
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             optionsBuilder.UseSqlite(connectionString);
 
-            // When in tests, we use context.EnsureCreated() instead of migrations
-            var dbContext = new ApplicationDbContext(optionsBuilder.Options, true);
+            // When in tests, we use context.EnsureCreated() instead of migrations OLD COMMENT
+            var dbContext = new ApplicationDbContext(optionsBuilder.Options, true, true);
 
             // Set up the DbContext for data access
             return dbContext;
@@ -111,7 +111,7 @@ namespace IntegrationTests
             optionsBuilder.UseSqlite(connectionString);
 
             // When in tests, we use context.EnsureCreated() instead of migrations
-            var dbContext = new EventDbContext(optionsBuilder.Options, true);
+            var dbContext = new EventDbContext(optionsBuilder.Options, true, true);
 
             // Set up the DbContext for data access
             return dbContext;
