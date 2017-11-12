@@ -1,4 +1,5 @@
 ﻿using IntegrationTests.Framework;
+using IntegrationTests.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -49,7 +50,7 @@ namespace IntegrationTests
 
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { });
             var accessTokenRetriever = new TestAccessTokenRetriever();
-            _graphService = new GraphService(memoryCache, _configuration, accessTokenRetriever);
+            _graphService = new MockGraphService();
             _encryptionService = new EncryptionService();
             _applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor, _fakeHttpContextItems);
             _eventService = new EventService(_eventDbContext, _applicationIdentityService);

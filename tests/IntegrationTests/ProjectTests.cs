@@ -1,5 +1,6 @@
 namespace IntegrationTests
 {
+    using IntegrationTests.Services;
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
@@ -127,22 +128,51 @@ namespace IntegrationTests
             Assert.Null(archivedProject);
         }
 
+        /// <summary>
+        /// This test creates a test project, grants access to a completely new
+        /// user, which is resolved through a mock graph service, then
+        /// asserts that a call to GetProjects and GetProject returns only 1 project
+        /// </summary>
         [Fact]
         public async void GetProjects_ShouldGiveProjectsWithRightAccess()
         {
             // Arrange
             _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, _testUser);
             var newDecryptedProject = CreateTestProject();
-            var newAzureAdObjectId = "newazureaduser";
+            var newUpn = "mock@upn.com-99";
+            var _mockGraphService = _graphService as MockGraphService;
+            _mockGraphService.AddUserToInternalList(new ApplicationUser()
+            {
+                Id = 99,
+                AzureAdName = "Mock User 99",
+                AzureAdNameIdentifier = "AzureAdNameId-9",
+                AzureAdObjectIdentifier = "AzureAdObjectId-9",
+                DisplayName = "Mock User Display Name 1",
+                TenantId = "Mock Tenant Id 1",
+                Upn = "mock@upn.com-99"
+            });
 
             // Act
             var createdProjectId = await _projectsService.CreateProject(newDecryptedProject);
             var retrievedProject = await _projectsService.GetProject(createdProjectId);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, newAzureAdObjectId, "Edit", "1.2.3.4", _projectsService);
-            
+            var accessResult = await _permissionService.GrantAccessAsync(retrievedProject.Id, newUpn, "Edit", "1.2.3.4", _projectsService);
+            var retrievedUser = await _applicationIdentityService.FindUserByUpnAsync(newUpn);
+            _fakeHttpContextItems.Remove(ApplicationIdentityService.CURRENTUSERKEY);
+            _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, retrievedUser);
+            var allProjects = await _projectsService.GetProjects(true);
+            var singleProject = await _projectsService.GetProject(retrievedProject.Id);
+
             // Assert
+            Assert.Equal(true, accessResult.Success);
+            Assert.True(retrievedProject.AccessIdentifiers.Any(ai => ai.Identity.Id == retrievedUser.Id));
+            Assert.Equal(1, allProjects.Count);
+            Assert.Equal(singleProject, allProjects.First());
+            Assert.True(singleProject.AccessIdentifiers.Any(ai => ai.Identity.Id == retrievedUser.Id));
 
             // Cleanup
+            await _projectsService.ArchiveProject(retrievedProject);
+            var archivedProject = await _projectsService.GetProject(createdProjectId);
+            Assert.Null(archivedProject);
         }
     }
 }
