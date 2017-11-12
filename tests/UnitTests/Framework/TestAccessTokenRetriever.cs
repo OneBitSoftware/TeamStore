@@ -12,7 +12,6 @@ namespace UnitTests.Framework
     // THIS IS WORK IN PROGRESS
     public class TestAccessTokenRetriever : IAccessTokenRetriever
     {
-        private readonly string grantType = "password";
         private readonly string tokenEndpoint = "https://login.microsoftonline.com/common/oauth2/token";
         private readonly string contentType = "application/x-www-form-urlencoded";
 

@@ -9,5 +9,5 @@ TODO's:
 
 Required New Functionality:
 - Access Roles - currently not implemented, sharing gives Owner roles
-- Logging
+- Auditing
 - Azure AD Groups sharing

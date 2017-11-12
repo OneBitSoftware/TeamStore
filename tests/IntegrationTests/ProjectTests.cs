@@ -49,7 +49,7 @@ namespace IntegrationTests
             Assert.True(retrievedProject.Id > 0);
 
             // Cleanup
-            await _projectsService.ArchiveProject(retrievedProject);
+            await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
             var archivedProject = await _projectsService.GetProject(createdProjectId);
             Assert.Null(archivedProject);
         }
@@ -123,7 +123,7 @@ namespace IntegrationTests
             Assert.Equal("TestAdIdentity1", ((ApplicationUser)retrievedProject.AccessIdentifiers.First().Identity).AzureAdNameIdentifier);
 
             // Cleanup
-            await _projectsService.ArchiveProject(retrievedProject);
+            await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
             var archivedProject = await _projectsService.GetProject(createdProjectId);
             Assert.Null(archivedProject);
         }
@@ -170,7 +170,7 @@ namespace IntegrationTests
             Assert.True(singleProject.AccessIdentifiers.Any(ai => ai.Identity.Id == retrievedUser.Id));
 
             // Cleanup
-            await _projectsService.ArchiveProject(retrievedProject);
+            await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
             var archivedProject = await _projectsService.GetProject(createdProjectId);
             Assert.Null(archivedProject);
         }
