@@ -29,7 +29,7 @@
         </dd>
     </dl>
     <div>
-        <a asp-action="Share" asp-route-id="@Model.Id">Share Access</a> | 
+        <a asp-action="Share" asp-route-id="@Model.Id">Share Access</a> |
         <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
         <a asp-action="CreateCredential" asp-route-id="@Model.Id">Create Credential</a> |
         <a asp-action="CreateNote" asp-route-id="@Model.Id">Create Note</a>
@@ -46,14 +46,14 @@
         </thead>
         @foreach (var item in Model.AccessList)
         {
-            <tr>
-                <td>@item.DisplayName (@item.Upn)</td>
-                <td>@item.Role</td>
-                <td>@item.LastModified</td>
-                <td>
-                    @Html.ActionLink("Revoke Access", "RevokeAccess", new { id = Model.Id, upn = item.Upn }, new { @id = "btnDelete" })
-                </td>
-            </tr>
+        <tr>
+            <td>@item.DisplayName (@item.Upn)</td>
+            <td>@item.Role</td>
+            <td>@item.LastModified</td>
+            <td>
+                @Html.ActionLink("Revoke Access", "RevokeAccess", new { id = Model.Id, upn = item.Upn }, new { @id = "btnDelete" })
+            </td>
+        </tr>
         }
     </table>
     <h4>Assets</h4>
