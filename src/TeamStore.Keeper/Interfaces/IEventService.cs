@@ -7,6 +7,15 @@
     public interface IEventService
     {
         /// <summary>
+        /// Logs a project archive event
+        /// </summary>
+        /// <param name="projectId">The ID of the project to archive</param>
+        /// <param name="actingUserId">The id of the ApplicationUser performing the action</param>
+        /// <param name="remoteIpAddress">The IP address of the user calling the action</param>
+        /// <returns>A Task result</returns>
+        Task LogArchiveProjectEventAsync(int projectId, int actingUserId, string remoteIpAddress)
+
+        /// <summary>
         /// Logs a Sign in event.
         /// </summary>
         /// <param name="identity">The created Claims Identity during sign-ing.</param>

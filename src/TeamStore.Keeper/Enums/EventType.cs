@@ -10,6 +10,8 @@
         CreateAsset = 6,
         GrantAccess = 7,
         RevokeAccess = 8,
-        CustomEvent = 9
+        CustomEvent = 9,
+        ArchiveProject = 10,
+        ArchiveAsset = 11
     }
 }
