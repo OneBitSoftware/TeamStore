@@ -30,7 +30,7 @@ To add a new migration to the source, run from the TeamStore.Keeper project:
 NOTE: if you have issues, delete "data.db" in the project root to start over. EF Migrations will recreate it.
 
 To reset migrations:
-4. dotnet ef migrations remove - until you delete the first migration. Then just add it again.
+4. dotnet ef migrations remove --context EventDbContext - until you delete the first migration. Then just add it again.
 
 ## Graph API Secret
 

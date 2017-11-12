@@ -28,8 +28,8 @@ namespace IntegrationTests
             var retrievedProject = await _projectsService.GetProject(newProjectId);
             var persistedAsset = await _assetService.AddAssetToProjectAsync(newProjectId, newCredential, "127.0.1.1");
             var persistedNote = await _assetService.AddAssetToProjectAsync(newProjectId, newNote, "127.0.1.1");
-            var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, persistedAsset.Id);
-            var retrievedAssetNote = await _assetService.GetAssetAsync(newProjectId, persistedNote.Id);
+            var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, persistedAsset.Id, "127.0.1.1");
+            var retrievedAssetNote = await _assetService.GetAssetAsync(newProjectId, persistedNote.Id, "127.0.1.1");
             var retrievedCredential = (Credential)retrievedAsset;
             var retrievedNote = (Note)retrievedAssetNote;
 
@@ -135,12 +135,12 @@ namespace IntegrationTests
             // Act
             var retrievedProject = await _projectsService.GetProject(newProjectId);
             await _assetService.AddAssetToProjectAsync(newProjectId, newNote, "127.0.1.1");
-            var createdAsset = await _assetService.GetAssetAsync(newProjectId, newNote.Id);
+            var createdAsset = await _assetService.GetAssetAsync(newProjectId, newNote.Id, "127.0.1.1");
             var createdNote = createdAsset as Note;
             createdNote.Title = "NewTitle";
             createdNote.Body = "NewBody body body";
             var updatedAsset = await _assetService.UpdateAssetAsync(newProjectId, createdNote);
-            var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, updatedAsset.Id);
+            var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, updatedAsset.Id, "127.0.1.1");
             var retrievedNote = retrievedAsset as Note;
 
             // Assert
@@ -163,13 +163,13 @@ namespace IntegrationTests
             // Act
             var retrievedProject = await _projectsService.GetProject(newProjectId);
             await _assetService.AddAssetToProjectAsync(newProjectId, newCredential, "127.0.1.1");
-            var createdAsset = await _assetService.GetAssetAsync(newProjectId, newCredential.Id);
+            var createdAsset = await _assetService.GetAssetAsync(newProjectId, newCredential.Id, "127.0.1.1");
             var createdCredential = createdAsset as Credential;
             createdCredential.Login = "NewLogin";
             createdCredential.Domain = "NewDomain";
             createdCredential.Password = "NewPass";
             var updatedAsset = await _assetService.UpdateAssetAsync(newProjectId, createdCredential);
-            var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, updatedAsset.Id);
+            var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, updatedAsset.Id, "127.0.1.1");
             var retrievedCredential = retrievedAsset as Credential;
 
             // Assert
@@ -193,10 +193,10 @@ namespace IntegrationTests
             // Act
             var retrievedProject = await _projectsService.GetProject(newProjectId);
             await _assetService.AddAssetToProjectAsync(newProjectId, newCredential, "127.0.1.1");
-            var createdAsset = await _assetService.GetAssetAsync(newProjectId, newCredential.Id);
+            var createdAsset = await _assetService.GetAssetAsync(newProjectId, newCredential.Id, "127.0.1.1");
             var createdCredential = createdAsset as Credential;
             await _assetService.ArchiveAssetAsync(newProjectId, createdCredential.Id, "127.0.1.1");
-            var archivedAsset = await _assetService.GetAssetAsync(newProjectId, createdCredential.Id);
+            var archivedAsset = await _assetService.GetAssetAsync(newProjectId, createdCredential.Id, "127.0.1.1");
 
             // Assert
             Assert.Null(archivedAsset);
@@ -212,10 +212,10 @@ namespace IntegrationTests
             // Act
             var retrievedProject = await _projectsService.GetProject(newProjectId);
             await _assetService.AddAssetToProjectAsync(newProjectId, newNote, "127.0.1.1");
-            var createdAsset = await _assetService.GetAssetAsync(newProjectId, newNote.Id);
+            var createdAsset = await _assetService.GetAssetAsync(newProjectId, newNote.Id, "127.0.1.1");
             var createdNote = createdAsset as Note;
             await _assetService.ArchiveAssetAsync(newProjectId, createdNote.Id, "127.0.1.1");
-            var archivedAsset = await _assetService.GetAssetAsync(newProjectId, createdNote.Id);
+            var archivedAsset = await _assetService.GetAssetAsync(newProjectId, createdNote.Id, "127.0.1.1");
 
             // Assert
             Assert.Null(archivedAsset);

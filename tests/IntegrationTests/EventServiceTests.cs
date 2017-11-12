@@ -19,7 +19,7 @@
         {
             var randomTicks = DateTime.UtcNow.Ticks;
             var randomString = "1.1.1.1" + randomTicks;
-            await _eventService.LogCustomEvent(_testUser.Id.ToString(), randomString);
+            await _eventService.LogCustomEventAsync(_testUser.Id.ToString(), randomString);
 
             var customEventLogged = _eventDbContext.Events
                 .Where(a => a.Data == randomString)
