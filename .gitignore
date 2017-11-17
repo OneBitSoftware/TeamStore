@@ -292,3 +292,13 @@ __pycache__/
 TeamStore/Keys/
 
 src/TeamStore\.DevUI/Keys/key-f733fbca-9036-4abb-97e3-e2612feb7ede\.xml
+
+src/TeamStore\.DevUI/StyleCop\.Cache
+
+src/TeamStore\.DevUI/wwwroot/css/site\.min\.css
+
+src/TeamStore\.DevUI/wwwroot/js/site\.min\.js
+
+src/TeamStore\.DevUI/wwwroot/js/site\.es5\.min\.js
+
+src/TeamStore\.DevUI/wwwroot/js/site\.es5\.js
