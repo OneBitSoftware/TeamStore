@@ -72,3 +72,7 @@ Integration Tests create/read data against a real database - testdatabase.db in 
 It will not be deleted.
 
 Unit Tests use the EFCore In-memory database provider.
+
+# Deployment To Azure
+Keys folder
+Client Secret in App Properties

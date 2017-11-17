@@ -22,6 +22,7 @@
                 Console.WriteLine("ApplicationDbContext constructor called with applyMigrations " + applyMigrations.ToString());
                 Database.Migrate();
             }
+            Database.Migrate();
 
             if (Database != null && Database.IsSqlite())
             {

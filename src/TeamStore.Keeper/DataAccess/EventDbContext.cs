@@ -22,9 +22,11 @@
             if (Database != null && Database.IsSqlite() && applyMigrations)
             {
                 Console.WriteLine("EventDbContext constructor called with applyMigrations " + applyMigrations.ToString());
-                Database.Migrate();
             }
-            
+
+            Database.Migrate();
+
+
             if (Database != null && Database.IsSqlite())
             {
                 var migrationsPending = Database.GetPendingMigrations() as ICollection<String>;
