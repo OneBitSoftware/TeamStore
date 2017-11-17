@@ -22,15 +22,15 @@
                 Console.WriteLine("ApplicationDbContext constructor called with applyMigrations " + applyMigrations.ToString());
                 Database.Migrate();
             }
-            Database.Migrate();
 
             if (Database != null && Database.IsSqlite())
             {
                 var migrationsPending = Database.GetPendingMigrations() as ICollection<String>;
 
                 if (validateMigrationStatus && migrationsPending != null && migrationsPending.Count > 0)
-                    throw new ApplicationException("The current database is not up-to-date with the latest EventDbContext migrations. Run dotnet ef database update --context EventDbContext");
-
+                {
+                    //throw new ApplicationException("The current database is not up-to-date with the latest EventDbContext migrations. Run dotnet ef database update --context EventDbContext");
+                }
             }
         }
 
