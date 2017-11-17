@@ -302,3 +302,5 @@ src/TeamStore\.DevUI/wwwroot/js/site\.min\.js
 src/TeamStore\.DevUI/wwwroot/js/site\.es5\.min\.js
 
 src/TeamStore\.DevUI/wwwroot/js/site\.es5\.js
+
+src/TeamStore\.DevUI/wwwroot/lib/
