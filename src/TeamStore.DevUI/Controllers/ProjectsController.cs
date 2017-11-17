@@ -12,6 +12,7 @@
     using TeamStore.Keeper.Interfaces;
     using TeamStore.Keeper.Models;
     using TeamStore.DevUI.ViewModels;
+    using Microsoft.ApplicationInsights;
 
     public class ProjectsController : Controller
     {
@@ -322,6 +323,8 @@
             catch (Exception ex)
             {
                 // LOG
+                var t = new TelemetryClient();
+                t.TrackException(ex);
                 return BadRequest();
             }
         }

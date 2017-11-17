@@ -4,6 +4,8 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <UserSecretsId>aspnet-TeamStore-d032b72a-78ed-4791-812b-561bbcc962a7</UserSecretsId>
     <WebProject_DirectoryAccessLevelKey>1</WebProject_DirectoryAccessLevelKey>
+    <ApplicationInsightsResourceId>/subscriptions/49f9f63e-f309-48e8-b79c-0632b7c4a308/resourcegroups/prod-onebit-teamstore/providers/microsoft.insights/components/onebit-teamstore</ApplicationInsightsResourceId>
+    <ApplicationInsightsAnnotationResourceId>/subscriptions/49f9f63e-f309-48e8-b79c-0632b7c4a308/resourcegroups/prod-onebit-teamstore/providers/microsoft.insights/components/onebit-teamstore</ApplicationInsightsAnnotationResourceId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.0" />
@@ -39,6 +42,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TeamStore.Keeper\TeamStore.Keeper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services" />
   </ItemGroup>
 
 </Project>
