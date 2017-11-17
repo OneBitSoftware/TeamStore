@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.DataProtection;
 using TeamStore.Keeper.Interfaces;
 using TeamStore.Keeper.Services;
 using TeamStore.Keeper.DataAccess;
+using Microsoft.AspNetCore.Http;
 
 namespace TeamStore
 {
@@ -32,7 +33,9 @@ namespace TeamStore
         public void ConfigureServices(IServiceCollection services)
         {
             var fileName = Configuration["DataAccess:SQLiteDbFileName"];
+            var eventsFileName = Configuration["DataAccess:SQLiteEventsDbFileName"];
             var connectionString = "Data Source=" + fileName;
+            var connectionStringEvents = "Data Source=" + eventsFileName;
 
             // Set up the DbContext for data access
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -41,7 +44,7 @@ namespace TeamStore
             });
             services.AddDbContext<EventDbContext>(options =>
             {
-                options.UseSqlite(connectionString, b => b.MigrationsAssembly("TeamStore.Keeper"));
+                options.UseSqlite(connectionStringEvents, b => b.MigrationsAssembly("TeamStore.Keeper"));
             });
 
             // We use Session and In-memory cache for token storage
@@ -57,7 +60,10 @@ namespace TeamStore
             services.AddScoped<IPermissionService, PermissionService>(); 
             services.AddScoped<IEncryptionService, EncryptionService>(); 
             services.AddScoped<IApplicationIdentityService, ApplicationIdentityService>(); 
-            services.AddScoped<IAccessTokenRetriever, UserAccessTokenRetriever>(); 
+            services.AddScoped<IAccessTokenRetriever, UserAccessTokenRetriever>();
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
 
             // Sets up Azure Ad Open Id Connect auth
             services.AddAuthentication(sharedOptions =>
