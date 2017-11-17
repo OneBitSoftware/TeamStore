@@ -72,7 +72,20 @@ function bindAllPasswordLabels() {
     });
 };
 
+/**
+ * Binds the click event on all password copy-to-clipboard
+ */
+function bindAllPasswordCopyToClipboard() {
+    $("button.ob-copyIcon").on('click', function (e) {
+        var assetId = $(this).data("id");
+        var iconType = $(this).data("type");
+        console.log(assetId);
+        console.log(iconType);
+    });
+};
+
 $(document).ready(function () {
     // Bind all password label click functions
     bindAllPasswordLabels();
+    bindAllPasswordCopyToClipboard();
 });

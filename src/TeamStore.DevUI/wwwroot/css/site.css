@@ -30,6 +30,18 @@
     cursor:pointer;
 }
 
+.ob-copyIcon {
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+@media all and (min-width:1200px){
+    .container {
+        width: 100%;
+    }
+}
+
 /* Hide/rearrange for smaller screens */
 @media screen and (max-width: 767px) {
     /* Hide captions */
