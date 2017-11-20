@@ -39,8 +39,7 @@
             ApplicationDbContext context,
             IGraphService graphService,
             IHttpContextAccessor httpContextAccessor,
-            IDictionary<object, object> itemsCollection = null
-            )
+            IDictionary<object, object> itemsCollection = null)
         {
             _dbContext = context ?? throw new ArgumentNullException(nameof(context));
             _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
@@ -236,9 +235,8 @@
             // NOTE: this doesn't really ensure anything - it resolves it from the graph API, then
             // returns it. Most likely it should be persisted and returned.
 
-
             // TODO: implement EnsureUserByUpnAsync and EnsureUserByObjectIdAsync with Func!!
-            var existingUser = await FindUserAsync(ai=>((ApplicationUser)ai).Upn == upn);
+            var existingUser = await FindUserAsync(ai => ((ApplicationUser)ai).Upn == upn);
             if (existingUser != null)
             {
                 return existingUser;

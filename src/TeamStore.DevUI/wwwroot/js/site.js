@@ -68,6 +68,7 @@ function passwordClick(element) {
  */
 function bindAllPasswordLabels() {
     $("span.ob-passwordLabel").on('click', function (e) {
+        window.appInsights.trackEvent("passwordClicked", $(this).text());
         passwordClick($(this));
     });
 };
