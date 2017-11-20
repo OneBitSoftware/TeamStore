@@ -28,12 +28,16 @@ namespace Microsoft.AspNetCore.Authentication
             {
                 options.Events = new OpenIdConnectEvents
                 {
-
+                    OnAuthenticationFailed = async context =>
+                    {
+                        var telemetryService = context.HttpContext.RequestServices.GetService<ITelemetryService>();
+                        //telemetryService.TraceEvent("Login failed", "item1", "213123132");
+                    },
                     OnTokenValidated = async context =>
                     {
                         var claimIdentity = (ClaimsIdentity)context.Principal.Identity;
                         var claimsPrincipal = context.Principal.Identity;
-                        
+
                         // Store login event
                         var eventService = context.HttpContext.RequestServices.GetService<IEventService>();
 
@@ -44,6 +48,9 @@ namespace Microsoft.AspNetCore.Authentication
                         {
                             accessIpAddress = context.HttpContext.Connection.RemoteIpAddress.ToString();
                         }
+
+                        var telemetryService = context.HttpContext.RequestServices.GetService<ITelemetryService>();
+                        //telemetryService.TraceEvent("Login success", "item1", "45325324");
 
                         await eventService.LogLoginEventAsync(claimIdentity, accessIpAddress);
                     }
