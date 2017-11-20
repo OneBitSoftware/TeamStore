@@ -6,6 +6,11 @@ TODO's:
 5. Update project with modified fields
 6. Update asset with two users, test valid modifiedby and modified
 7. move IP address retrieval to singleton so we don't pass it around everywhere
+8. Lock down sections to show groups
+9. Capture error when client secret exists, but is incorrect
+10. access report
+11. Search passwords
+
 
 Required New Functionality:
 - Access Roles - currently not implemented, sharing gives Owner roles
