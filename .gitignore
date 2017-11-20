@@ -306,3 +306,5 @@ src/TeamStore\.DevUI/wwwroot/js/site\.es5\.js
 src/TeamStore\.DevUI/wwwroot/lib/
 
 src/TeamStore\.DevUI/audit\.db
+
+src/TeamStore\.Keeper/StyleCop\.Cache
