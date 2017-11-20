@@ -13,7 +13,6 @@ namespace TeamStore.Keeper.Services
         public TelemetryService()
         {
             _telemetryClient = new TelemetryClient();
-
         }
 
         public void TraceEvent(string message, string key1, string value1)
