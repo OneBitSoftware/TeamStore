@@ -61,6 +61,7 @@ namespace TeamStore
             services.AddScoped<IEncryptionService, EncryptionService>(); 
             services.AddScoped<IApplicationIdentityService, ApplicationIdentityService>(); 
             services.AddScoped<IAccessTokenRetriever, UserAccessTokenRetriever>();
+            services.AddScoped<ITelemetryService, TelemetryService>();
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
