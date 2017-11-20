@@ -7,5 +7,6 @@
     public interface ITelemetryService
     {
         void TraceEvent(string message, string key1, string value1);
+        void TrackException(Exception ex);
     }
 }

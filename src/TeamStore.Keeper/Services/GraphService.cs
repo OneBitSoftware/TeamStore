@@ -21,6 +21,7 @@
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IAccessTokenRetriever _tokenRetriever;
+        private readonly ITelemetryService _telemetryService;
 
         private string _aadInstance;
         private readonly string _appId;
@@ -31,10 +32,12 @@
 
         private GraphServiceClient _graphClient = null;
 
-        public GraphService(IMemoryCache memoryCache, IConfiguration configuration, IAccessTokenRetriever tokenRetriever)
+        public GraphService(IMemoryCache memoryCache, IConfiguration configuration, IAccessTokenRetriever tokenRetriever, ITelemetryService telemetryService)
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
             _tokenRetriever = tokenRetriever ?? throw new ArgumentNullException(nameof(tokenRetriever));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+
             _redirectUri = configuration.GetValue<string>("AzureAd:CallbackPath");
             _aadInstance = configuration.GetValue<string>("AzureAd:Instance");
             _appId = configuration.GetValue<string>("AzureAd:ClientId");
@@ -98,7 +101,7 @@
             }
             catch (Exception ex)
             {
-                // TODO: log ex
+                _telemetryService.TrackException(ex);
                 return null;
             }
         }
@@ -198,8 +201,7 @@
             }
             catch (ServiceException graphException)
             {
-                // TODO LOG and return null;
-
+                _telemetryService.TrackException(graphException);
                 return null;
             }
         }
@@ -218,8 +220,7 @@
             }
             catch (ServiceException graphException)
             {
-                // TODO LOG
-                // user UPN not found log
+                _telemetryService.TrackException(graphException);
                 return null;
             }
         }

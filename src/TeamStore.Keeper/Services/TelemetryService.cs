@@ -34,7 +34,14 @@ namespace TeamStore.Keeper.Services
 
         public void TrackException(Exception ex)
         {
-            _telemetryClient.TrackException(ex);
+            try
+            {
+                _telemetryClient.TrackException(ex);
+            }
+            catch
+            {
+                // any idea what to do here?
+            }
         }
     }
 }
