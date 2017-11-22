@@ -91,6 +91,8 @@ namespace TeamStore.Keeper.Migrations
 
                     b.Property<int?>("ModifiedById");
 
+                    b.Property<string>("Notes");
+
                     b.Property<int>("ProjectForeignKey");
 
                     b.Property<string>("Title");
@@ -155,8 +157,6 @@ namespace TeamStore.Keeper.Migrations
                 {
                     b.HasBaseType("TeamStore.Keeper.Models.Asset");
 
-                    b.Property<string>("Domain");
-
                     b.Property<string>("Login");
 
                     b.Property<string>("Password");
@@ -170,7 +170,6 @@ namespace TeamStore.Keeper.Migrations
                 {
                     b.HasBaseType("TeamStore.Keeper.Models.Asset");
 
-                    b.Property<string>("Body");
 
                     b.ToTable("Note");
 
