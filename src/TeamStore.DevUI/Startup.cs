@@ -102,6 +102,10 @@ namespace TeamStore
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
+                    name: "childObjects",
+                    template: "{controller=Home}/{projectId}/{action=Index}/{assetId}");
+
+                routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
