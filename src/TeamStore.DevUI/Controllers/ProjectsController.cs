@@ -85,6 +85,11 @@
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCredential([Bind("ProjectId,Login,Body,Password,Title")] CreateCredentialViewModel createViewModel)
         {
+            if (createViewModel.ProjectId < 0)
+            {
+                return NotFound();
+            }
+
             if (ModelState.IsValid == true)
             {
                 try
@@ -126,9 +131,9 @@
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateNote(int id, [Bind("Id,Title,Description,Category")] Project project)
+        public async Task<IActionResult> CreateNote(int id, [Bind("ProjectId,Title,Notes")] CreateNoteViewModel createNoteViewModel)
         {
-            if (id != project.Id)
+            if (createNoteViewModel.ProjectId < 0)
             {
                 return NotFound();
             }
@@ -137,16 +142,28 @@
             {
                 try
                 {
-                    //_context.Update(project);
-                    //await _context.SaveChangesAsync();
+                    var asset = new Note();
+
+                    asset.Title = createNoteViewModel.Title;
+                    asset.Notes = createNoteViewModel.Notes;
+
+                    // get IP
+                    string accessIpAddress = string.Empty;
+                    if (HttpContext != null)
+                    {
+                        accessIpAddress = HttpContext.Connection.RemoteIpAddress.ToString();
+                    }
+
+                    await _assetService.AddAssetToProjectAsync(createNoteViewModel.ProjectId, asset, accessIpAddress);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     throw;
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id = createNoteViewModel.ProjectId });
             }
-            return View(project);
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Projects/Create

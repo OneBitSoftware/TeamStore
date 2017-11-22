@@ -101,6 +101,7 @@
             }
             catch (Exception ex)
             {
+                // In most cases the Client Secret provided would be invalid. Update it in the secret store.
                 _telemetryService.TrackException(ex);
                 return null;
             }
