@@ -43,7 +43,7 @@
                         var assetCredential = asset as Credential;
                         assetViewModel.DisplayTitle = assetCredential.Title;
                         assetViewModel.Login = assetCredential.Login;
-                        assetViewModel.Domain = assetCredential.Domain;
+                        assetViewModel.Notes = assetCredential.Notes;
                         break;
                     default:
                         return null;

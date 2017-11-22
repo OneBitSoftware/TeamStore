@@ -83,7 +83,7 @@
         // POST: Projects/CreateCredential
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateCredential([Bind("ProjectId,Login,Domain,Password,Title")] CreateCredentialViewModel createViewModel)
+        public async Task<IActionResult> CreateCredential([Bind("ProjectId,Login,Body,Password,Title")] CreateCredentialViewModel createViewModel)
         {
             if (ModelState.IsValid == true)
             {
@@ -92,7 +92,7 @@
                     var asset = new Credential();
 
                     asset.Title = createViewModel.Title;
-                    asset.Domain = createViewModel.Domain;
+                    asset.Notes = createViewModel.Notes;
                     asset.Login = createViewModel.Login;
                     asset.Password = createViewModel.Password;
 

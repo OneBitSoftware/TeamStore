@@ -63,8 +63,8 @@
             <tr>
                 <th>Asset name</th>
                 <th>Login</th>
-                <th>Domain</th>
                 <th>Password</th>
+                <th>Notes</th>
                 <th>Created</th>
                 <th>Created By</th>
                 <th>Modified</th>
@@ -84,7 +84,6 @@
                     </button>
                     @item.Login
                 </td>
-                <td>@item.Domain</td>
                 <td>
                     <button class="ob-copyIcon ob-pointer" data-id="@item.AssetId" data-type="password">
                         <i class="fa fa-clipboard" title="Copy password to clipboard"></i>
@@ -93,6 +92,7 @@
                         ******
                     </span>
                 </td>
+                <td>@item.Notes</td>
                 <td>@item.Created</td>
                 <td>@item.CreatedBy</td>
                 <td>@item.Modified</td>
