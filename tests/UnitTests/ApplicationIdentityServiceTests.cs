@@ -14,6 +14,7 @@
     using TeamStore.Keeper.Models;
     using TeamStore.Keeper.Services;
     using UnitTests.Framework;
+    using UnitTests.Services;
     using Xunit;
 
     public class ApplicationIdentityServiceTests
@@ -31,7 +32,8 @@
 
             var memoryCache = new MemoryCache(new MemoryCacheOptions() { });
             var accessTokenRetriever = new TestAccessTokenRetriever();
-            _graphService = new GraphService(memoryCache, _configuration, accessTokenRetriever);
+            var telemetryService = new MockTelemetryService();
+            _graphService = new GraphService(memoryCache, _configuration, accessTokenRetriever, telemetryService);
             _testHttpContext = new DefaultHttpContext();
             _httpContextAccessor = new HttpContextAccessor();
             _httpContextAccessor.HttpContext = _testHttpContext;

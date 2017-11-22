@@ -8,7 +8,7 @@ using TeamStore.Keeper.Interfaces;
 using TeamStore.Keeper.Models;
 using System.Linq;
 
-namespace IntegrationTests.Services
+namespace UnitTests.Services
 {
     public class MockGraphService : IGraphService
     {
@@ -21,7 +21,7 @@ namespace IntegrationTests.Services
             PopulateUsers();
         }
 
-        internal void AddUserToInternalList(ApplicationUser user)
+        public void AddUserToInternalList(ApplicationUser user)
         {
             _usersList.Add(user);
         }

@@ -1,12 +1,12 @@
 ﻿namespace IntegrationTests
 {
-    using IntegrationTests.Services;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using TeamStore.Keeper.Models;
     using TeamStore.Keeper.Services;
+    using UnitTests.Services;
     using Xunit;
 
     public class PermissionTests : IntegrationTestBase

@@ -1,6 +1,5 @@
 namespace IntegrationTests
 {
-    using IntegrationTests.Services;
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
@@ -12,6 +11,7 @@ namespace IntegrationTests
     using System.Reflection;
     using TeamStore.Keeper.Models;
     using TeamStore.Keeper.Services;
+    using UnitTests.Services;
     using Xunit;
 
     public class ProjectTests : IntegrationTestBase

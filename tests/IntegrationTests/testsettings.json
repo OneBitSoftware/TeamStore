@@ -8,7 +8,8 @@
     "GraphResourceId": "https://graph.microsoft.com/"
   },
   "DataAccess": {
-    "SQLiteDbFileName": "testdata.db"
+    "SQLiteDbFileName": "testdata.db",
+    "SQLiteEventsDbFileName": "testaudit.db"
   },
   "Logging": {
     "IncludeScopes": false,
