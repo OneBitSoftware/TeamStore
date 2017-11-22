@@ -241,9 +241,9 @@
 
             asset.Title = _encryptionService.EncryptString(asset.Title);
 
-            if (string.IsNullOrWhiteSpace(asset.Body) == false)
+            if (string.IsNullOrWhiteSpace(asset.Notes) == false)
             {
-                asset.Body = _encryptionService.EncryptString(asset.Body); 
+                asset.Notes = _encryptionService.EncryptString(asset.Notes); 
             }
 
         }
@@ -266,9 +266,9 @@
 
             asset.Title = _encryptionService.DecryptString(asset.Title);
 
-            if (string.IsNullOrWhiteSpace(asset.Body) == false)
+            if (string.IsNullOrWhiteSpace(asset.Notes) == false)
             {
-                asset.Body = _encryptionService.DecryptString(asset.Body); 
+                asset.Notes = _encryptionService.DecryptString(asset.Notes); 
             }
         }
 

@@ -16,7 +16,7 @@
         /// <summary>
         /// Notes/body for the Credential entity
         /// </summary>
-        public string Body { get; set; }
+        public string Notes { get; set; }
 
         public DateTime Created { get; set; }
         public ApplicationUser CreatedBy { get; set; }
