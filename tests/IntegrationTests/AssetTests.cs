@@ -43,10 +43,10 @@ namespace IntegrationTests
 
             Assert.Equal("Login123", retrievedCredential.Login);
             //Assert.Equal("Password", retrievedCredential.Password);
-            Assert.Equal("DOMAIN 1234 body", retrievedCredential.Body);
+            Assert.Equal("DOMAIN 1234 body", retrievedCredential.Notes);
 
             Assert.Equal("Test note 12345", retrievedNote.Title);
-            Assert.Equal("Test body test body Test body test body Test body test body Test body test body", retrievedNote.Body);
+            Assert.Equal("Test body test body Test body test body Test body test body Test body test body", retrievedNote.Notes);
             Assert.Equal(2, retrievedProject.Assets.Count);
 
             // test created/modified times
@@ -64,7 +64,7 @@ namespace IntegrationTests
 
         [Theory,
             InlineData("123456", "asdfdsafa dfdsa fdsa fdsa fdsa fdsa fs", "asdsadsadsadsad\\")]
-        public async void CreateCredential_ShouldEncryptAsset(string login, string password, string body)
+        public async void CreateCredential_ShouldEncryptAsset(string login, string password, string notes)
         {
             // Arrange
             var allProjects = await _projectsService.GetProjects(true);
@@ -72,7 +72,7 @@ namespace IntegrationTests
             var newCredential = new Credential();
             newCredential.Login = login;
             newCredential.Password = password;
-            newCredential.Body = body;
+            newCredential.Notes = notes;
             newCredential.Title = "Test Encryption Credential";
 
             // Act
@@ -84,10 +84,10 @@ namespace IntegrationTests
             // Assert
             Assert.NotEqual(retrievedCredential.Login, login);
             Assert.NotEqual(retrievedCredential.Password, password);
-            Assert.NotEqual(retrievedCredential.Body, body);
+            Assert.NotEqual(retrievedCredential.Notes, notes);
             Assert.False(string.IsNullOrWhiteSpace(retrievedCredential.Login));
             Assert.False(string.IsNullOrWhiteSpace(retrievedCredential.Password));
-            Assert.False(string.IsNullOrWhiteSpace(retrievedCredential.Body));
+            Assert.False(string.IsNullOrWhiteSpace(retrievedCredential.Notes));
 
             // Cleanup
             await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
@@ -97,14 +97,14 @@ namespace IntegrationTests
 
         [Theory,
             InlineData("123456", "asdfdsafa dfdsa fdsa fdsa fdsa fdsa fs")]
-        public async void CreateNote_ShouldEncryptAsset(string title, string body)
+        public async void CreateNote_ShouldEncryptAsset(string title, string notes)
         {
             // Arrange
             var allProjects = await _projectsService.GetProjects(true);
             var newProjectId = await _projectsService.CreateProject(CreateTestProject());
             var newNote = new Note();
             newNote.Title = title;
-            newNote.Body = body;
+            newNote.Notes = notes;
 
             // Act
             var retrievedProject = await _projectsService.GetProject(newProjectId);
@@ -114,9 +114,9 @@ namespace IntegrationTests
 
             // Assert
             Assert.NotEqual(retrievedNote.Title, title);
-            Assert.NotEqual(retrievedNote.Body, body);
+            Assert.NotEqual(retrievedNote.Notes, notes);
             Assert.False(string.IsNullOrWhiteSpace(retrievedNote.Title));
-            Assert.False(string.IsNullOrWhiteSpace(retrievedNote.Body));
+            Assert.False(string.IsNullOrWhiteSpace(retrievedNote.Notes));
 
             // Cleanup
             await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
@@ -137,14 +137,14 @@ namespace IntegrationTests
             var createdAsset = await _assetService.GetAssetAsync(newProjectId, newNote.Id, "127.0.1.1");
             var createdNote = createdAsset as Note;
             createdNote.Title = "NewTitle";
-            createdNote.Body = "NewBody body body";
+            createdNote.Notes = "NewBody body body";
             var updatedAsset = await _assetService.UpdateAssetAsync(newProjectId, createdNote);
             var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, updatedAsset.Id, "127.0.1.1");
             var retrievedNote = retrievedAsset as Note;
 
             // Assert
             Assert.Equal("NewTitle", retrievedNote.Title);
-            Assert.Equal("NewBody body body", retrievedNote.Body);
+            Assert.Equal("NewBody body body", retrievedNote.Notes);
 
             // Cleanup
             await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
@@ -165,7 +165,7 @@ namespace IntegrationTests
             var createdAsset = await _assetService.GetAssetAsync(newProjectId, newCredential.Id, "127.0.1.1");
             var createdCredential = createdAsset as Credential;
             createdCredential.Login = "NewLogin";
-            createdCredential.Body = "NewDomain";
+            createdCredential.Notes = "NewDomain";
             //createdCredential.Password = "NewPass";
             var updatedAsset = await _assetService.UpdateAssetAsync(newProjectId, createdCredential);
             var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, updatedAsset.Id, "127.0.1.1");
@@ -173,7 +173,7 @@ namespace IntegrationTests
 
             // Assert
             Assert.Equal("NewLogin", retrievedCredential.Login);
-            Assert.Equal("NewDomain", retrievedCredential.Body);
+            Assert.Equal("NewDomain", retrievedCredential.Notes);
             //Assert.Equal("NewPass", retrievedCredential.Password);
 
             // Cleanup

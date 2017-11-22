@@ -142,13 +142,13 @@ namespace IntegrationTests
         {
             var login = "Login123";
             var pass = "Password";
-            var body = "DOMAIN 1234 body";
+            var notes = "DOMAIN 1234 body";
 
             var testCredential = new Credential();
             testCredential.Title = "Test Credential";
             testCredential.Login = login;
             testCredential.Password = pass;
-            testCredential.Body = body;
+            testCredential.Notes = notes;
             testCredential.IsArchived = false;
 
             return testCredential;
@@ -157,12 +157,12 @@ namespace IntegrationTests
         protected Note CreateTestNote()
         {
             var title = "Test note 12345";
-            var body = "Test body test body Test body test body Test body test body Test body test body";
+            var notes = "Test body test body Test body test body Test body test body Test body test body";
 
             var testNote = new Note();
             testNote.Title = "Test Note";
             testNote.Title = title;
-            testNote.Body = body;
+            testNote.Notes = notes;
             testNote.IsArchived = false;
 
             return testNote;
