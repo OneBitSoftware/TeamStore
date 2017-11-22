@@ -47,8 +47,9 @@
         public async Task ArchiveAssetAsync(int projectId, int assetId, string remoteIpAddress)
         {
             // Validate
-            if (projectId < 0) throw new ArgumentException("You must pass a valid project id.");
-            if (assetId < 0) throw new ArgumentException("You must pass a valid asset id.");
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+            if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
+            if (assetId < 1) throw new ArgumentException("You must pass a valid asset id.");
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
@@ -89,9 +90,11 @@
         public async Task<Asset> AddAssetToProjectAsync(int projectId, Asset asset, string remoteIpAddress)
         {
             // Validate
+            if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
             if (asset == null) throw new ArgumentNullException(nameof(asset));
             if (asset.Id != 0) throw new Exception("Updates are not allowed, the asset must be a new asset.");
-            
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
             // the project must be kept encrypted
             var retrievedProjectEncrypted = await _projectService.GetProject(projectId, true);
 
@@ -117,8 +120,9 @@
 
         public async Task<Asset> GetAssetAsync(int projectId, int assetId, string remoteIpAddress)
         {
-            if (projectId < 0) throw new ArgumentException("You must pass a valid project id.");
-            if (assetId < 0) throw new ArgumentException("You must pass a valid asset id.");
+            if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
+            if (assetId < 1) throw new ArgumentException("You must pass a valid asset id.");
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
@@ -147,7 +151,7 @@
         public async Task<List<Asset>> GetAssetsAsync(int projectId)
         {
             // Validate
-            if (projectId < 0) throw new ArgumentException("You must pass a valid project id.");
+            if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
@@ -162,7 +166,7 @@
                 .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
                 .ToListAsync();
 
-            // LOG access asset
+            // LOG access asset - open project? TODO
 
             foreach (var asset in retrievedAssets)
             {
@@ -172,18 +176,20 @@
             return retrievedAssets;
         }
 
-        public async Task<Asset> UpdateAssetAsync(int projectId, Asset asset)
+        // Question: Why are we returning on update??
+
+        public async Task<Asset> UpdateAssetAsync(int projectId, Asset asset, string remoteIpAddress)
         {
             // Validate
-            if (projectId < 0) throw new ArgumentException("You must pass a valid project id.");
+            if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
             if (asset == null) throw new ArgumentNullException(nameof(asset));
-
-            // Encrypt
-            EncryptAsset(asset);
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+
+            // Encrypt
+            EncryptAsset(asset);
 
             // Set modified times
             asset.Modified = DateTime.UtcNow;
@@ -194,6 +200,41 @@
             await _dbContext.SaveChangesAsync();
 
             // LOG Event
+            await _eventService.LogUpdateAssetEventAsync(projectId,  remoteIpAddress, currentUser.Id, asset.Id);
+
+            return asset;
+        }
+
+        // TODO tests: modified date, password as expected, current user changed, all fails
+        public async Task<Asset> UpdateAssetPasswordAsync(int projectId, int assetId, string password, string remoteIpAddress)
+        {
+            // Validate
+            if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
+            if (assetId < 1) throw new ArgumentException("You must pass a valid asset id.");
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
+            // Validate current user
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+
+            //retrieve asset (performs current user check and permission check)
+            var asset = await this.GetAssetAsync(projectId, assetId, remoteIpAddress);
+            var credential = asset as Credential;
+
+            // set new password and encrypt
+            credential.Password = password;
+            EncryptAsset(credential);
+
+            // Set modified times
+            credential.Modified = DateTime.UtcNow;
+            credential.ModifiedBy = currentUser;
+
+            // Persist in DB
+            _dbContext.Assets.Update(credential);
+            await _dbContext.SaveChangesAsync();
+
+            // LOG Event
+            await _eventService.LogUpdatePasswordEventAsync(projectId, remoteIpAddress, currentUser.Id, asset.Id);
 
             return asset;
         }
@@ -236,7 +277,7 @@
             }
             else if (asset.GetType() == typeof(Note))
             {
-                //var note = asset as Note;
+                //var note = asset as Note; // currently no need to encrypt anything
             }
 
             asset.Title = _encryptionService.EncryptString(asset.Title);
@@ -245,7 +286,6 @@
             {
                 asset.Notes = _encryptionService.EncryptString(asset.Notes); 
             }
-
         }
 
         /// <summary>
@@ -261,7 +301,7 @@
             }
             else if (asset.GetType() == typeof(Note))
             {
-                //var note = asset as Note;
+                //var note = asset as Note; // currently no need to encrypt anything
             }
 
             asset.Title = _encryptionService.DecryptString(asset.Title);

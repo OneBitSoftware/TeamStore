@@ -178,5 +178,33 @@
             await _dbContext.Events.AddAsync(retrieveAssetEvent);
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task LogUpdatePasswordEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId)
+        {
+            var retrieveAssetEvent = new Models.Event();
+            retrieveAssetEvent.DateTime = DateTime.UtcNow;
+            retrieveAssetEvent.Type = Enums.EventType.UpdatePassword.ToString();
+            retrieveAssetEvent.RemoteIpAddress = remoteIpAddress;
+            retrieveAssetEvent.ActedByUser = actingUserId.ToString();
+            retrieveAssetEvent.ProjectId = projectId;
+            retrieveAssetEvent.AssetId = assetId;
+
+            await _dbContext.Events.AddAsync(retrieveAssetEvent);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task LogUpdateAssetEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId)
+        {
+            var retrieveAssetEvent = new Models.Event();
+            retrieveAssetEvent.DateTime = DateTime.UtcNow;
+            retrieveAssetEvent.Type = Enums.EventType.UpdateAsset.ToString();
+            retrieveAssetEvent.RemoteIpAddress = remoteIpAddress;
+            retrieveAssetEvent.ActedByUser = actingUserId.ToString();
+            retrieveAssetEvent.ProjectId = projectId;
+            retrieveAssetEvent.AssetId = assetId;
+
+            await _dbContext.Events.AddAsync(retrieveAssetEvent);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

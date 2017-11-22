@@ -12,6 +12,8 @@
         RevokeAccess = 8,
         CustomEvent = 9,
         ArchiveProject = 10,
-        ArchiveAsset = 11
+        ArchiveAsset = 11,
+        UpdatePassword = 12
+
     }
 }

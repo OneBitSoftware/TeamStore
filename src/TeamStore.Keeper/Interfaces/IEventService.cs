@@ -66,6 +66,18 @@
             int revokingUserId,
             string customData);
 
+        /// <summary>
+        /// Logs an update to a password. Passwords are not retained in the log.
+        /// </summary>
+        /// <param name="projectId">The Id of the project for which to update an asset password.</param>
+        /// <param name="remoteIpAddress">The IP address of the originating request</param>
+        /// <param name="actingUserId">The id of the ApplicationUser performing the action</param>
+        /// <param name="assetId">The ID of the asset being updated</param>
+        /// <returns></returns>
+        Task LogUpdatePasswordEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId);
+
+        Task LogUpdateAssetEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId);
+
         Task LogCustomEventAsync(string actingUserId, string customData);
     }
 }

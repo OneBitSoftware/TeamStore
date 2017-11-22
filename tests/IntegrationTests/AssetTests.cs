@@ -138,7 +138,7 @@ namespace IntegrationTests
             var createdNote = createdAsset as Note;
             createdNote.Title = "NewTitle";
             createdNote.Notes = "NewBody body body";
-            var updatedAsset = await _assetService.UpdateAssetAsync(newProjectId, createdNote);
+            var updatedAsset = await _assetService.UpdateAssetAsync(newProjectId, createdNote, "127.0.1.1");
             var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, updatedAsset.Id, "127.0.1.1");
             var retrievedNote = retrievedAsset as Note;
 
@@ -167,7 +167,7 @@ namespace IntegrationTests
             createdCredential.Login = "NewLogin";
             createdCredential.Notes = "NewDomain";
             //createdCredential.Password = "NewPass";
-            var updatedAsset = await _assetService.UpdateAssetAsync(newProjectId, createdCredential);
+            var updatedAsset = await _assetService.UpdateAssetAsync(newProjectId, createdCredential, "127.0.1.1");
             var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, updatedAsset.Id, "127.0.1.1");
             var retrievedCredential = retrievedAsset as Credential;
 
