@@ -28,10 +28,15 @@ namespace Microsoft.AspNetCore.Authentication
             {
                 options.Events = new OpenIdConnectEvents
                 {
-                    OnAuthenticationFailed = async context =>
+                    OnRemoteFailure = async context =>
                     {
-                        var telemetryService = context.HttpContext.RequestServices.GetService<ITelemetryService>();
-                        //telemetryService.TraceEvent("Login failed", "item1", "213123132");
+                        // If any of the auth handshaking causes an error/exception, the methods below will log the exception.
+                        // here, we still catch the failure Event, log and gracefully handle
+                        if (context != null && context.Failure != null)
+                        {
+                            var telemetryService = context.HttpContext.RequestServices.GetService<ITelemetryService>();
+                            telemetryService.TrackException(context.Failure);
+                        }
                     },
                     OnTokenValidated = async context =>
                     {
@@ -50,7 +55,7 @@ namespace Microsoft.AspNetCore.Authentication
                         }
 
                         var telemetryService = context.HttpContext.RequestServices.GetService<ITelemetryService>();
-                        //telemetryService.TraceEvent("Login success", "item1", "45325324");
+                        telemetryService.TraceEvent("Login success", "login", claimsPrincipal.Name);
 
                         await eventService.LogLoginEventAsync(claimIdentity, accessIpAddress);
                     }
@@ -60,15 +65,27 @@ namespace Microsoft.AspNetCore.Authentication
                         var claimIdentity = context.Principal.Claims;
                         var graphService = context.HttpContext.RequestServices.GetService<IGraphService>();
 
-                        var code = context.ProtocolMessage.Code;
+                        var code = context.ProtocolMessage.Code; // null check
                         // Can't find the object identifier enum, using string
-                        // TODO null check here!
+                        // TODO null check here! -> extract to helper?
                         var identifier = context.Principal.Claims.First(item => item.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
 
                         var redirectHost = context.Request.Scheme + "://" + context.Request.Host.Value;
 
                         var result = await graphService.GetTokenByAuthorizationCodeAsync(identifier, code, redirectHost);
-                        context.HandleCodeRedemption(result.AccessToken, result.IdToken);
+
+                        if (result != null)
+                        {
+                            context.HandleCodeRedemption(result.AccessToken, result.IdToken);
+                        }
+                        else
+                        {
+                            var telemetryService = context.HttpContext.RequestServices.GetService<ITelemetryService>();
+                            telemetryService.TraceEvent(
+                                "Client Secret Error",
+                                "GraphServiceError",
+                                "Token was not received from the Graph Service. Check App Insights exceptions, or the directory configuration in appsettings.json.");
+                        }
                     }
                 };
 

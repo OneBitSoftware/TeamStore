@@ -54,12 +54,12 @@ namespace TeamStore
 
             // Set up services
             services.AddScoped<IEventService, EventService>(); // needs to be before auth setup
-            services.AddScoped<IProjectsService, ProjectsService>(); 
-            services.AddScoped<IGraphService, GraphService>(); 
+            services.AddScoped<IProjectsService, ProjectsService>();
+            services.AddScoped<IGraphService, GraphService>();
             services.AddScoped<IAssetService, AssetService>();
-            services.AddScoped<IPermissionService, PermissionService>(); 
-            services.AddScoped<IEncryptionService, EncryptionService>(); 
-            services.AddScoped<IApplicationIdentityService, ApplicationIdentityService>(); 
+            services.AddScoped<IPermissionService, PermissionService>();
+            services.AddScoped<IEncryptionService, EncryptionService>();
+            services.AddScoped<IApplicationIdentityService, ApplicationIdentityService>();
             services.AddScoped<IAccessTokenRetriever, UserAccessTokenRetriever>();
             services.AddScoped<ITelemetryService, TelemetryService>();
 
