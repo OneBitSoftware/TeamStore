@@ -43,7 +43,7 @@ namespace IntegrationTests
 
             Assert.Equal("Login123", retrievedCredential.Login);
             //Assert.Equal("Password", retrievedCredential.Password);
-            Assert.Equal("DOMAIN", retrievedCredential.Domain);
+            Assert.Equal("DOMAIN 1234 body", retrievedCredential.Body);
 
             Assert.Equal("Test note 12345", retrievedNote.Title);
             Assert.Equal("Test body test body Test body test body Test body test body Test body test body", retrievedNote.Body);
@@ -63,9 +63,8 @@ namespace IntegrationTests
         }
 
         [Theory,
-            InlineData("", "", ""),
             InlineData("123456", "asdfdsafa dfdsa fdsa fdsa fdsa fdsa fs", "asdsadsadsadsad\\")]
-        public async void CreateCredential_ShouldEncryptAsset(string login, string password, string domain)
+        public async void CreateCredential_ShouldEncryptAsset(string login, string password, string body)
         {
             // Arrange
             var allProjects = await _projectsService.GetProjects(true);
@@ -73,7 +72,7 @@ namespace IntegrationTests
             var newCredential = new Credential();
             newCredential.Login = login;
             newCredential.Password = password;
-            newCredential.Domain = domain;
+            newCredential.Body = body;
             newCredential.Title = "Test Encryption Credential";
 
             // Act
@@ -85,10 +84,10 @@ namespace IntegrationTests
             // Assert
             Assert.NotEqual(retrievedCredential.Login, login);
             Assert.NotEqual(retrievedCredential.Password, password);
-            Assert.NotEqual(retrievedCredential.Domain, domain);
+            Assert.NotEqual(retrievedCredential.Body, body);
             Assert.False(string.IsNullOrWhiteSpace(retrievedCredential.Login));
             Assert.False(string.IsNullOrWhiteSpace(retrievedCredential.Password));
-            Assert.False(string.IsNullOrWhiteSpace(retrievedCredential.Domain));
+            Assert.False(string.IsNullOrWhiteSpace(retrievedCredential.Body));
 
             // Cleanup
             await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
@@ -97,7 +96,6 @@ namespace IntegrationTests
         }
 
         [Theory,
-            InlineData("", ""),
             InlineData("123456", "asdfdsafa dfdsa fdsa fdsa fdsa fdsa fs")]
         public async void CreateNote_ShouldEncryptAsset(string title, string body)
         {
@@ -167,7 +165,7 @@ namespace IntegrationTests
             var createdAsset = await _assetService.GetAssetAsync(newProjectId, newCredential.Id, "127.0.1.1");
             var createdCredential = createdAsset as Credential;
             createdCredential.Login = "NewLogin";
-            createdCredential.Domain = "NewDomain";
+            createdCredential.Body = "NewDomain";
             //createdCredential.Password = "NewPass";
             var updatedAsset = await _assetService.UpdateAssetAsync(newProjectId, createdCredential);
             var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, updatedAsset.Id, "127.0.1.1");
@@ -175,7 +173,7 @@ namespace IntegrationTests
 
             // Assert
             Assert.Equal("NewLogin", retrievedCredential.Login);
-            Assert.Equal("NewDomain", retrievedCredential.Domain);
+            Assert.Equal("NewDomain", retrievedCredential.Body);
             //Assert.Equal("NewPass", retrievedCredential.Password);
 
             // Cleanup

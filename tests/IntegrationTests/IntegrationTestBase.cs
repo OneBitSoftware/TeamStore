@@ -1,6 +1,4 @@
-﻿using IntegrationTests.Framework;
-using IntegrationTests.Services;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +11,8 @@ using TeamStore.Keeper.DataAccess;
 using TeamStore.Keeper.Interfaces;
 using TeamStore.Keeper.Models;
 using TeamStore.Keeper.Services;
+using UnitTests.Framework;
+using UnitTests.Services;
 
 namespace IntegrationTests
 {
@@ -104,7 +104,7 @@ namespace IntegrationTests
 
         protected EventDbContext GetEventDbContext()
         {
-            var fileName = _configuration["DataAccess:SQLiteDbFileName"];
+            var fileName = _configuration["DataAccess:SQLiteEventsDbFileName"];
             var connectionString = "Data Source=" + fileName;
 
             var optionsBuilder = new DbContextOptionsBuilder<EventDbContext>();
@@ -142,13 +142,13 @@ namespace IntegrationTests
         {
             var login = "Login123";
             var pass = "Password";
-            var domain = "DOMAIN";
+            var body = "DOMAIN 1234 body";
 
             var testCredential = new Credential();
             testCredential.Title = "Test Credential";
             testCredential.Login = login;
             testCredential.Password = pass;
-            testCredential.Domain = domain;
+            testCredential.Body = body;
             testCredential.IsArchived = false;
 
             return testCredential;
