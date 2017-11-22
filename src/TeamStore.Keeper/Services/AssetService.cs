@@ -91,7 +91,7 @@
             // Validate
             if (asset == null) throw new ArgumentNullException(nameof(asset));
             if (asset.Id != 0) throw new Exception("Updates are not allowed, the asset must be a new asset.");
-
+            
             // the project must be kept encrypted
             var retrievedProjectEncrypted = await _projectService.GetProject(projectId, true);
 
@@ -220,20 +220,32 @@
         /// <param name="asset">The asset to encrypt</param>
         public void EncryptAsset(Asset asset)
         {
+            // TODO: create a test to validate the argumentnullexception
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+            if (string.IsNullOrWhiteSpace(asset.Title)) throw new Exception("An asset title cannot be an empty string. Cannot encrypt and decrypt.");
+
             if (asset.GetType() == typeof(Credential))
             {
                 var credential = asset as Credential;
+
+                if (string.IsNullOrWhiteSpace(credential.Password)) throw new Exception("A password cannot be an empty string. Cannot encrypt and decrypt.");
+                if (string.IsNullOrWhiteSpace(credential.Login)) throw new Exception("A login cannot be an empty string. Cannot encrypt and decrypt.");
+
                 credential.Login = _encryptionService.EncryptString(credential.Login);
-                credential.Domain = _encryptionService.EncryptString(credential.Domain);
                 credential.Password = _encryptionService.EncryptString(credential.Password);
             }
             else if (asset.GetType() == typeof(Note))
             {
-                var note = asset as Note;
-                note.Body = _encryptionService.EncryptString(note.Body);
+                //var note = asset as Note;
             }
 
             asset.Title = _encryptionService.EncryptString(asset.Title);
+
+            if (string.IsNullOrWhiteSpace(asset.Body) == false)
+            {
+                asset.Body = _encryptionService.EncryptString(asset.Body); 
+            }
+
         }
 
         /// <summary>
@@ -246,15 +258,18 @@
             {
                 var credential = asset as Credential;
                 credential.Login = _encryptionService.DecryptString(credential.Login);
-                credential.Domain = _encryptionService.DecryptString(credential.Domain);
             }
             else if (asset.GetType() == typeof(Note))
             {
-                var note = asset as Note;
-                note.Body = _encryptionService.DecryptString(note.Body);
+                //var note = asset as Note;
             }
 
             asset.Title = _encryptionService.DecryptString(asset.Title);
+
+            if (string.IsNullOrWhiteSpace(asset.Body) == false)
+            {
+                asset.Body = _encryptionService.DecryptString(asset.Body); 
+            }
         }
 
         /// <summary>

@@ -14,10 +14,5 @@
         /// The password/secret of the credential
         /// </summary>
         public string Password { get; set; }
-
-        /// <summary>
-        /// Notes for the Credential entity
-        /// </summary>
-        public string Body { get; set; }
     }
 }

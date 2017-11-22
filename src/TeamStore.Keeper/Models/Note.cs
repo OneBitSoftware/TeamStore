@@ -5,9 +5,6 @@
     /// </summary>
     public class Note : Asset
     {
-        /// <summary>
-        /// A simple message body string to store useful information
-        /// </summary>
-        public string Body { get; set; }
+
     }
 }
