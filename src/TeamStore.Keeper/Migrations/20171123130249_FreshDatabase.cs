@@ -36,6 +36,7 @@ namespace TeamStore.Keeper.Migrations
                     Category = table.Column<string>(type: "TEXT", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     IsArchived = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsPublic = table.Column<bool>(type: "INTEGER", nullable: false),
                     Title = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
@@ -55,7 +56,7 @@ namespace TeamStore.Keeper.Migrations
                     Modified = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ModifiedById = table.Column<int>(type: "INTEGER", nullable: true),
                     ProjectForeignKey = table.Column<int>(type: "INTEGER", nullable: false),
-                    Role = table.Column<string>(type: "TEXT", nullable: true)
+                    Role = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

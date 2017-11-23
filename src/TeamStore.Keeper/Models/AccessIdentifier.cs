@@ -2,6 +2,7 @@
 {
     using System;
     using System.ComponentModel.DataAnnotations.Schema;
+    using TeamStore.Keeper.Enums;
 
     // TODO: validate/test created/createdby/modified/modifiedby/Role not null
     public class AccessIdentifier
@@ -10,7 +11,7 @@
 
         public ApplicationIdentity Identity { get; set; }
 
-        public string Role { get; set; }
+        public Role Role { get; set; }
 
         public int ProjectForeignKey { get; set; }
 

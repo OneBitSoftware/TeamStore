@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using TeamStore.Keeper.DataAccess;
+    using TeamStore.Keeper.Enums;
     using TeamStore.Keeper.Interfaces;
     using TeamStore.Keeper.Models;
 
@@ -53,13 +54,12 @@
         public async Task<AccessChangeResult> GrantAccessAsync(
             int projectId,
             string upn,
-            string role,
+            Role role,
             string remoteIpAddress,
             IProjectsService projectsService)
         {
             if (string.IsNullOrWhiteSpace(upn)) throw new ArgumentNullException(nameof(upn));
             if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentNullException(nameof(remoteIpAddress));
-            if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             if (projectId == 0) throw new ArgumentException("You must provide a valid project id.");
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new ArgumentException("The current user could not be retrieved.");
@@ -72,14 +72,14 @@
             _dbContext.Entry(project).State = EntityState.Unchanged; // project will be encrypted here
 
             // Verify current user has permissions to grant access, aka Owner
-            if (await CurrentUserHasAccess(project, projectsService, "Owner") == false)
+            if (await CurrentUserHasAccess(project, projectsService, Role.Owner) == false)
             {
                 await _eventService.LogCustomEventAsync(currentUser.Id.ToString(), $"User {currentUser.Upn} attepted to give access to {upn} without having access to project with ID: {projectId}.");
                 throw new Exception("The current user does not have permissions to grant access.");
             }
 
             // Check if the target user already has access
-            if (CheckAccess(project, upn, "Owner", projectsService))
+            if (CheckAccess(project, upn, Role.Owner, projectsService))
             {
                 await _eventService.LogCustomEventAsync(currentUser.Id.ToString(), $"The user {currentUser.Upn} attepted to give access to {upn} who already has access to project with ID: {projectId}.");
                 return new AccessChangeResult() { Success = false, Message = $"User {upn} already has access." }; // no need to grant
@@ -98,7 +98,7 @@
             // Validation of the access identifiers before save
             foreach (var item in project.AccessIdentifiers)
             {
-                if ((item.Identity == null) || string.IsNullOrWhiteSpace(item.Role))
+                if ((item.Identity == null))
                 {
                     await _eventService.LogCustomEventAsync(currentUser.Upn, $"Ensure did not return a user for {upn}");
                     return new AccessChangeResult() { Success = false, Message = $"The user or group '{upn}' was not found." };
@@ -125,13 +125,12 @@
         public async Task<AccessChangeResult> RevokeAccessAsync(
             int projectId,
             string upn,
-            string role,
+            Role role,
             string remoteIpAddress,
             IProjectsService projectsService)
         {
             if (string.IsNullOrWhiteSpace(upn)) throw new ArgumentNullException(nameof(upn));
             if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentNullException(nameof(remoteIpAddress));
-            if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new ArgumentException("The current user could not be retrieved.");
@@ -141,7 +140,7 @@
             if (project == null) throw new ArgumentNullException(nameof(project));
 
             // Verify that the current user has permissions to grant access, aka Owner
-            if (await CurrentUserHasAccessAsync(projectId, projectsService, "Owner") == false)
+            if (await CurrentUserHasAccessAsync(projectId, projectsService, Role.Owner) == false)
             {
                 await _eventService.LogCustomEventAsync(currentUser.Id.ToString(), $"User {currentUser.Upn} attepted to revoke access to {upn} without having access to project with ID: {projectId}.");
                 throw new Exception("The current user does not have permissions to revoke access.");
@@ -177,12 +176,11 @@
         /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
         /// <param name="role">The role/level of access to check</param>
         /// <returns>A Task of bool, True if the current user has the role access to the specified project</returns>
-        public async Task<bool> CurrentUserHasAccessAsync(int projectId, IProjectsService projectsService, string role)
+        public async Task<bool> CurrentUserHasAccessAsync(int projectId, IProjectsService projectsService, Role role)
         {
             // Get/find the project
             if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
             if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
-            if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             var project = await projectsService.GetProject(projectId, true);
 
             return await CurrentUserHasAccess(project, projectsService, role);
@@ -211,11 +209,10 @@
         /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
         /// <param name="role">The role/level of access to check</param>
         /// <returns>True if the current user has the role access to the specified project</returns>
-        public async Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService, string role)
+        public async Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService, Role role)
         {
             // Get/find the project
             if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
-            if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new ArgumentNullException(nameof(currentUser));
             if (project == null) throw new ArgumentNullException(nameof(project));
@@ -263,11 +260,10 @@
         /// <param name="role">The role of interest</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>True if the user has the specified role, false if not.</returns>
-        public bool CheckAccess(Project project, ApplicationUser targetUser, string role, IProjectsService projectsService)
+        public bool CheckAccess(Project project, ApplicationUser targetUser, Role role, IProjectsService projectsService)
         {
             if (project == null) throw new ArgumentNullException(nameof(project));
             if (targetUser == null) throw new ArgumentNullException(nameof(targetUser));
-            if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
 
             var result = project.AccessIdentifiers.Where(ai => 
                 ai.Project == project && 
@@ -288,10 +284,9 @@
         /// <param name="role">The role of interest</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>True if the user has the specified role, false if not.</returns>
-        public bool CheckAccess(Project project, string targetUserUpn, string role, IProjectsService projectsService)
+        public bool CheckAccess(Project project, string targetUserUpn, Role role, IProjectsService projectsService)
         {
             if (project == null) throw new ArgumentNullException(nameof(project));
-            if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             if (string.IsNullOrWhiteSpace(targetUserUpn)) throw new ArgumentNullException(nameof(targetUserUpn));
 
             // We probably need to improve this query so it has less casts
@@ -315,10 +310,9 @@
         /// <param name="role">The role of interest</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>A task of True if the user has the specified role, false if not.</returns>
-        public async Task<bool> CheckAccessAsync(int projectId, ApplicationUser targetUser, string role, IProjectsService projectsService)
+        public async Task<bool> CheckAccessAsync(int projectId, ApplicationUser targetUser, Role role, IProjectsService projectsService)
         {
             if (targetUser == null) throw new ArgumentNullException(nameof(targetUser));
-            if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));
             if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
             var project = await projectsService.GetProject(projectId, true);
 

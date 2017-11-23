@@ -155,7 +155,7 @@
             // Ensure the creating user has Owner permissions to be able to grant access to other users
             project.AccessIdentifiers.Add(new AccessIdentifier() {
                 Identity = currentUser,
-                Role = "Owner",
+                Role = Enums.Role.Owner,
                 Project = project
             });
 
@@ -168,14 +168,14 @@
                 //accessItem.ModifiedBy = currentUser;
 
                 // Access Item Validation
-                if (accessItem.CreatedBy == null) throw new ArgumentException("The current user could not be resolved during project createion.");
+                if (accessItem.CreatedBy == null) throw new ArgumentException("The current user could not be resolved during project creation.");
             }
 
             // Save
             await _dbContext.Projects.AddAsync(project);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync(); // returns 2 or 3 (currentUser)
 
-            // LOG event
+            // LOG event TODO
 
             return project.Id;
         }
@@ -209,7 +209,11 @@
 
             await _eventService.LogArchiveProjectEventAsync(decryptedProject.Id, currentUser.Id, remoteIpAddress);
 
-            await _dbContext.SaveChangesAsync(); // save db
+            var updatedRowCount = await _dbContext.SaveChangesAsync(); // save to db
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
         }
     }
 }

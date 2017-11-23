@@ -8,11 +8,12 @@ using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using System;
 using TeamStore.Keeper.DataAccess;
+using TeamStore.Keeper.Enums;
 
 namespace TeamStore.Keeper.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20171122095158_FreshDatabase")]
+    [Migration("20171123130249_FreshDatabase")]
     partial class FreshDatabase
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,7 +39,7 @@ namespace TeamStore.Keeper.Migrations
 
                     b.Property<int>("ProjectForeignKey");
 
-                    b.Property<string>("Role");
+                    b.Property<int>("Role");
 
                     b.HasKey("Id");
 
@@ -121,6 +122,8 @@ namespace TeamStore.Keeper.Migrations
                     b.Property<string>("Description");
 
                     b.Property<bool>("IsArchived");
+
+                    b.Property<bool>("IsPublic");
 
                     b.Property<string>("Title");
 

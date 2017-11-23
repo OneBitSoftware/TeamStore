@@ -57,25 +57,25 @@
             Assert.Equal(1, retrievedProject.AccessIdentifiers.Count);
 
             // Act - Grant access
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-81", "Edit", "127.0.0.1", _projectsService);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", "Edit", "127.0.0.1", _projectsService);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", "Edit", "127.0.0.1", _projectsService);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", "Edit", "127.0.0.1", _projectsService);
-            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", "Read", "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-81", TeamStore.Keeper.Enums.Role.Editor, "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", TeamStore.Keeper.Enums.Role.Editor, "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", TeamStore.Keeper.Enums.Role.Editor, "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", TeamStore.Keeper.Enums.Role.Editor, "127.0.0.1", _projectsService);
+            await _permissionService.GrantAccessAsync(retrievedProject.Id, "mock@upn.com-82", TeamStore.Keeper.Enums.Role.Reader, "127.0.0.1", _projectsService);
 
             // Assert - Grant access
             Assert.Equal(6, retrievedProject.AccessIdentifiers.Count); // 5 + the owner
 
             // Act - Revoke access
-            await _permissionService.RevokeAccessAsync(retrievedProject.Id, "mock@upn.com-82", "Edit", "127.0.1.1", _projectsService);
+            await _permissionService.RevokeAccessAsync(retrievedProject.Id, "mock@upn.com-82", TeamStore.Keeper.Enums.Role.Editor, "127.0.1.1", _projectsService);
             retrievedProject = await _projectsService.GetProject(createdProjectId);
 
             // Assert - Revoke access
             Assert.Equal(3, retrievedProject.AccessIdentifiers.Count); // 2 + the owner
             Assert.Equal(_testUser, retrievedProject.AccessIdentifiers
-                .FirstOrDefault(ai => ai.Identity.Id == 82 && ai.Role == "Read").CreatedBy);
+                .FirstOrDefault(ai => ai.Identity.Id == 82 && ai.Role == TeamStore.Keeper.Enums.Role.Reader).CreatedBy);
             Assert.Equal(retrievedProject, retrievedProject.AccessIdentifiers
-                .FirstOrDefault(ai => ai.Identity.Id == 81 && ai.Role == "Edit").Project);
+                .FirstOrDefault(ai => ai.Identity.Id == 81 && ai.Role == TeamStore.Keeper.Enums.Role.Editor).Project);
 
             // Cleanup
             await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");

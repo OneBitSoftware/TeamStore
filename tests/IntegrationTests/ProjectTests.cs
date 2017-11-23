@@ -9,6 +9,7 @@ namespace IntegrationTests
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using TeamStore.Keeper.Enums;
     using TeamStore.Keeper.Models;
     using TeamStore.Keeper.Services;
     using UnitTests.Services;
@@ -82,7 +83,7 @@ namespace IntegrationTests
             var newDecryptedProject = CreateTestProject();
 
             AccessIdentifier accessIdentifier1 = new AccessIdentifier();
-            accessIdentifier1.Role = "Test";
+            accessIdentifier1.Role = TeamStore.Keeper.Enums.Role.Editor;
             accessIdentifier1.Identity = new ApplicationUser()
             {
                 AzureAdNameIdentifier = "TestAdIdentity1",
@@ -92,7 +93,7 @@ namespace IntegrationTests
             };
 
             AccessIdentifier accessIdentifier2 = new AccessIdentifier();
-            accessIdentifier2.Role = "Admin";
+            accessIdentifier2.Role = TeamStore.Keeper.Enums.Role.Owner;
             accessIdentifier2.Identity = new ApplicationGroup()
             {
                 DisplayName = "TestGroup1",
@@ -114,8 +115,8 @@ namespace IntegrationTests
             Assert.NotNull(retrievedProject.AccessIdentifiers.First());
             Assert.NotNull(retrievedProject.AccessIdentifiers.First().Project);
             Assert.True(retrievedProject.AccessIdentifiers.First().ProjectForeignKey > 0);
-            Assert.Equal("Test", retrievedProject.AccessIdentifiers.First().Role);
-            Assert.NotEqual("Test1234", retrievedProject.AccessIdentifiers.First().Role);
+            Assert.Equal(Role.Editor, retrievedProject.AccessIdentifiers.First().Role);
+            Assert.NotEqual(Role.Reader, retrievedProject.AccessIdentifiers.First().Role);
             Assert.IsType<ApplicationUser>(retrievedProject.AccessIdentifiers.First().Identity);
             Assert.Equal("1234", retrievedProject.AccessIdentifiers.First().Identity.TenantId);
             Assert.Equal("TestAdObjectId1", retrievedProject.AccessIdentifiers.First().Identity.AzureAdObjectIdentifier);
@@ -155,7 +156,7 @@ namespace IntegrationTests
             // Act
             var createdProjectId = await _projectsService.CreateProject(newDecryptedProject);
             var retrievedProject = await _projectsService.GetProject(createdProjectId);
-            var accessResult = await _permissionService.GrantAccessAsync(retrievedProject.Id, newUpn, "Edit", "1.2.3.4", _projectsService);
+            var accessResult = await _permissionService.GrantAccessAsync(retrievedProject.Id, newUpn, Role.Editor, "1.2.3.4", _projectsService);
             var retrievedUser = await _applicationIdentityService.FindUserByUpnAsync(newUpn);
             _fakeHttpContextItems.Remove(ApplicationIdentityService.CURRENTUSERKEY);
             _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, retrievedUser);

@@ -77,7 +77,11 @@
 
             // LOG event
 
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
         }
 
         /// <summary>
@@ -111,7 +115,11 @@
 
             // persist through context
             await _dbContext.Assets.AddAsync(asset);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
 
             // LOG event TODO: added login or title
             await _eventService.LogCreateAssetEventAsync(projectId, currentUser.Id, remoteIpAddress, asset.Id, string.Empty);
@@ -197,7 +205,11 @@
 
             // Persist in DB
             _dbContext.Assets.Update(asset);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
 
             // LOG Event
             await _eventService.LogUpdateAssetEventAsync(projectId,  remoteIpAddress, currentUser.Id, asset.Id);
@@ -231,7 +243,11 @@
 
             // Persist in DB
             _dbContext.Assets.Update(credential);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
 
             // LOG Event
             await _eventService.LogUpdatePasswordEventAsync(projectId, remoteIpAddress, currentUser.Id, asset.Id);

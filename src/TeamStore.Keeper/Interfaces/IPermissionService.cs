@@ -1,6 +1,7 @@
 ﻿namespace TeamStore.Keeper.Interfaces
 {
     using System.Threading.Tasks;
+    using TeamStore.Keeper.Enums;
     using TeamStore.Keeper.Models;
 
     public interface IPermissionService
@@ -20,7 +21,7 @@
         /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
         /// <param name="role">The role/level of access to check</param>
         /// <returns>A Task of bool, True if the current user has the role access to the specified project</returns>
-        Task<bool> CurrentUserHasAccessAsync(int projectId, IProjectsService projectsService, string role);
+        Task<bool> CurrentUserHasAccessAsync(int projectId, IProjectsService projectsService, Role role);
 
         /// <summary>
         /// Checks if the current ApplicationUser has any access to the specified project 
@@ -37,7 +38,7 @@
         /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
         /// <param name="role">The role/level of access to check</param>
         /// <returns>True if the current user has the role access to the specified project</returns>
-        Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService, string role);
+        Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService, Role role);
 
         /// <summary>
         /// Grants access to a project. Checks if the calling user has access to give access.
@@ -51,7 +52,7 @@
         Task<AccessChangeResult> GrantAccessAsync(
             int projectId,
             string upn,
-            string role,
+            Role role,
             string remoteIpAddress,
             IProjectsService projectsService
             );
@@ -69,7 +70,7 @@
         Task<AccessChangeResult> RevokeAccessAsync(
             int projectId,
             string upn,
-            string role,
+            Role role,
             string remoteIpAddress,
             IProjectsService projectsService
             );
@@ -82,7 +83,7 @@
         /// <param name="role">The role of interest</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>True if the user has the specified role, false if not.</returns>
-        bool CheckAccess(Project project, ApplicationUser targetUser, string role, IProjectsService projectsService);
+        bool CheckAccess(Project project, ApplicationUser targetUser, Role role, IProjectsService projectsService);
 
         /// <summary>
         /// Checks if an ApplicationUser has the requested role against a project
@@ -92,7 +93,7 @@
         /// <param name="role">The role of interest</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>True if the user has the specified role, false if not.</returns>
-        bool CheckAccess(Project project, string targetUserUpn, string role, IProjectsService projectsService);
+        bool CheckAccess(Project project, string targetUserUpn, Role role, IProjectsService projectsService);
 
         /// <summary>
         /// Checks if an ApplicationUser has the requested role against a project
@@ -102,6 +103,6 @@
         /// <param name="role">The role of interest</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>A task of True if the user has the specified role, false if not.</returns>
-        Task<bool> CheckAccessAsync(int projectId, ApplicationUser targetUser, string role, IProjectsService projectsService);
+        Task<bool> CheckAccessAsync(int projectId, ApplicationUser targetUser, Role role, IProjectsService projectsService);
     }
 }

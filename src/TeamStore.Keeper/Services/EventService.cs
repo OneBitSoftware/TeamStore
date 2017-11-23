@@ -5,6 +5,7 @@
     using System.Security.Claims;
     using System.Threading.Tasks;
     using TeamStore.Keeper.DataAccess;
+    using TeamStore.Keeper.Enums;
     using TeamStore.Keeper.Factories;
     using TeamStore.Keeper.Interfaces;
 
@@ -39,14 +40,14 @@
             int projectId,
             string remoteIpAddress, 
             int targetUserId,
-            string role,
+            Role role,
             int revokingUserId,
             string customData)
         {
             var revokeAccess = new Models.Event();
             revokeAccess.DateTime = DateTime.UtcNow;
             revokeAccess.Type = Enums.EventType.RevokeAccess.ToString();
-            revokeAccess.OldValue = role;
+            revokeAccess.OldValue = role.ToString();
             revokeAccess.RemoteIpAddress = remoteIpAddress;
             revokeAccess.ActedByUser = revokingUserId.ToString();
             revokeAccess.TargetUserId = targetUserId;
@@ -54,7 +55,11 @@
             revokeAccess.Data = "CustomData: " + customData;
 
             await _dbContext.Events.AddAsync(revokeAccess);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
         }
 
         /// <summary>
@@ -69,7 +74,7 @@
         public async Task LogGrantAccessEventAsync(
             int projectId,
             string remoteIpAddress,
-            string newRole,
+            Role newRole,
             int targetUserId,
             int grantingUserId,
             string customData)
@@ -77,7 +82,7 @@
             var grantAccess = new Models.Event();
             grantAccess.DateTime = DateTime.UtcNow;
             grantAccess.Type = Enums.EventType.GrantAccess.ToString();
-            grantAccess.NewValue = newRole;
+            grantAccess.NewValue = newRole.ToString();
             grantAccess.TargetUserId = targetUserId;
             grantAccess.RemoteIpAddress = remoteIpAddress;
             grantAccess.ActedByUser = grantingUserId.ToString();
@@ -85,7 +90,11 @@
             grantAccess.Data = customData;
 
             await _dbContext.Events.AddAsync(grantAccess);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
         }
 
         /// <summary>
@@ -105,7 +114,11 @@
             archiveEvent.ProjectId = projectId;
 
             await _dbContext.Events.AddAsync(archiveEvent);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
         }
 
         /// <summary>
@@ -130,7 +143,11 @@
             loginEvent.RemoteIpAddress = accessIpAddress;
 
             await _dbContext.Events.AddAsync(loginEvent);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
         }
 
         public async Task LogCustomEventAsync(string actingUserId, string customData)
@@ -142,7 +159,11 @@
             loginEvent.Data = customData;
 
             await _dbContext.Events.AddAsync(loginEvent);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
         }
 
         public async Task LogCreateAssetEventAsync(
@@ -162,7 +183,11 @@
             createAssetEvent.NewValue = assetDescription;
 
             await _dbContext.Events.AddAsync(createAssetEvent);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
         }
 
         public async Task LogAssetAccessEventAsync(int projectId, int actingUserId, string remoteIpAddress, int assetId)
@@ -176,7 +201,11 @@
             retrieveAssetEvent.AssetId = assetId;
 
             await _dbContext.Events.AddAsync(retrieveAssetEvent);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
         }
 
         public async Task LogUpdatePasswordEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId)
@@ -190,7 +219,11 @@
             retrieveAssetEvent.AssetId = assetId;
 
             await _dbContext.Events.AddAsync(retrieveAssetEvent);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
         }
 
         public async Task LogUpdateAssetEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId)
@@ -204,7 +237,11 @@
             retrieveAssetEvent.AssetId = assetId;
 
             await _dbContext.Events.AddAsync(retrieveAssetEvent);
-            await _dbContext.SaveChangesAsync();
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
         }
     }
 }

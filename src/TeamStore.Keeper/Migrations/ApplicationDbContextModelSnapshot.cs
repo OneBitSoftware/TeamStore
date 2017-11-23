@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using System;
 using TeamStore.Keeper.DataAccess;
+using TeamStore.Keeper.Enums;
 
 namespace TeamStore.Keeper.Migrations
 {
@@ -37,7 +38,7 @@ namespace TeamStore.Keeper.Migrations
 
                     b.Property<int>("ProjectForeignKey");
 
-                    b.Property<string>("Role");
+                    b.Property<int>("Role");
 
                     b.HasKey("Id");
 
@@ -120,6 +121,8 @@ namespace TeamStore.Keeper.Migrations
                     b.Property<string>("Description");
 
                     b.Property<bool>("IsArchived");
+
+                    b.Property<bool>("IsPublic");
 
                     b.Property<string>("Title");
 

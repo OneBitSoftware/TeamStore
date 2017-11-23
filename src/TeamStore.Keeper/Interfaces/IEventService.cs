@@ -2,6 +2,7 @@
 {
     using System.Security.Claims;
     using System.Threading.Tasks;
+    using TeamStore.Keeper.Enums;
     using TeamStore.Keeper.Models;
 
     public interface IEventService
@@ -45,7 +46,7 @@
         Task LogGrantAccessEventAsync(
             int projectId,
             string remoteIpAddress,
-            string newRole,
+            Role newRole,
             int targetUserId,
             int grantingUserId,
             string customData);
@@ -62,7 +63,7 @@
             int projectId,
             string remoteIpAddress,
             int targetUserId,
-            string role,
+            Role role,
             int revokingUserId,
             string customData);
 
