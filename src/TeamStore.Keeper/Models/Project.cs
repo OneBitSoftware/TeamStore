@@ -53,5 +53,7 @@
         /// The archive status of a project. True if archived.
         /// </summary>
         public bool IsArchived { get; set; }
+
+        public bool IsPublic { get; set; }
     }
 }
