@@ -171,13 +171,14 @@
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Description,Category")] Project project)
+        public async Task<IActionResult> Create([Bind("Id,Title,Description,Category, IsPublic")] Project project)
         {
             if (ModelState.IsValid)
             {
                 await _projectsService.CreateProject(project);
                 return RedirectToAction(nameof(Index));
             }
+
             return View(project);
         }
 
@@ -191,7 +192,7 @@
                 return NotFound();
             }
 
-            if (await _permissionService.CurrentUserHasAccessAsync(id, _projectsService, "Owner") == false) return Unauthorized();
+            if (await _permissionService.CurrentUserHasAccessAsync(id, _projectsService, Keeper.Enums.Role.Owner) == false) return Unauthorized();
 
             var shareProjectViewModel = ProjectFactory.ConvertForShare(project);
 
@@ -200,14 +201,18 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Share(AccessChangeProjectViewModel shareProjectViewModel, int id)
+        public async Task<IActionResult> Share([Bind("ProjectId, Details, Role")]AccessChangeProjectViewModel shareProjectViewModel)
         {
+            // TODO add bind
+
+            // validate
+
             // Build user
             var remoteIpAddress = this.HttpContext?.Connection?.RemoteIpAddress?.ToString();
             var accessResult = await _permissionService.GrantAccessAsync(
-                id,
+                shareProjectViewModel.ProjectId,
                 shareProjectViewModel.Details,
-                "Owner",
+                shareProjectViewModel.Role,
                 remoteIpAddress,
                 _projectsService);
 
@@ -235,6 +240,7 @@
             {
                 return NotFound();
             }
+
             return View(project);
         }
 
@@ -264,6 +270,7 @@
                 }
                 return RedirectToAction(nameof(Index));
             }
+
             return View(project);
         }
 
@@ -302,7 +309,7 @@
             var accessResult = await _permissionService.RevokeAccessAsync(
                 id,
                 upn,
-                "Owner",
+                Keeper.Enums.Role.Owner,
                 remoteIpAddress,
                 _projectsService);
 
