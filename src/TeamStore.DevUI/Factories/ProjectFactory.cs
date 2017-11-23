@@ -13,7 +13,7 @@
         {
             var projectViewModel = new AccessChangeProjectViewModel();
             projectViewModel.ProjectId = project.Id;
-            projectViewModel.Title = project.Title;
+            projectViewModel.ProjectTitle = project.Title;
 
             return projectViewModel;
         }
@@ -80,7 +80,7 @@
             newAccessIdentifierViewModel.DisplayName = appIdentity.DisplayName;
             newAccessIdentifierViewModel.Role = accessIdentifier.Role;
             newAccessIdentifierViewModel.Upn = appIdentity.Upn;
-            newAccessIdentifierViewModel.LastModified = accessIdentifier.Modified == null ? accessIdentifier.Created : accessIdentifier.Modified;
+            newAccessIdentifierViewModel.LastModified = accessIdentifier.Modified == DateTime.MinValue ? accessIdentifier.Created : accessIdentifier.Modified;
 
             return newAccessIdentifierViewModel;
         }
