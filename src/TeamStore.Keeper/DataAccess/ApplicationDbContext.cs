@@ -36,9 +36,9 @@
 
         public DbSet<Asset> Assets { get; set; }
         public DbSet<Project> Projects { get; set; }
-        //public DbSet<Event> Events { get; set; }
         public DbSet<AccessIdentifier> AccessIdentifiers { get; set; }
         public DbSet<ApplicationIdentity> ApplicationIdentities { get; set; }
+        public DbSet<SystemAdministrator> SystemAdministrators { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

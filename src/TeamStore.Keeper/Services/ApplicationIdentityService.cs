@@ -69,8 +69,8 @@
             //if (_itemsCollection.ContainsKey(CURRENTUSERKEY) == false) return null;
 
             // 1. Check context Item for Application User
-            if (_itemsCollection.ContainsKey(CURRENTUSERKEY) && 
-                _itemsCollection[CURRENTUSERKEY] != null && 
+            if (_itemsCollection.ContainsKey(CURRENTUSERKEY) &&
+                _itemsCollection[CURRENTUSERKEY] != null &&
                 _itemsCollection[CURRENTUSERKEY] is ApplicationUser applicationUser)
                 return applicationUser;
 
@@ -139,7 +139,7 @@
             if (claim == null) return null;
             if (string.IsNullOrWhiteSpace(claim.Value)) return null;
 
-            return await FindUserAsync(ai=>ai.AzureAdObjectIdentifier == claim.Value);
+            return await FindUserAsync(ai => ai.AzureAdObjectIdentifier == claim.Value);
         }
 
         /// <summary>
@@ -187,8 +187,9 @@
         {
             if (string.IsNullOrWhiteSpace(upn)) return null;
 
-            var returnedObject = await _dbContext.ApplicationIdentities.Where
-                (u => ((ApplicationUser)u).Upn == upn).FirstOrDefaultAsync();
+            var returnedObject = await _dbContext.ApplicationIdentities
+                .Where(u => ((ApplicationUser)u).Upn == upn)
+                .FirstOrDefaultAsync();
 
             var returnUser = returnedObject as ApplicationUser;
             return returnUser;
@@ -218,6 +219,8 @@
                 }
 
                 var result = _dbContext.ApplicationIdentities.Add(resolvedUser);
+
+                // BUG: this code doesn't call SaveChangesAsync  TODO
 
                 existingUser = resolvedUser;
             }
@@ -254,8 +257,93 @@
 
                 var result = _dbContext.ApplicationIdentities.Add(resolvedUser);
 
+                // BUG: this code doesn't call SaveChangesAsync  TODO
+
                 return resolvedUser;
             }
+        }
+
+
+        /// <summary>
+        /// Checks if the current logged in user is a ystem administrator
+        /// </summary>
+        /// <returns>True if the current iser is a system administrator, False of not.</returns>
+        public async Task<bool> IsCurrentUserAdmin()
+        {
+            var currentUser = await GetCurrentUser();
+
+            if (currentUser == null) return false;
+
+            var adminUser = await _dbContext.SystemAdministrators
+                .Where(u => u.Identity == currentUser)
+                .FirstOrDefaultAsync();
+
+            if (adminUser != null) return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Sets an ApplicationUser as a System Addministrator
+        /// </summary>
+        /// <param name="applicationUser">The ApplicationUser to set as a System Administrator</param>
+        /// <returns>True if the operation succeeded, otherwise False.</returns>
+        public async Task<bool> SetSystemAdministrator(ApplicationUser applicationUser)
+        {
+            // Create a new SystemAdministrator entity and set the Identity property
+            var newSystemAdministrator = new SystemAdministrator
+            {
+                Identity = applicationUser ?? throw new ArgumentNullException(nameof(applicationUser))
+            };
+
+            // persist
+            var createdSystemAdmin = await _dbContext.SystemAdministrators.AddAsync(newSystemAdministrator);
+            var changedRows = await _dbContext.SaveChangesAsync();
+
+            if (changedRows > 1)
+            {
+                // if rows > 1 we have a scope leek and another entity is also persisted
+                // TODO LOG
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Removes an ApplicationUser as a System Addministrator
+        /// </summary>
+        /// <param name="applicationUser">The ApplicationUser to remove as a System Administrator</param>
+        /// <returns>True if the operation succeeded, otherwise False.</returns>
+        public async Task<bool> RemoveSystemAdministrator(ApplicationUser applicationUser)
+        {
+            if (applicationUser == null)
+            {
+                throw new ArgumentNullException(nameof(applicationUser));
+            }
+
+            var systemAdministratorsList = await _dbContext.SystemAdministrators
+                .Where(u => u.Identity == applicationUser)
+                .ToListAsync();
+
+            if (systemAdministratorsList == null || systemAdministratorsList.Count == 0)
+                return true;
+
+            foreach (var systemAdministrator in systemAdministratorsList)
+            {
+                _dbContext.SystemAdministrators.Remove(systemAdministrator);
+            }
+
+            var changedRows = await _dbContext.SaveChangesAsync();
+
+            if (changedRows > 1)
+            {
+                // if rows > 1 we have a scope leek and another entity is also persisted
+                // TODO LOG
+                return false;
+            }
+
+            return true;
         }
     }
 }

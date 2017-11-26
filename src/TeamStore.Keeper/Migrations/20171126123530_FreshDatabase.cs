@@ -45,6 +45,25 @@ namespace TeamStore.Keeper.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SystemAdministrators",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    IdentityId = table.Column<int>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SystemAdministrators", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SystemAdministrators_ApplicationIdentities_IdentityId",
+                        column: x => x.IdentityId,
+                        principalTable: "ApplicationIdentities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AccessIdentifiers",
                 columns: table => new
                 {
@@ -162,6 +181,11 @@ namespace TeamStore.Keeper.Migrations
                 name: "IX_Assets_ProjectForeignKey",
                 table: "Assets",
                 column: "ProjectForeignKey");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SystemAdministrators_IdentityId",
+                table: "SystemAdministrators",
+                column: "IdentityId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -173,10 +197,13 @@ namespace TeamStore.Keeper.Migrations
                 name: "Assets");
 
             migrationBuilder.DropTable(
-                name: "ApplicationIdentities");
+                name: "SystemAdministrators");
 
             migrationBuilder.DropTable(
                 name: "Projects");
+
+            migrationBuilder.DropTable(
+                name: "ApplicationIdentities");
         }
     }
 }

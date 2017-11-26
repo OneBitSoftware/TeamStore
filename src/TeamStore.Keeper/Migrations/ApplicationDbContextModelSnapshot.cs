@@ -131,6 +131,20 @@ namespace TeamStore.Keeper.Migrations
                     b.ToTable("Projects");
                 });
 
+            modelBuilder.Entity("TeamStore.Keeper.Models.SystemAdministrator", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int?>("IdentityId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdentityId");
+
+                    b.ToTable("SystemAdministrators");
+                });
+
             modelBuilder.Entity("TeamStore.Keeper.Models.ApplicationGroup", b =>
                 {
                     b.HasBaseType("TeamStore.Keeper.Models.ApplicationIdentity");
@@ -213,6 +227,13 @@ namespace TeamStore.Keeper.Migrations
                         .WithMany("Assets")
                         .HasForeignKey("ProjectForeignKey")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("TeamStore.Keeper.Models.SystemAdministrator", b =>
+                {
+                    b.HasOne("TeamStore.Keeper.Models.ApplicationIdentity", "Identity")
+                        .WithMany()
+                        .HasForeignKey("IdentityId");
                 });
 #pragma warning restore 612, 618
         }

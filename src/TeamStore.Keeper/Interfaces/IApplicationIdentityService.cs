@@ -70,5 +70,25 @@
         /// <param name="upn">The value of the object identifier claim to lookup.</param>
         /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
         Task<ApplicationUser> EnsureUserByUpnAsync(string upn);
+
+        /// <summary>
+        /// Checks if the current logged in user is a ystem administrator
+        /// </summary>
+        /// <returns>True if the current iser is a system administrator, False of not.</returns>
+        Task<bool> IsCurrentUserAdmin();
+
+        /// <summary>
+        /// Sets an ApplicationUser as a System Addministrator
+        /// </summary>
+        /// <param name="applicationUser">The ApplicationUser to set as a System Administrator</param>
+        /// <returns>True if the operation succeeded, otherwise False.</returns>
+        Task<bool> SetSystemAdministrator(ApplicationUser applicationUser);
+
+        /// <summary>
+        /// Removes an ApplicationUser as a System Addministrator
+        /// </summary>
+        /// <param name="applicationUser">The ApplicationUser to remove as a System Administrator</param>
+        /// <returns>True if the operation succeeded, otherwise False.</returns>
+        Task<bool> RemoveSystemAdministrator(ApplicationUser applicationUser);
     }
 }

@@ -163,8 +163,8 @@
             foreach (var accessItem in project.AccessIdentifiers)
             {
                 accessItem.Created = DateTime.UtcNow;
-                //accessItem.Modified = DateTime.UtcNow; // We should only set Modified/By when an update occurs
                 accessItem.CreatedBy = currentUser;
+                //accessItem.Modified = DateTime.UtcNow; // We should only set Modified/By when an update occurs
                 //accessItem.ModifiedBy = currentUser;
 
                 // Access Item Validation

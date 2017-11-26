@@ -54,6 +54,9 @@
         /// </summary>
         public bool IsArchived { get; set; }
 
+        /// <summary>
+        /// Determines if the Project appears in the UI lists and search
+        /// </summary>
         public bool IsPublic { get; set; }
     }
 }
