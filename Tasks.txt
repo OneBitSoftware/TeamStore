@@ -11,8 +11,7 @@ TODO's:
 10. access report
 11. Search passwords
 
-
 Required New Functionality:
-- Access Roles - currently not implemented, sharing gives Owner roles
+- Access Roles Limiting - currently not implemented, sharing gives Owner roles
 - Auditing
 - Azure AD Groups sharing

@@ -1,8 +1,26 @@
-﻿
+﻿@model TeamStore.DevUI.ViewModels.ReportsViewModel
 @{
     ViewData["Title"] = "Reports";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
 <h2>Reports</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Report Name
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Reports)
+        {
+            <tr>
+                <td>
+                    @Html.ActionLink(item.Key, item.Value, "Reports")
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
 

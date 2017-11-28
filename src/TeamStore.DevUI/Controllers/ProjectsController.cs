@@ -13,7 +13,9 @@
     using TeamStore.Keeper.Models;
     using TeamStore.DevUI.ViewModels;
     using Microsoft.ApplicationInsights;
+    using Microsoft.AspNetCore.Authorization;
 
+    [Authorize]
     public class ProjectsController : Controller
     {
         private readonly IPermissionService _permissionService;
