@@ -71,6 +71,7 @@
         /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
         Task<ApplicationUser> EnsureUserByUpnAsync(string upn);
 
+        // TODO: move to IPermissionService
         /// <summary>
         /// Checks if the current logged in user is a ystem administrator
         /// </summary>

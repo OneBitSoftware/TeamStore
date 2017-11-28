@@ -287,7 +287,7 @@
         /// Sets an ApplicationUser as a System Addministrator
         /// </summary>
         /// <param name="applicationUser">The ApplicationUser to set as a System Administrator</param>
-        /// <returns>True if the operation succeeded, otherwise False.</returns>
+        /// <returns>True if the operation succeeded or the current user is already a System Administrator, otherwise False.</returns>
         public async Task<bool> SetSystemAdministrator(ApplicationUser applicationUser)
         {
             // Create a new SystemAdministrator entity and set the Identity property
@@ -295,6 +295,9 @@
             {
                 Identity = applicationUser ?? throw new ArgumentNullException(nameof(applicationUser))
             };
+
+            // check if exists
+            if (await IsCurrentUserAdmin()) return true;
 
             // persist
             var createdSystemAdmin = await _dbContext.SystemAdministrators.AddAsync(newSystemAdministrator);
