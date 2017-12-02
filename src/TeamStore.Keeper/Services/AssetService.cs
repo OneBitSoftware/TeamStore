@@ -261,7 +261,7 @@
         /// </summary>
         /// <param name="project">The Project for which to populate the assets</param>
         /// <returns>The populated Project</returns>
-        public async Task LoadAssets(Project project)
+        public async Task LoadAssetsAsync(Project project)
         {
             await _dbContext.Entry(project).Collection(p => p.Assets).LoadAsync();
 

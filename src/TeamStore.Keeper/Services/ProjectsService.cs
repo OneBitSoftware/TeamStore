@@ -50,6 +50,11 @@
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
+            if (await _applicationIdentityService.IsCurrentUserAdmin())
+            {
+                return await GetProjectsForAdmin(skipDecryption);
+            }
+
             // Get projects with access
             // TODO: attempt to make this in 1 query
             var projects = await _dbContext.Projects.Where(p =>
@@ -68,7 +73,7 @@
                 foreach (var project in projectsWithAccess)
                 {
                     DecryptProject(project);
-                } 
+                }
             }
 
             return projectsWithAccess.ToList();
@@ -103,9 +108,9 @@
             var result = await _dbContext.Projects.Where(p =>
                 p.Id == projectId &&
                 p.IsArchived == false &&
-                p.AccessIdentifiers.Any(ai=>ai.Identity.Id == currentUser.Id))
+                p.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
                 .Include(p => p.AccessIdentifiers)
-                .ThenInclude(p=>p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
                 .FirstOrDefaultAsync();
 
             if (result == null) return null;
@@ -121,6 +126,30 @@
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Retrieves all projects, ignoring any access identifier restrictions.
+        /// Used for a database export only.
+        /// </summary>
+        /// <param name="skipDecryption">Wether to return encrypted projects</param>
+        /// <returns>A Task result of a List of Projects.</returns>
+        private async Task<List<Project>> GetProjectsForAdmin(bool skipDecryption = false)
+        {
+            var projects = await _dbContext.Projects.Where(p =>
+                p.IsArchived == false)
+                .Include(p => p.AccessIdentifiers)
+                .ToListAsync();
+
+            if (skipDecryption == false)
+            {
+                foreach (var project in projects)
+                {
+                    DecryptProject(project);
+                }
+            }
+
+            return projects.ToList();
         }
 
         /// <summary>
@@ -151,9 +180,11 @@
 
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); // we fail on no current user
+            if (currentUser.Id == 0) throw new Exception("The calling user must exists in the database."); // we fail on no current user
 
             // Ensure the creating user has Owner permissions to be able to grant access to other users
-            project.AccessIdentifiers.Add(new AccessIdentifier() {
+            project.AccessIdentifiers.Add(new AccessIdentifier()
+            {
                 Identity = currentUser,
                 Role = Enums.Role.Owner,
                 Project = project

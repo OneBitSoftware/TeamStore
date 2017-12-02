@@ -29,6 +29,8 @@
         private IDictionary<object, object> _itemsCollection;
         private IGraphService _graphService;
 
+        private bool? _isCurrentUserAdmin;
+
         /// <summary>
         /// Constructor for the ApplicationIdentityService
         /// </summary>
@@ -263,13 +265,18 @@
             }
         }
 
-
+        // TODO : tests
         /// <summary>
         /// Checks if the current logged in user is a ystem administrator
         /// </summary>
-        /// <returns>True if the current iser is a system administrator, False of not.</returns>
+        /// <returns>True if the current user is a system administrator, false of not.</returns>
         public async Task<bool> IsCurrentUserAdmin()
         {
+            if (_isCurrentUserAdmin != null && _isCurrentUserAdmin.HasValue)
+            {
+                return _isCurrentUserAdmin.Value;
+            }
+
             var currentUser = await GetCurrentUser();
 
             if (currentUser == null) return false;
@@ -278,9 +285,16 @@
                 .Where(u => u.Identity == currentUser)
                 .FirstOrDefaultAsync();
 
-            if (adminUser != null) return true;
-
-            return false;
+            if (adminUser != null)
+            {
+                _isCurrentUserAdmin = true;
+                return true;
+            }
+            else
+            {
+                _isCurrentUserAdmin = false;
+                return false;
+            }
         }
 
         /// <summary>
@@ -330,7 +344,10 @@
                 .ToListAsync();
 
             if (systemAdministratorsList == null || systemAdministratorsList.Count == 0)
+            {
+                _isCurrentUserAdmin = null;
                 return true;
+            }
 
             foreach (var systemAdministrator in systemAdministratorsList)
             {
@@ -338,6 +355,7 @@
             }
 
             var changedRows = await _dbContext.SaveChangesAsync();
+            _isCurrentUserAdmin = null;
 
             if (changedRows > 1)
             {
