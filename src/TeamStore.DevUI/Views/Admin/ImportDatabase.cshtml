@@ -1,0 +1,21 @@
+﻿
+@{
+    ViewData["Title"] = "ImportDatabase";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Import Database</h2>
+
+<form method="post" enctype="multipart/form-data" asp-controller="Admin" asp-action="ImportDatabase">
+<div class="form-group">
+    <div class="col-md-10">
+        <p>Import a database JSON file:</p>
+        <input type="file" name="files" multiple />
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-10">
+        <input type="submit" value="Import" />
+    </div>
+</div>
+</form>

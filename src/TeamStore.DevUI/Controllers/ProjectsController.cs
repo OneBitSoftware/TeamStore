@@ -55,7 +55,7 @@
             }
 
             var project = await _projectsService.GetProject(id.Value);
-            await _assetService.LoadAssets(project);
+            await _assetService.LoadAssetsAsync(project);
 
             if (project == null)
             {

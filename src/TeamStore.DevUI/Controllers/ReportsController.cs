@@ -60,18 +60,5 @@ namespace TeamStore.DevUI.Controllers
             
             return View();
         }
-
-        public async Task<IActionResult> MakeMeAdmin()
-        {
-            var currentUser = await _applicationIdentityService.GetCurrentUser();
-            var setResult = await _applicationIdentityService.SetSystemAdministrator(currentUser);
-
-            if (setResult)
-            {
-                return new OkObjectResult("Done");
-            }
-            else
-                return new OkObjectResult("Failed.");
-        }
     }
 }
