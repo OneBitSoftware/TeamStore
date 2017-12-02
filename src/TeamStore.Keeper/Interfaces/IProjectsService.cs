@@ -38,6 +38,14 @@
         Task<int> CreateProject(Project decryptedProject);
 
         /// <summary>
+        /// Imports and persists a Project into the database.
+        /// This is designed to be used by a database import.
+        /// </summary>
+        /// <param name="decryptedProject">The Project object to encrypt and persist</param>
+        /// <returns>A Task of int with the Project Id.</returns>
+        Task<int> ImportProject(Project decryptedProject);
+
+        /// <summary>
         /// Discards all tracked changes to the entity and marks it as archived in the database
         /// </summary>
         /// <param name="decryptedProject">The Project entity to archive.</param>

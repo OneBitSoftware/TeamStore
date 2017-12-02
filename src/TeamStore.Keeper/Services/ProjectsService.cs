@@ -212,6 +212,40 @@
         }
 
         /// <summary>
+        /// Imports and persists a Project into the database.
+        /// This is designed to be used by a database import.
+        /// </summary>
+        /// <param name="decryptedProject">The Project object to encrypt and persist</param>
+        /// <returns>A Task of int with the Project Id.</returns>
+        public async Task<int> ImportProject(Project project)
+        {
+            // reset all Id's of the entity hierarchy to avoid primary key conflicts
+            project.Id = 0;
+            project.AccessIdentifiers.All(ai => { ai.Id = 0; return true; });
+            project.Assets.All(a => { a.Id = 0; return true; });
+
+            // this logic will fail if we persist a project with decrypted assets
+            // thus we just run through the decryptor to check and allow it to throw on import
+            // if the assets are decrypted, rather than persist decrypted
+            foreach (var asset in project.Assets)
+            {
+                _encryptionService.DecryptString(asset.Title); // will throw if decrypted
+            }
+
+            // if this is a fresh database the current user might not exists yet
+            // causing double tracking to exist in EF, which throws.
+            // the workaround is to save the user, so it has a valid Id
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser.Id == 0)
+            {
+                _dbContext.ApplicationIdentities.Add(currentUser);
+                await _dbContext.SaveChangesAsync(); // save the current user in the database
+            }
+
+            return await CreateProject(project);
+        }
+
+        /// <summary>
         /// Discards all tracked changes to the entity and marks it as archived in the database
         /// </summary>
         /// <param name="decryptedProject">The Project entity to archive.</param>

@@ -175,5 +175,48 @@ namespace IntegrationTests
             var archivedProject = await _projectsService.GetProject(createdProjectId);
             Assert.Null(archivedProject);
         }
+
+        /// <summary>
+        /// Ensures that a new test user cannot access any projects.
+        /// Creates a test project with testuser1 and retrieves 0 projects with testuser2
+        /// </summary>
+        [Fact]
+        public async void GetProjects_ShouldNotReturnAnything()
+        {
+            // Arrange
+            var newDecryptedProject = CreateTestProject();
+            _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, _testUser);
+            var newTestUser = new ApplicationUser()
+            {
+                Id = 91,
+                AzureAdName = "Mock User 91",
+                AzureAdNameIdentifier = "AzureAdNameId-91",
+                AzureAdObjectIdentifier = "AzureAdObjectId-91",
+                DisplayName = "Mock User Display Name 91",
+                TenantId = "Mock Tenant Id 91",
+                Upn = "mock@upn.com-91"
+            };
+
+            // Act
+            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject);
+            var retrievedProject = await _projectsService.GetProject(createdProjectId);
+
+            _fakeHttpContextItems.Remove(ApplicationIdentityService.CURRENTUSERKEY); // change user
+            _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, newTestUser);
+
+            var allProjects = await _projectsService.GetProjects(true);
+            var singleProject = await _projectsService.GetProject(retrievedProject.Id);
+
+            // Assert
+            Assert.Equal(0, allProjects.Count);
+            Assert.Null(singleProject);
+            Assert.NotNull(await _applicationIdentityService.GetCurrentUser());
+            Assert.Equal("mock@upn.com-91", (await _applicationIdentityService.GetCurrentUser()).Upn);
+
+            // Cleanup
+            await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
+            var archivedProject = await _projectsService.GetProject(createdProjectId);
+            Assert.Null(archivedProject);
+        }
     }
 }
