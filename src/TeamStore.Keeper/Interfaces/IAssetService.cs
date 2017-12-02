@@ -24,7 +24,7 @@
         /// </summary>
         /// <param name="project">The Project for which to populate the assets</param>
         /// <returns>The populated Project</returns>
-        Task LoadAssets(Project project);
+        Task LoadAssetsAsync(Project project);
 
         void EncryptAsset(Asset asset);
 
