@@ -164,7 +164,7 @@
         }
 
         /// <summary>
-        /// Encrypts and persists a Project in the database
+        /// Encrypts and persists a Project in the database.
         /// </summary>
         /// <param name="decryptedProject">The Project object to encrypt and persist</param>
         /// <returns>A Task of int with the Project Id.</returns>
@@ -180,11 +180,10 @@
 
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); // we fail on no current user
-            //if (currentUser.Id == 0) throw new Exception("The calling user must exists in the database."); // we fail on no current user
 
             // Ensure the creating user has Owner permissions to be able to grant access to other users
-            // does the incoming project have the current user set as an access identifier????
-
+            // It is important to distinguish between creating through a UI call vs importing projects
+            // This method is used in both cases
             if (project.AccessIdentifiers.Any(ai=>ai.Identity?.AzureAdObjectIdentifier == currentUser.AzureAdObjectIdentifier) == false)
             {
                 project.AccessIdentifiers.Add(new AccessIdentifier()
@@ -200,10 +199,9 @@
             {
                 accessItem.Created = DateTime.UtcNow;
                 accessItem.CreatedBy = currentUser;
-                //accessItem.Modified = DateTime.UtcNow; // We should only set Modified/By when an update occurs
-                //accessItem.ModifiedBy = currentUser;
+                // Modified is not set in the create routine
 
-                // Access Item Validation
+                // Access Identifier Validation
                 if (accessItem.CreatedBy == null) throw new ArgumentException("The current user could not be resolved during project creation.");
             }
 
