@@ -39,9 +39,9 @@
         }
 
         /// <summary>
-        /// Sets an Assets archive status to true in the DB
+        /// Sets an Assets archive status to true in the DB.
         /// </summary>
-        /// <param name="projectId">The project owning the Asset</param>
+        /// <param name="projectId">The project Id of the project owning the Asset</param>
         /// <param name="assetId">The Asset Id of the asset to archive</param>
         /// <returns>A Task result</returns>
         public async Task ArchiveAssetAsync(int projectId, int assetId, string remoteIpAddress)
@@ -69,6 +69,7 @@
 
             // Refresh the entity to discard changes and avoid saving a decrypted project
             _dbContext.Entry(retrievedAsset).State = EntityState.Unchanged;
+            _dbContext.Entry(retrievedAsset.Project).State = EntityState.Unchanged;
             retrievedAsset.IsArchived = true;
 
             // Set modified time/user
@@ -88,8 +89,8 @@
         /// Adds an instantiated asset to the database.
         /// Internally, this will encyrpt the asset.
         /// </summary>
-        /// <param name="projectId"></param>
-        /// <param name="asset"></param>
+        /// <param name="projectId">The project Id of the project owning the Asset</param>
+        /// <param name="asset">The Asset to add</param>
         /// <returns></returns>
         public async Task<Asset> AddAssetToProjectAsync(int projectId, Asset asset, string remoteIpAddress)
         {
@@ -126,6 +127,14 @@
             return asset;
         }
 
+        /// <summary>
+        /// Retrieves an Asset for a given Project Id. 
+        /// Excludes archived assets and takes permissions into consideration.
+        /// </summary>
+        /// <param name="projectId">The project Id of the project owning the Asset</param>
+        /// <param name="assetId">The Asset Id of the asset to archive</param>
+        /// <param name="remoteIpAddress">The IP address of the originating request</param>
+        /// <returns>A decrypted Asset object</returns>
         public async Task<Asset> GetAssetAsync(int projectId, int assetId, string remoteIpAddress)
         {
             if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
@@ -256,21 +265,21 @@
         }
 
         /// <summary>
-        /// Loads the Assets for a given Project explicitly. Used when the initial Projects query does not
-        /// explicitly include them.
+        /// Loads the Assets for a given Project explicitly, then decrypts them. 
+        /// Used when the initial Projects query does not explicitly include them. 
+        /// This should not be called if the Project assets are already loaded.
         /// </summary>
         /// <param name="project">The Project for which to populate the assets</param>
         /// <returns>The populated Project</returns>
         public async Task LoadAssetsAsync(Project project)
         {
+            // NOTE: this will ignore assets already loaded, so the IsArchived status might not be truthful.
+            // Avoid using this method if the project assets are already populated
             await _dbContext.Entry(project)
                 .Collection(p => p.Assets)
                 .Query()
                 .Where(asset=>asset.IsArchived == false)
                 .LoadAsync();
-
-            // the following line must return false
-            var hasArchivedAssets = project.Assets.Any(asset => asset.IsArchived == true);
 
             foreach (var asset in project.Assets)
             {
