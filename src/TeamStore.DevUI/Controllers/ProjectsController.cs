@@ -381,25 +381,6 @@
             return View(viewModel);
         }
 
-        // GET: Projects/6/ArchivePassword/5
-        [HttpGet]
-        public async Task<IActionResult> ArchivePassword(int projectId, int assetId)
-        {
-            if (projectId < 1) throw new ArgumentNullException(nameof(projectId));
-            if (assetId < 1) throw new ArgumentNullException(nameof(assetId));
-
-            // get project if current user has permission
-            var project = await _projectsService.GetProject(projectId);
-            if (project == null) return NotFound();
-
-            // get the current user IP
-            string accessIpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString();
-
-            var asset = await _assetService.GetAssetAsync(project.Id, assetId, accessIpAddress);
-
-            return View();
-        }
-
         // POST: Projects/6/UpdatePassword/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -434,10 +415,35 @@
             return RedirectToAction(nameof(Details), new { id = updatePasswordViewModel.ProjectId });
         }
 
-        // POST: Projects/6/ArchivePassword/5
+        // GET: Projects/6/ArchiveCredential/5
+        [HttpGet]
+        public async Task<IActionResult> ArchiveCredential(int projectId, int assetId)
+        {
+            if (projectId < 1) throw new ArgumentNullException(nameof(projectId));
+            if (assetId < 1) throw new ArgumentNullException(nameof(assetId));
+
+            // get project if current user has permission
+            var project = await _projectsService.GetProject(projectId);
+            if (project == null) return NotFound();
+
+            // get the current user IP
+            string accessIpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString();
+
+            var asset = await _assetService.GetAssetAsync(project.Id, assetId, accessIpAddress);
+
+            var viewModel = new ArchivePasswordViewModel();
+            viewModel.ProjectTitle = project.Title;
+            viewModel.ProjectId = project.Id;
+            viewModel.AssetId = asset.Id;
+            viewModel.AssetTitle = asset.Title;
+
+            return View(viewModel);
+        }
+
+        // POST: Projects/6/ArchiveCredential/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ArchivePassword([Bind("ProjectId, AssetId")] ArchivePasswordViewModel archivePasswordViewModel)
+        public async Task<IActionResult> ArchiveCredential([FromBody] ArchivePasswordViewModel archivePasswordViewModel)
         {
             if (archivePasswordViewModel == null)
             {
@@ -446,8 +452,22 @@
 
             if (ModelState.IsValid)
             {
-                // Check permissions in service
+                if (archivePasswordViewModel.ProjectId < 1) throw new ArgumentNullException(nameof(archivePasswordViewModel.ProjectId));
+                if (archivePasswordViewModel.AssetId < 1) throw new ArgumentNullException(nameof(archivePasswordViewModel.AssetId));
 
+                // Check permissions in service by retrieving the proejct
+                var project = await _projectsService.GetProject(archivePasswordViewModel.ProjectId);
+                if (project == null) return NotFound();
+
+                // get the current user IP
+                string accessIpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString();
+
+                await _assetService.ArchiveAssetAsync(
+                    archivePasswordViewModel.ProjectId,
+                    archivePasswordViewModel.AssetId,
+                    accessIpAddress);
+
+                return RedirectToAction(nameof(Details), new { id = archivePasswordViewModel.ProjectId });
             }
 
             return View();

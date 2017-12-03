@@ -99,7 +99,7 @@
                 <td>@item.ModifiedBy</td>
                 <td>
                     <a asp-action="UpdatePassword" asp-route-projectId="@Model.Id" asp-route-assetId="@item.AssetId">Update Password</a> |
-                    <a asp-action="ArchivePassword" asp-route-projectId="@Model.Id" asp-route-assetId="@item.AssetId">Archive Password</a>
+                    <a asp-action="ArchiveCredential" asp-route-projectId="@Model.Id" asp-route-assetId="@item.AssetId">Archive</a>
                 </td>
             </tr>
         }
