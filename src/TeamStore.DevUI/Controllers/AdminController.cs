@@ -84,8 +84,13 @@ namespace TeamStore.DevUI.Controllers
         }
 
         [HttpGet]
-        public IActionResult ImportDatabase()
+        public async Task<IActionResult> ImportDatabase()
         {
+            if (await _applicationIdentityService.IsCurrentUserAdmin() == false)
+            {
+                return Unauthorized();
+            }
+
             return View();
         }
 
@@ -97,6 +102,11 @@ namespace TeamStore.DevUI.Controllers
         [HttpPost]
         public async Task<IActionResult> ImportDatabase(ICollection<IFormFile> files)
         {
+            if (await _applicationIdentityService.IsCurrentUserAdmin() == false)
+            {
+                return Unauthorized();
+            }
+
             long size = files.Sum(f => f.Length);
 
             // full path to file in temp location
