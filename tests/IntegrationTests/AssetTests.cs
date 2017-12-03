@@ -5,6 +5,7 @@ using System.Linq;
 using TeamStore.Keeper.Models;
 using TeamStore.Keeper.Services;
 using Xunit;
+using Microsoft.EntityFrameworkCore;
 
 namespace IntegrationTests
 {
@@ -231,7 +232,8 @@ namespace IntegrationTests
         }
 
         /// <summary>
-        /// Ensures that the LoadAssetsAsync method does not return archived assets
+        /// Ensures that the LoadAssetsAsync method does not return archived assets.
+        /// This requires context reloading because the retrieved project is cached.
         /// </summary>
         [Fact]
         public async void LoadAssets_ShouldNotReturnArchivedAssets()
@@ -241,22 +243,29 @@ namespace IntegrationTests
             var newCredential = CreateTestCredential();
             var newCredentialArchived = CreateTestCredential();
 
-            // Act
+            // Act - get and add assets
             var retrievedProject = await _projectsService.GetProject(newProjectId);
             await _assetService.AddAssetToProjectAsync(newProjectId, newCredential, "127.0.1.1");
             await _assetService.AddAssetToProjectAsync(newProjectId, newCredentialArchived, "127.0.1.1");
 
+            // Act - archive and retrieve
             await _assetService.ArchiveAssetAsync(newProjectId, newCredentialArchived.Id, "127.0.1.1");
             var archivedAsset = await _assetService.GetAssetAsync(newProjectId, newCredentialArchived.Id, "127.0.1.1");
 
-            await _assetService.LoadAssetsAsync(retrievedProject);
+            // Act - reload project (it is already populated) by refreshing the context and load assets (should exlude archived)
+            _dbContext = GetDbContext();
+            _projectsService = new ProjectsService(_dbContext, _encryptionService, _eventService, _applicationIdentityService, _permissionService);
+            _assetService = new AssetService(_dbContext, _projectsService, _encryptionService, _eventService, _applicationIdentityService);
+            var retrievedProjectAfterArchive = await _projectsService.GetProject(newProjectId);
+            await _assetService.LoadAssetsAsync(retrievedProjectAfterArchive);
 
             // Assert
-            Assert.Equal(1, retrievedProject.Assets.Count);
-            Assert.Equal(false, retrievedProject.Assets.Any(a=>a.Id == newCredentialArchived.Id));
+            Assert.Null(archivedAsset);
+            Assert.Equal(1, retrievedProjectAfterArchive.Assets.Count);
+            Assert.Equal(false, retrievedProjectAfterArchive.Assets.Any(a=>a.Id == newCredentialArchived.Id));
 
             // Cleanup
-            await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
+            await _projectsService.ArchiveProject(retrievedProjectAfterArchive, "127.0.1.1");
             var archivedProject = await _projectsService.GetProject(newProjectId);
             Assert.Null(archivedProject);
         }
