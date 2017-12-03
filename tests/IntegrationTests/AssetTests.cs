@@ -199,6 +199,11 @@ namespace IntegrationTests
 
             // Assert
             Assert.Null(archivedAsset);
+
+            // Cleanup
+            await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
+            var archivedProject = await _projectsService.GetProject(newProjectId);
+            Assert.Null(archivedProject);
         }
 
         [Fact]
@@ -218,6 +223,42 @@ namespace IntegrationTests
 
             // Assert
             Assert.Null(archivedAsset);
+
+            // Cleanup
+            await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
+            var archivedProject = await _projectsService.GetProject(newProjectId);
+            Assert.Null(archivedProject);
+        }
+
+        /// <summary>
+        /// Ensures that the LoadAssetsAsync method does not return archived assets
+        /// </summary>
+        [Fact]
+        public async void LoadAssets_ShouldNotReturnArchivedAssets()
+        {
+            // Arrange
+            var newProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newCredential = CreateTestCredential();
+            var newCredentialArchived = CreateTestCredential();
+
+            // Act
+            var retrievedProject = await _projectsService.GetProject(newProjectId);
+            await _assetService.AddAssetToProjectAsync(newProjectId, newCredential, "127.0.1.1");
+            await _assetService.AddAssetToProjectAsync(newProjectId, newCredentialArchived, "127.0.1.1");
+
+            await _assetService.ArchiveAssetAsync(newProjectId, newCredentialArchived.Id, "127.0.1.1");
+            var archivedAsset = await _assetService.GetAssetAsync(newProjectId, newCredentialArchived.Id, "127.0.1.1");
+
+            await _assetService.LoadAssetsAsync(retrievedProject);
+
+            // Assert
+            Assert.Equal(1, retrievedProject.Assets.Count);
+            Assert.Equal(false, retrievedProject.Assets.Any(a=>a.Id == newCredentialArchived.Id));
+
+            // Cleanup
+            await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
+            var archivedProject = await _projectsService.GetProject(newProjectId);
+            Assert.Null(archivedProject);
         }
     }
 }

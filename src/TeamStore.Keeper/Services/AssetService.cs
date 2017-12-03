@@ -263,7 +263,14 @@
         /// <returns>The populated Project</returns>
         public async Task LoadAssetsAsync(Project project)
         {
-            await _dbContext.Entry(project).Collection(p => p.Assets).LoadAsync();
+            await _dbContext.Entry(project)
+                .Collection(p => p.Assets)
+                .Query()
+                .Where(asset=>asset.IsArchived == false)
+                .LoadAsync();
+
+            // the following line must return false
+            var hasArchivedAssets = project.Assets.Any(asset => asset.IsArchived == true);
 
             foreach (var asset in project.Assets)
             {
