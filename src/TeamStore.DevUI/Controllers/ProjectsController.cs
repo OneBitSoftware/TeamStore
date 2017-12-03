@@ -443,7 +443,7 @@
         // POST: Projects/6/ArchiveCredential/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ArchiveCredential([FromBody] ArchivePasswordViewModel archivePasswordViewModel)
+        public async Task<IActionResult> ArchiveCredential([Bind("ProjectId, AssetId")] ArchivePasswordViewModel archivePasswordViewModel)
         {
             if (archivePasswordViewModel == null)
             {

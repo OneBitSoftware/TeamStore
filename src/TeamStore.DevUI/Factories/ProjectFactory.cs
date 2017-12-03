@@ -29,7 +29,7 @@
                 (ai) => BuildAccessIdentityViewModel(ai)
             );
 
-            projectViewModel.AssetsList = project.Assets.Select(asset =>
+            projectViewModel.AssetsList = project.Assets.Where(a=>a.IsArchived == false).Select(asset =>
             {
                 var assetViewModel = new ProjectAssetViewModel();
 
