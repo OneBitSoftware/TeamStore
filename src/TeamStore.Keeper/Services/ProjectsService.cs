@@ -180,15 +180,20 @@
 
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); // we fail on no current user
-            if (currentUser.Id == 0) throw new Exception("The calling user must exists in the database."); // we fail on no current user
+            //if (currentUser.Id == 0) throw new Exception("The calling user must exists in the database."); // we fail on no current user
 
             // Ensure the creating user has Owner permissions to be able to grant access to other users
-            project.AccessIdentifiers.Add(new AccessIdentifier()
+            // does the incoming project have the current user set as an access identifier????
+
+            if (project.AccessIdentifiers.Any(ai=>ai.Identity?.AzureAdObjectIdentifier == currentUser.AzureAdObjectIdentifier) == false)
             {
-                Identity = currentUser,
-                Role = Enums.Role.Owner,
-                Project = project
-            });
+                project.AccessIdentifiers.Add(new AccessIdentifier()
+                {
+                    Identity = currentUser,
+                    Role = Enums.Role.Owner,
+                    Project = project
+                });
+            }
 
             // Set any AccessIdentifier statuses
             foreach (var accessItem in project.AccessIdentifiers)
