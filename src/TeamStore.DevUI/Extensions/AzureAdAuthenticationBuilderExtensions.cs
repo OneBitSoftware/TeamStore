@@ -44,17 +44,17 @@ namespace Microsoft.AspNetCore.Authentication
                         var claimsPrincipal = context.Principal.Identity;
 
                         // Store login event
-                        var eventService = context.HttpContext.RequestServices.GetService<IEventService>();
+                        var eventService = context?.HttpContext?.RequestServices?.GetService<IEventService>();
 
                         if (eventService == null) throw new Exception("EventService not found. Terminating.");
 
                         string accessIpAddress = string.Empty;
                         if (context.HttpContext != null)
                         {
-                            accessIpAddress = context.HttpContext.Connection.RemoteIpAddress.ToString();
+                            accessIpAddress = context?.HttpContext?.Connection?.RemoteIpAddress?.ToString();
                         }
 
-                        var telemetryService = context.HttpContext.RequestServices.GetService<ITelemetryService>();
+                        var telemetryService = context?.HttpContext?.RequestServices?.GetService<ITelemetryService>();
                         telemetryService.TraceEvent("Login success", "login", claimsPrincipal.Name);
 
                         await eventService.LogLoginEventAsync(claimIdentity, accessIpAddress);
