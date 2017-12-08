@@ -1,0 +1,70 @@
+﻿@model TeamStore.DevUI.ViewModels.ProjectAssetViewModel
+
+@{
+    ViewData["Title"] = "Edit Asset";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Edit Asset</h2>
+
+<h4>ProjectAssetViewModel</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="EditAsset">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="IsArchived" disabled /> @Html.DisplayNameFor(model => model.IsArchived)
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="DisplayTitle" class="control-label"></label>
+                <input asp-for="DisplayTitle" class="form-control" />
+                <span asp-validation-for="DisplayTitle" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Login" class="control-label"></label>
+                <input asp-for="Login" class="form-control" />
+                <span asp-validation-for="Login" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Notes" class="control-label"></label>
+                <input asp-for="Notes" class="form-control" />
+                <span asp-validation-for="Notes" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CreatedBy" class="control-label"></label>
+                <input asp-for="CreatedBy" class="form-control" />
+                <span asp-validation-for="CreatedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Created" class="control-label"></label>
+                <input asp-for="Created" class="form-control" />
+                <span asp-validation-for="Created" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ModifiedBy" class="control-label"></label>
+                <input asp-for="ModifiedBy" class="form-control" disabled />
+            </div>
+            <div class="form-group">
+                <label asp-for="Modified" class="control-label"></label>
+                <input asp-for="Modified" class="form-control" disabled />
+                <span asp-validation-for="Modified" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,63 @@
+﻿@model TeamStore.DevUI.ViewModels.ProjectAssetViewModel
+@{
+    ViewData["Title"] = "AssetDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Asset Details</h2>
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.DisplayTitle)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.DisplayTitle)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.AssetId)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.AssetId)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Login)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Login)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Notes)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Notes)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.CreatedBy)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.CreatedBy)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Created)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Created)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.ModifiedBy)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.ModifiedBy)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Modified)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Modified)
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
+    <a asp-action="Index">Back to List</a>
+</div>

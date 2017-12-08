@@ -46,6 +46,19 @@
             return View(await _projectsService.GetProjects(false));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> AssetDetails(int projectId, int assetId)
+        {
+            // TODO: validate, etc.
+            string accessIpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString();
+
+            var asset = await _assetService.GetAssetAsync(projectId, assetId, accessIpAddress);
+
+            var viewModel = ProjectFactory.ConvertAsset(asset);
+
+            return View(viewModel);
+        }
+
         // GET: Projects/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -87,7 +100,7 @@
         // POST: Projects/CreateCredential
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateCredential([Bind("ProjectId,Login,Body,Password,Title")] CreateCredentialViewModel createViewModel)
+        public async Task<IActionResult> CreateCredential([Bind("ProjectId,Login,Notes,Password,Title")] CreateCredentialViewModel createViewModel)
         {
             if (createViewModel.ProjectId < 0)
             {
@@ -120,10 +133,21 @@
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Projects/CreateNote
-        public IActionResult CreateNote()
+        // GET: Projects/CreateNote/5
+        public async Task<IActionResult> CreateNote(int id)
         {
-            return View();
+            if (id < 1) return NotFound();
+
+            var project = await _projectsService.GetProject(id);
+
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            var projectViewModel = ProjectFactory.GetNoteViewModel(project);
+
+            return View(projectViewModel);
         }
 
         // POST: Projects/CreateNote

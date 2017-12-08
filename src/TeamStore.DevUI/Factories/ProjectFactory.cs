@@ -18,6 +18,46 @@
             return projectViewModel;
         }
 
+        public static ProjectAssetViewModel ConvertAsset(Asset asset)
+        {
+            var assetViewModel = new ProjectAssetViewModel();
+
+            switch (asset.GetType().Name)
+            {
+                case "Note":
+                    var assetNote = asset as Note;
+                    assetViewModel.DisplayTitle = assetNote.Title;
+                    break;
+                case "Credential":
+                    var assetCredential = asset as Credential;
+                    assetViewModel.DisplayTitle = assetCredential.Title;
+                    assetViewModel.Login = assetCredential.Login;
+                    break;
+                default:
+                    return null;
+            }
+
+            assetViewModel.AssetId = asset.Id;
+            assetViewModel.Created = asset.Created != null ? asset.Created.ToString() : "Never";
+            assetViewModel.CreatedBy = asset.CreatedBy != null ? asset.CreatedBy.ToString() : string.Empty;
+            assetViewModel.ModifiedBy = asset.ModifiedBy != null ? asset.ModifiedBy?.DisplayName?.ToString() : string.Empty;
+            assetViewModel.IsArchived = asset.IsArchived;
+            assetViewModel.Notes = asset.Notes;
+
+            if (asset.Modified != null && asset.Modified == DateTime.MinValue)
+            {
+                assetViewModel.Modified = "Never";
+            }
+            else
+            {
+                assetViewModel.Modified = asset.Modified != null ? asset.Modified.ToString() : "Never";
+            }
+
+            if (assetViewModel.DisplayTitle == null) assetViewModel.DisplayTitle = string.Empty;
+
+            return assetViewModel;
+        }
+
         public static ProjectViewModel Convert(Project project)
         {
             var projectViewModel = new ProjectViewModel();
@@ -43,7 +83,6 @@
                         var assetCredential = asset as Credential;
                         assetViewModel.DisplayTitle = assetCredential.Title;
                         assetViewModel.Login = assetCredential.Login;
-                        assetViewModel.Notes = assetCredential.Notes;
                         break;
                     default:
                         return null;
@@ -54,6 +93,7 @@
                 assetViewModel.CreatedBy = asset.CreatedBy != null ? asset.CreatedBy.ToString() : string.Empty;
                 assetViewModel.ModifiedBy = asset.ModifiedBy != null ? asset.ModifiedBy?.DisplayName?.ToString() : string.Empty;
                 assetViewModel.IsArchived = asset.IsArchived;
+                assetViewModel.Notes = asset.Notes;
 
                 if (asset.Modified != null && asset.Modified == DateTime.MinValue)
                 {
@@ -88,6 +128,15 @@
         public static CreateCredentialViewModel GetCredentialViewModel(Project project)
         {
             var viewModel = new CreateCredentialViewModel();
+            viewModel.ProjectId = project.Id;
+            viewModel.ProjectTitle = project.Title;
+
+            return viewModel;
+        }
+
+        public static CreateNoteViewModel GetNoteViewModel(Project project)
+        {
+            var viewModel = new CreateNoteViewModel();
             viewModel.ProjectId = project.Id;
             viewModel.ProjectTitle = project.Title;
 

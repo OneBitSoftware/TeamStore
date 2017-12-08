@@ -76,21 +76,27 @@
         {
             <tr>
                 <td>
-                    @Html.ActionLink(item.DisplayTitle, "Details", "Projects", null)
+                    <a asp-action="AssetDetails" asp-route-projectId="@Model.Id" asp-route-assetId="@item.AssetId">@item.DisplayTitle</a>
                 </td>
                 <td>
-                    <button class="ob-copyIcon ob-pointer" data-id="@item.AssetId" data-type="login">
-                        <i class="fa fa-clipboard" title="Copy login to clipboard"></i>
-                    </button>
-                    @item.Login
+                    @if (string.IsNullOrWhiteSpace(item.Login) == false)
+                    {
+                        <button class="ob-copyIcon ob-pointer" data-id="@item.AssetId" data-type="login">
+                            <i class="fa fa-clipboard" title="Copy login to clipboard"></i>
+                        </button>
+                        @item.Login
+                    }
                 </td>
                 <td>
-                    <button class="ob-copyIcon ob-pointer" data-id="@item.AssetId" data-type="password">
-                        <i class="fa fa-clipboard" title="Copy password to clipboard"></i>
-                    </button>
-                    <span class="ob-passwordLabel ob-pointer" data-id="@item.AssetId" title="Click to reveal password">
-                        ******
-                    </span>
+                    @if (string.IsNullOrWhiteSpace(item.Login) == false)
+                    {
+                        <button class="ob-copyIcon ob-pointer" data-id="@item.AssetId" data-type="password">
+                            <i class="fa fa-clipboard" title="Copy password to clipboard"></i>
+                        </button>
+                        <span class="ob-passwordLabel ob-pointer" data-id="@item.AssetId" title="Click to reveal password">
+                            ******
+                        </span>
+                    }
                 </td>
                 <td>@item.Notes</td>
                 <td>@item.Created</td>
