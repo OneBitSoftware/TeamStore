@@ -22,6 +22,14 @@
         </ul>
     </div>
 </div>
+<div class="row">
+    <div class="col-md-3">
+        <div class="dropdown" id="assetSearchAutocomplete">
+            <input class="dropdown-toggle form-control" type="text" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" placeholder="Search assets" />
+            <ul class="dropdown-menu invisible-asset-holder" aria-labelledby="dropdownMenu1"></ul>
+        </div>
+    </div>
+</div>
 
 <div class="row">
     <div class="col-md-3">
@@ -33,4 +41,8 @@
             GitHub Reporitory Address: <a href="https://github.com/onebitsoftware/TeamStore">https://github.com/onebitsoftware/TeamStore</a>
         </p>
     </div>
+</div>
+
+<div class="hidden">
+    @Html.AntiForgeryToken()
 </div>

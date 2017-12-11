@@ -262,12 +262,51 @@ namespace IntegrationTests
             // Assert
             Assert.Null(archivedAsset);
             Assert.Equal(1, retrievedProjectAfterArchive.Assets.Count);
-            Assert.Equal(false, retrievedProjectAfterArchive.Assets.Any(a=>a.Id == newCredentialArchived.Id));
+            Assert.Equal(false, retrievedProjectAfterArchive.Assets.Any(a => a.Id == newCredentialArchived.Id));
 
             // Cleanup
             await _projectsService.ArchiveProject(retrievedProjectAfterArchive, "127.0.1.1");
             var archivedProject = await _projectsService.GetProject(newProjectId);
             Assert.Null(archivedProject);
         }
+
+        /*
+        [Fact]
+        public async void RetrieveAssetSearchResults_ShouldGetThreeAssets()
+        {
+            // Arrange
+            var newNoteProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newNote = await _assetService.AddAssetToProjectAsync(newNoteProjectId, CreateTestNote("First test note"), "127.0.1.1");
+            var nextNewNote = await _assetService.AddAssetToProjectAsync(newNoteProjectId, CreateTestNote("Second test note"), "127.0.1.1");
+            var newCredentialProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newCredential = await _assetService.AddAssetToProjectAsync(newCredentialProjectId, CreateTestCredential(), "127.0.1.1");
+
+            // Act
+            var retrievedNoteProject = await _projectsService.GetProject(newNoteProjectId);
+            var retrievedCredentialProject = await _projectsService.GetProject(newCredentialProjectId);
+            var assetSearchResults = await _assetService.GetAssetResultsAsync();
+
+            // Assert
+            Assert.Equal(assetSearchResults.Count, 3);
+
+            // Cleanup
+            await _projectsService.ArchiveProject(retrievedNoteProject, "127.0.1.1");
+            await _projectsService.ArchiveProject(retrievedCredentialProject, "127.0.1.1");
+            var archivedProject = await _projectsService.GetProject(newNoteProjectId);
+            Assert.Null(archivedProject);
+            archivedProject = await _projectsService.GetProject(newCredentialProjectId);
+            Assert.Null(archivedProject);
+        }
+
+        [Fact]
+        public async void RetrieveAssetSearchResults_ShouldGetNoAssets()
+        {
+            // Act
+            var assetSearchResults = await _assetService.GetAssetResultsAsync();
+
+            // Assert
+            Assert.Equal(assetSearchResults.Count, 0);
+        }
+        */
     }
 }

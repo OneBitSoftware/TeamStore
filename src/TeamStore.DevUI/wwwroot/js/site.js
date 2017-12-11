@@ -1,5 +1,5 @@
 ﻿"use strict";
-
+var SEARCH_TOKEN_MIN_LENGTH = 3;
 /**
  * Performs a click event for a password mask
  * Appends the anti-forgery token in the post message and header.
@@ -85,8 +85,57 @@ function bindAllPasswordCopyToClipboard() {
     });
 };
 
+function bindSearchAssetInput() {
+    $("div.dropdown#assetSearchAutocomplete input").on('focusin', function (e) {
+        var getUrl = "/Home/GetAssetResults";
+        var token = $('input[name="__RequestVerificationToken"]').val(); // prepare token
+
+        $.ajax({
+            type: 'GET',
+            url: getUrl,
+            contentType: 'application/json',
+            cache: false,
+            headers: { 'RequestVerificationToken': token },
+            success: function (successResult) {
+                var assetsList = $(this).siblings('ul.dropdown-menu');
+                assetsList.empty();
+                for (var i = 0; i < successResult.length; i++) {
+                    var entry = successResult[i];
+                    assetsList.append('<li class="asset invisible-asset"><a href="/Projects/Details/' + entry.projectId + '">' + entry.title.toLowerCase() + '</a></li>');
+                }
+
+                if ($(this).val().length) {
+                    $(this).triggerHandler('input');
+                }
+            }.bind(this),
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                $(this).css("color", "red");
+            }.bind(this)
+        });        
+    });
+
+    $("div.dropdown#assetSearchAutocomplete input").on('input', function (e) {
+        var searchToken = $(this).val();
+        if (searchToken.length < SEARCH_TOKEN_MIN_LENGTH) {
+            $(this).siblings('ul.dropdown-menu').addClass('invisible-asset-holder');
+            return;
+        }
+
+        var matchingAssets = $(this).siblings('ul.dropdown-menu').find('li.asset:contains(' + searchToken.toLowerCase() + ')');
+        if (matchingAssets.length) {
+            $(this).siblings('ul.dropdown-menu').removeClass('invisible-asset-holder');
+            $(this).siblings('ul.dropdown-menu').find('li').addClass('invisible-asset');
+            matchingAssets.removeClass('invisible-asset');
+        }
+        else {
+            $(this).siblings('ul.dropdown-menu').addClass('invisible-asset-holder');
+        }
+    });
+};
+
 $(document).ready(function () {
     // Bind all password label click functions
     bindAllPasswordLabels();
+    bindSearchAssetInput();
     bindAllPasswordCopyToClipboard();
 });

@@ -193,6 +193,38 @@
             return retrievedAssets;
         }
 
+        // searching assets should preload all assets
+        public async Task<List<AssetSearchResult>> GetAssetResultsAsync()
+        {
+            // Validate current user
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+
+            // Get assets with appropriate access checks
+            var retrievedAssets = await _dbContext.Assets.Where(a =>
+                a.IsArchived == false &&
+                a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
+                .Include(p => p.Project.AccessIdentifiers)
+                .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                .ToListAsync();
+
+            // LOG access asset - open project? TODO
+            var assetResults = new List<AssetSearchResult>(retrievedAssets.Count);
+            foreach (var asset in retrievedAssets)
+            {
+                DecryptAsset(asset);
+                assetResults.Add(
+                    new AssetSearchResult()
+                    {
+                        Id = asset.Id,
+                        Title = asset.Title,
+                        ProjectId = asset.ProjectForeignKey
+                    });
+            }
+
+            return assetResults;
+        }
+
         // Question: Why are we returning on update??
 
         public async Task<Asset> UpdateAssetAsync(int projectId, Asset asset, string remoteIpAddress)
@@ -221,7 +253,7 @@
             }
 
             // LOG Event
-            await _eventService.LogUpdateAssetEventAsync(projectId,  remoteIpAddress, currentUser.Id, asset.Id);
+            await _eventService.LogUpdateAssetEventAsync(projectId, remoteIpAddress, currentUser.Id, asset.Id);
 
             return asset;
         }
@@ -278,7 +310,7 @@
             await _dbContext.Entry(project)
                 .Collection(p => p.Assets)
                 .Query()
-                .Where(asset=>asset.IsArchived == false)
+                .Where(asset => asset.IsArchived == false)
                 .LoadAsync();
 
             foreach (var asset in project.Assets)
@@ -316,7 +348,7 @@
 
             if (string.IsNullOrWhiteSpace(asset.Notes) == false)
             {
-                asset.Notes = _encryptionService.EncryptString(asset.Notes); 
+                asset.Notes = _encryptionService.EncryptString(asset.Notes);
             }
         }
 
@@ -340,7 +372,7 @@
 
             if (string.IsNullOrWhiteSpace(asset.Notes) == false)
             {
-                asset.Notes = _encryptionService.DecryptString(asset.Notes); 
+                asset.Notes = _encryptionService.DecryptString(asset.Notes);
             }
         }
 

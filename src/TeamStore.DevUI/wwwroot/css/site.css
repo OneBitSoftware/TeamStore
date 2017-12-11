@@ -26,8 +26,8 @@
     margin: 15px;
 }
 
-.ob-pointer{
-    cursor:pointer;
+.ob-pointer {
+    cursor: pointer;
 }
 
 .ob-copyIcon {
@@ -36,10 +36,18 @@
     border: none;
 }
 
-@media all and (min-width:1200px){
+@media all and (min-width:1200px) {
     .container {
         width: 100%;
     }
+}
+
+li.invisible-asset, ul.dropdown-menu.invisible-asset-holder {
+    display: none;
+}
+
+ul.dropdown-menu {
+    display: block;
 }
 
 /* Hide/rearrange for smaller screens */
