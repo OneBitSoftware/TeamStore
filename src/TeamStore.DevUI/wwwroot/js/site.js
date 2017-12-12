@@ -97,9 +97,10 @@ function bindSearchAssetInput() {
         var searchToken = $(this).val(),
             getUrl = "/Home/GetAssetResults?searchToken=" + searchToken,
             dropdown = $(this).siblings('ul.dropdown-menu'),
-            spinner = $(this).siblings('span.icon-upload');
+            spinner = $(this).parents('div.row').find('div.loader');
 
         if (searchToken.length < SEARCH_TOKEN_MIN_LENGTH) {
+            spinner.hide();
             dropdown.addClass('invisible-asset-holder');
             return;
         }
