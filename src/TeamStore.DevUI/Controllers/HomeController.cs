@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.ApplicationInsights;
 using System.Security.Claims;
+using TeamStore.Factories;
 using TeamStore.ViewModels;
 using TeamStore.Keeper.Interfaces;
 
@@ -36,15 +37,20 @@ namespace TeamStore.Controllers
 
         [HttpGet]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GetAssetResults()
+        public async Task<IActionResult> GetAssetResults(string searchToken)
         {
+            if (String.IsNullOrEmpty(searchToken))
+            {
+                return BadRequest();
+            }
+
             string accessIpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString();
             if (string.IsNullOrWhiteSpace(accessIpAddress)) return BadRequest();
 
             try
             {
-                var assets = await _assetService.GetAssetResultsAsync();
-                return new OkObjectResult(assets);
+                var assets = await _assetService.GetAssetResultsAsync(searchToken);
+                return new OkObjectResult(AssetFactory.ConvertAssetSearch(assets));
             }
             catch (Exception ex)
             {

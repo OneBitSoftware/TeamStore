@@ -88,14 +88,12 @@ function bindAllPasswordCopyToClipboard() {
 function bindSearchAssetInput() {
     $("div.dropdown#assetSearchAutocomplete input").on('focusin', function (e) {
         var getUrl = "/Home/GetAssetResults";
-        var token = $('input[name="__RequestVerificationToken"]').val(); // prepare token
 
         $.ajax({
             type: 'GET',
             url: getUrl,
             contentType: 'application/json',
             cache: false,
-            headers: { 'RequestVerificationToken': token },
             success: function (successResult) {
                 var assetsList = $(this).siblings('ul.dropdown-menu');
                 assetsList.empty();
@@ -115,16 +113,18 @@ function bindSearchAssetInput() {
     });
 
     $("div.dropdown#assetSearchAutocomplete input").on('input', function (e) {
-        var searchToken = $(this).val();
+        var searchToken = $(this).val(),
+            dropdown = $(this).siblings('ul.dropdown-menu');
+
         if (searchToken.length < SEARCH_TOKEN_MIN_LENGTH) {
-            $(this).siblings('ul.dropdown-menu').addClass('invisible-asset-holder');
+            dropdown.addClass('invisible-asset-holder');
             return;
         }
 
-        var matchingAssets = $(this).siblings('ul.dropdown-menu').find('li.asset:contains(' + searchToken.toLowerCase() + ')');
+        var matchingAssets = dropdown.find('li.asset:contains(' + searchToken.toLowerCase() + ')');
         if (matchingAssets.length) {
-            $(this).siblings('ul.dropdown-menu').removeClass('invisible-asset-holder');
-            $(this).siblings('ul.dropdown-menu').find('li').addClass('invisible-asset');
+            dropdown.removeClass('invisible-asset-holder');
+            dropdown.find('li').addClass('invisible-asset');
             matchingAssets.removeClass('invisible-asset');
         }
         else {

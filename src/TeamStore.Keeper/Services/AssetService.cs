@@ -194,7 +194,7 @@
         }
 
         // searching assets should preload all assets
-        public async Task<List<AssetSearchResult>> GetAssetResultsAsync()
+        public async Task<List<Asset>> GetAssetResultsAsync(string searchToken)
         {
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
@@ -209,20 +209,18 @@
                 .ToListAsync();
 
             // LOG access asset - open project? TODO
-            var assetResults = new List<AssetSearchResult>(retrievedAssets.Count);
+            var assets = new List<Asset>();
             foreach (var asset in retrievedAssets)
             {
-                DecryptAsset(asset);
-                assetResults.Add(
-                    new AssetSearchResult()
-                    {
-                        Id = asset.Id,
-                        Title = asset.Title,
-                        ProjectId = asset.ProjectForeignKey
-                    });
+                var title = _encryptionService.DecryptString(asset.Title);
+                if (title.ToLower().Contains(searchToken.ToLower()))
+                {
+                    DecryptAsset(asset);
+                    assets.Add(asset);
+                }
             }
 
-            return assetResults;
+            return assets;
         }
 
         // Question: Why are we returning on update??
