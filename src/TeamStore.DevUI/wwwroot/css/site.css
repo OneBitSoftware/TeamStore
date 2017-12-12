@@ -42,7 +42,7 @@ ul.dropdown-menu.invisible-asset-holder {
 
 ul.dropdown-menu {
     display: block;
-    max-height: 200px;
+    max-height: 150px;
     overflow: auto;
 }
 

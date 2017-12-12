@@ -92,6 +92,14 @@ function bindSearchAssetInput() {
         }
     });
 
+    $("div.dropdown#assetSearchAutocomplete input").on('focusout', function (e) {
+        // to allow dropbox click navigation to take action
+        window.setTimeout(function () {
+            var dropdown = $(this).siblings('ul.dropdown-menu');
+            dropdown.addClass('invisible-asset-holder');
+        }, 0);
+    });
+
     
     $("div.dropdown#assetSearchAutocomplete input").on('input', function (e) {
         var searchToken = $(this).val(),
@@ -125,6 +133,10 @@ function bindSearchAssetInput() {
 
                 var dropdown = this.dropdown;
                 if (successResult.length) {
+                    successResult.sort(function (a, b) {
+                        return a.displayTitle.toString().toLowerCase() > b.displayTitle.toString().toLowerCase();
+                    });
+
                     dropdown.empty();
                     for (var i = 0; i < successResult.length; i++) {
                         var entry = successResult[i];
@@ -138,6 +150,10 @@ function bindSearchAssetInput() {
                 }
 
                 this.spinner.hide();
+            }.bind(context),
+            error: function () {
+                spinner.hide();
+                dropdown.addClass('invisible-asset-holder');
             }.bind(context)
         });  
     });
@@ -146,6 +162,7 @@ function bindSearchAssetInput() {
 $(document).ready(function () {
     // Bind all password label click functions
     bindAllPasswordLabels();
-    bindSearchAssetInput();
     bindAllPasswordCopyToClipboard();
+    // bind asset search box
+    bindSearchAssetInput();
 });
