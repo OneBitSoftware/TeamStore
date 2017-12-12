@@ -43,6 +43,7 @@
         public async Task<IActionResult> Index()
         {
             // TODO: return ProjectViewModel not DB Project
+            // CR 12/12/2017 This ViewModel returns a database Project.
             return View(await _projectsService.GetProjects(false));
         }
 
@@ -205,6 +206,8 @@
                 return RedirectToAction(nameof(Index));
             }
 
+            // CR 12/12/2017 This action returns and accepts a database Project.
+            // Change to view model
             return View(project);
         }
 
@@ -266,6 +269,7 @@
             {
                 return NotFound();
             }
+            // CR 12/12/2017 This action returns and accepts a database Project.
 
             return View(project);
         }
@@ -277,6 +281,8 @@
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,Category")] Project project)
         {
+            // CR 12/12/2017 This action returns and accepts a database Project.
+
             if (id != project.Id)
             {
                 return NotFound();
@@ -314,6 +320,7 @@
                 return NotFound();
             }
 
+            // CR 12/12/2017 This action returns and accepts a database Project.
             return View(project);
         }
 
