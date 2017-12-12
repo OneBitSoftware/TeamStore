@@ -87,7 +87,30 @@ function bindAllPasswordCopyToClipboard() {
 
 function bindSearchAssetInput() {
     $("div.dropdown#assetSearchAutocomplete input").on('focusin', function (e) {
-        var getUrl = "/Home/GetAssetResults";
+        if ($(this).val().length >= SEARCH_TOKEN_MIN_LENGTH) {
+            $(this).triggerHandler('input');
+        }
+    });
+
+    
+    $("div.dropdown#assetSearchAutocomplete input").on('input', function (e) {
+        var searchToken = $(this).val(),
+            getUrl = "/Home/GetAssetResults?searchToken=" + searchToken,
+            dropdown = $(this).siblings('ul.dropdown-menu'),
+            spinner = $(this).siblings('span.icon-upload');
+
+        if (searchToken.length < SEARCH_TOKEN_MIN_LENGTH) {
+            dropdown.addClass('invisible-asset-holder');
+            return;
+        }
+
+        spinner.show();
+        var context = {
+            input: this,
+            token: searchToken,
+            spinner: spinner,
+            dropdown: dropdown
+        };
 
         $.ajax({
             type: 'GET',
@@ -95,41 +118,27 @@ function bindSearchAssetInput() {
             contentType: 'application/json',
             cache: false,
             success: function (successResult) {
-                var assetsList = $(this).siblings('ul.dropdown-menu');
-                assetsList.empty();
-                for (var i = 0; i < successResult.length; i++) {
-                    var entry = successResult[i];
-                    assetsList.append('<li class="asset invisible-asset"><a href="/Projects/Details/' + entry.projectId + '">' + entry.title.toLowerCase() + '</a></li>');
+                if ($(this.input).val() !== this.token) {
+                    return;
                 }
 
-                if ($(this).val().length) {
-                    $(this).triggerHandler('input');
+                var dropdown = this.dropdown;
+                if (successResult.length) {
+                    dropdown.empty();
+                    for (var i = 0; i < successResult.length; i++) {
+                        var entry = successResult[i];
+                        dropdown.append('<li class="asset"><a href="/Projects/Details/' + entry.projectId + '">' + entry.displayTitle + '</a></li>');
+                    }
+
+                    dropdown.removeClass('invisible-asset-holder');
                 }
-            }.bind(this),
-            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                $(this).css("color", "red");
-            }.bind(this)
-        });        
-    });
+                else {
+                    dropdown.addClass('invisible-asset-holder');
+                }
 
-    $("div.dropdown#assetSearchAutocomplete input").on('input', function (e) {
-        var searchToken = $(this).val(),
-            dropdown = $(this).siblings('ul.dropdown-menu');
-
-        if (searchToken.length < SEARCH_TOKEN_MIN_LENGTH) {
-            dropdown.addClass('invisible-asset-holder');
-            return;
-        }
-
-        var matchingAssets = dropdown.find('li.asset:contains(' + searchToken.toLowerCase() + ')');
-        if (matchingAssets.length) {
-            dropdown.removeClass('invisible-asset-holder');
-            dropdown.find('li').addClass('invisible-asset');
-            matchingAssets.removeClass('invisible-asset');
-        }
-        else {
-            $(this).siblings('ul.dropdown-menu').addClass('invisible-asset-holder');
-        }
+                this.spinner.hide();
+            }.bind(context)
+        });  
     });
 };
 

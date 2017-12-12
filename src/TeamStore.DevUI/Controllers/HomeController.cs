@@ -36,7 +36,6 @@ namespace TeamStore.Controllers
         }
 
         [HttpGet]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> GetAssetResults(string searchToken)
         {
             if (String.IsNullOrEmpty(searchToken))

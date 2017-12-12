@@ -42,7 +42,7 @@
     }
 }
 
-li.invisible-asset, ul.dropdown-menu.invisible-asset-holder {
+ul.dropdown-menu.invisible-asset-holder {
     display: none;
 }
 
