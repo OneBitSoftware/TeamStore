@@ -18,6 +18,7 @@
         private readonly IEncryptionService _encryptionService;
         private readonly IEventService _eventService;
         private readonly IApplicationIdentityService _applicationIdentityService;
+        private const int MaxAssetSearchResults = 50;
 
         /// <summary>
         /// Constructor for the AssetService.
@@ -204,8 +205,6 @@
             var retrievedAssets = await _dbContext.Assets.Where(a =>
                 a.IsArchived == false &&
                 a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
-                .Include(p => p.Project.AccessIdentifiers)
-                .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
                 .ToListAsync();
 
             // LOG access asset - open project? TODO
@@ -217,6 +216,11 @@
                 {
                     DecryptAsset(asset);
                     assets.Add(asset);
+                }
+
+                if (assets.Count >= MaxAssetSearchResults)
+                {
+                    break;
                 }
             }
 
