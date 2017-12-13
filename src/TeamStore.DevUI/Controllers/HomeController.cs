@@ -30,6 +30,8 @@ namespace TeamStore.Controllers
         {
             var homeViewModel = new HomeViewModel();
 
+            // CR 12/12/2017 This ViewModel returns a database Project. 
+            // It should go through a factory for mapping purposes 
             homeViewModel.Projects = await _projectsService.GetProjects();
 
             return View(homeViewModel);
