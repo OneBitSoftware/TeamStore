@@ -16,8 +16,7 @@ namespace TeamStore.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        private IProjectsService _projectsService { get; set; }
-
+        private readonly IProjectsService _projectsService;
         private readonly IAssetService _assetService;
 
         public HomeController(IProjectsService projectsService, IAssetService assetService)
@@ -26,6 +25,7 @@ namespace TeamStore.Controllers
             _assetService = assetService ?? throw new ArgumentNullException(nameof(assetService));
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var homeViewModel = new HomeViewModel();
@@ -40,13 +40,16 @@ namespace TeamStore.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAssetResults(string searchToken)
         {
-            if (String.IsNullOrEmpty(searchToken))
+            if (String.IsNullOrWhiteSpace(searchToken))
             {
                 return BadRequest();
             }
 
             string accessIpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString();
-            if (string.IsNullOrWhiteSpace(accessIpAddress)) return BadRequest();
+            if (string.IsNullOrWhiteSpace(accessIpAddress))
+            {
+                return BadRequest();
+            }
 
             try
             {
