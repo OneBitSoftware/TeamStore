@@ -53,7 +53,8 @@ namespace TeamStore.Controllers
 
             try
             {
-                var assets = await _assetService.GetAssetResultsAsync(searchToken);
+                const int MaxSearchResults = 50;
+                var assets = await _assetService.GetAssetResultsAsync(searchToken, MaxSearchResults);
                 return new OkObjectResult(AssetFactory.ConvertAssetSearch(assets));
             }
             catch (Exception ex)

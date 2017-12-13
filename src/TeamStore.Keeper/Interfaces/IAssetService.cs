@@ -18,7 +18,7 @@
 
         Task<List<Asset>> GetAssetsAsync(int projectId);
 
-        Task<List<Asset>> GetAssetResultsAsync(string searchToken);
+        Task<List<Asset>> GetAssetResultsAsync(string searchPrefix, int maxResults);
 
         /// <summary>
         /// Loads the Assets for a given Project explicitly. Used when the initial Projects query does not

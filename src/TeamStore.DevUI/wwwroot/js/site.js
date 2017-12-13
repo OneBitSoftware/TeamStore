@@ -100,12 +100,12 @@ function bindSearchAssetInput() {
     });
     
     $("div.dropdown#assetSearchAutocomplete input").on('input', function (e) {
-        var searchToken = $(this).val(),
-            getUrl = "/Home/GetAssetResults?searchToken=" + searchToken,
+        var searchPrefix = $(this).val(),
+            getUrl = "/Home/GetAssetResults?searchToken=" + searchPrefix,
             dropdown = $(this).siblings('ul.dropdown-menu'),
             spinner = $(this).parents('div.row').find('div.loader');
 
-        if (searchToken.length < SEARCH_TOKEN_MIN_LENGTH) {
+        if (searchPrefix.length < SEARCH_TOKEN_MIN_LENGTH) {
             spinner.hide();
             dropdown.addClass('invisible-asset-holder');
             return;
@@ -114,7 +114,7 @@ function bindSearchAssetInput() {
         spinner.show();
         var context = {
             input: this,
-            token: searchToken,
+            searchPrefix: searchPrefix,
             spinner: spinner,
             dropdown: dropdown
         };
@@ -125,7 +125,7 @@ function bindSearchAssetInput() {
             contentType: 'application/json',
             cache: false,
             success: function (successResult) {
-                if ($(this.input).val() !== this.token) {
+                if ($(this.input).val() !== this.searchPrefix) {
                     return;
                 }
 

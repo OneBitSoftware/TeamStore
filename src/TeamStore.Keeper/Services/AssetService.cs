@@ -18,7 +18,6 @@
         private readonly IEncryptionService _encryptionService;
         private readonly IEventService _eventService;
         private readonly IApplicationIdentityService _applicationIdentityService;
-        private const int MaxAssetSearchResults = 50;
 
         /// <summary>
         /// Constructor for the AssetService.
@@ -194,8 +193,8 @@
             return retrievedAssets;
         }
 
-        // searching assets should preload all assets
-        public async Task<List<Asset>> GetAssetResultsAsync(string searchToken)
+        // searching assets should get all matching assets
+        public async Task<List<Asset>> GetAssetResultsAsync(string searchPrefix, int maxResults)
         {
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
@@ -212,13 +211,13 @@
             foreach (var asset in retrievedAssets)
             {
                 var title = _encryptionService.DecryptString(asset.Title);
-                if (title.ToLower().Contains(searchToken.ToLower()))
+                if (title.ToLowerInvariant().Contains(searchPrefix.ToLowerInvariant()))
                 {
                     DecryptAsset(asset);
                     assets.Add(asset);
                 }
 
-                if (assets.Count >= MaxAssetSearchResults)
+                if (assets.Count >= maxResults)
                 {
                     break;
                 }
