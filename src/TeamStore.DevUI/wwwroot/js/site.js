@@ -92,14 +92,12 @@ function bindSearchAssetInput() {
         }
     });
 
-    $("div.dropdown#assetSearchAutocomplete input").on('focusout', function (e) {
-        // to allow dropbox click navigation to take action
-        window.setTimeout(function () {
-            var dropdown = $(this).siblings('ul.dropdown-menu');
+    $(document).on('click', function (e) {
+        var dropdown = $('div.dropdown#assetSearchAutocomplete ul.dropdown-menu');
+        if (!dropdown.find($(e.target)).length) {
             dropdown.addClass('invisible-asset-holder');
-        }, 0);
+        }
     });
-
     
     $("div.dropdown#assetSearchAutocomplete input").on('input', function (e) {
         var searchToken = $(this).val(),
