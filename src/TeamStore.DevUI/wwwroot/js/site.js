@@ -95,7 +95,7 @@ function passwordCopy(element) {
             copyFrom.textContent = successResult;
             copyFrom.select();
             document.execCommand("copy");
-            copyFrom.remove();
+            $(copyFrom).remove();
 
             var toolTip = $("div.ob-copyTooltip[data-id=" + assetId + "]");
             toolTip.show();
