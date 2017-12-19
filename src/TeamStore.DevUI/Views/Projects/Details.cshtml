@@ -87,7 +87,7 @@
                         @item.Login
                     }
                 </td>
-                <td>
+                <td class="ob-password-cell">
                     @if (string.IsNullOrWhiteSpace(item.Login) == false)
                     {
                         <button class="ob-copyIcon ob-pointer" data-id="@item.AssetId" data-type="password">
@@ -96,6 +96,9 @@
                         <span class="ob-passwordLabel ob-pointer" data-id="@item.AssetId" title="Click to reveal password">
                             ******
                         </span>
+                        <div class="ob-copyTooltip" data-id="@item.AssetId">
+                            Copied!
+                        </div>
                     }
                 </td>
                 <td>@item.Notes</td>
