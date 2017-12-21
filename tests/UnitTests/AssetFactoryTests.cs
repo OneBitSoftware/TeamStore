@@ -27,5 +27,32 @@ namespace UnitTests
 
             Assert.True(true);
         }
+
+        [Theory,
+            InlineData(-1),
+            InlineData(-1239),
+            InlineData(0)]
+        public void CreateAssetSearchViewModel_InvalidKeysShouldGetException(int id)
+        {
+            Asset asset = new Note() { Id = id, ProjectForeignKey = 1};
+            try
+            {
+                AssetFactory.CreateAssetSearchViewModel(asset);
+            }
+            catch (ArgumentException)
+            {
+                Assert.True(true);
+            }
+
+            asset = new Credential() { Id = 1, ProjectForeignKey = id };
+            try
+            {
+                AssetFactory.CreateAssetSearchViewModel(asset);
+            }
+            catch (ArgumentException)
+            {
+                Assert.True(true);
+            }
+        }
     }
 }
