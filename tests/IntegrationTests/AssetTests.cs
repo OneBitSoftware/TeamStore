@@ -270,43 +270,31 @@ namespace IntegrationTests
             Assert.Null(archivedProject);
         }
 
-        /*
-        [Fact]
-        public async void RetrieveAssetSearchResults_ShouldGetThreeAssets()
+ 
+        [Theory,
+            InlineData("Test entry", "test", 1),
+            InlineData("Varitesttesttest", "test", 2),
+            InlineData("Simplest", "est", 5)]
+        public async void RetrieveAssetSearchResults_ShouldGetMinSearchResults(string title, string searchPrefix, int minOccurences)
         {
             // Arrange
             var newNoteProjectId = await _projectsService.CreateProject(CreateTestProject());
-            var newNote = await _assetService.AddAssetToProjectAsync(newNoteProjectId, CreateTestNote("First test note"), "127.0.1.1");
-            var nextNewNote = await _assetService.AddAssetToProjectAsync(newNoteProjectId, CreateTestNote("Second test note"), "127.0.1.1");
-            var newCredentialProjectId = await _projectsService.CreateProject(CreateTestProject());
-            var newCredential = await _assetService.AddAssetToProjectAsync(newCredentialProjectId, CreateTestCredential(), "127.0.1.1");
+            for (int i = 0; i < minOccurences; i++)
+            {
+                await _assetService.AddAssetToProjectAsync(newNoteProjectId, CreateTestNote(title), "127.0.1.1");
+            }
 
             // Act
             var retrievedNoteProject = await _projectsService.GetProject(newNoteProjectId);
-            var retrievedCredentialProject = await _projectsService.GetProject(newCredentialProjectId);
-            var assetSearchResults = await _assetService.GetAssetResultsAsync();
+            var assetSearchResults = await _assetService.GetAssetResultsAsync(searchPrefix, minOccurences);
 
             // Assert
-            Assert.Equal(assetSearchResults.Count, 3);
+            Assert.Equal(assetSearchResults.Count, minOccurences);
 
             // Cleanup
             await _projectsService.ArchiveProject(retrievedNoteProject, "127.0.1.1");
-            await _projectsService.ArchiveProject(retrievedCredentialProject, "127.0.1.1");
             var archivedProject = await _projectsService.GetProject(newNoteProjectId);
             Assert.Null(archivedProject);
-            archivedProject = await _projectsService.GetProject(newCredentialProjectId);
-            Assert.Null(archivedProject);
         }
-
-        [Fact]
-        public async void RetrieveAssetSearchResults_ShouldGetNoAssets()
-        {
-            // Act
-            var assetSearchResults = await _assetService.GetAssetResultsAsync();
-
-            // Assert
-            Assert.Equal(assetSearchResults.Count, 0);
-        }
-        */
     }
 }
