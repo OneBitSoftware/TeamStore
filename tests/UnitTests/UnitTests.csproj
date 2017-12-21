@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\TeamStore.DevUI\TeamStore.DevUI.csproj" />
     <ProjectReference Include="..\..\src\TeamStore.Keeper\TeamStore.Keeper.csproj" />
   </ItemGroup>
 
