@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using TeamStore.Keeper.Interfaces;
 using TeamStore.DevUI.ViewModels;
+using TeamStore.DevUI.ViewModels.Reports;
+using TeamStore.Factories;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 namespace TeamStore.DevUI.Controllers
@@ -13,11 +15,15 @@ namespace TeamStore.DevUI.Controllers
     [Authorize]
     public class ReportsController : Controller
     {
+        private readonly IProjectsService _projectsService;
         private readonly IApplicationIdentityService _applicationIdentityService;
+
         public ReportsController(
-            IApplicationIdentityService applicationIdentityService
+            IApplicationIdentityService applicationIdentityService,
+            IProjectsService projectsService
             )
         {
+            _projectsService = projectsService ?? throw new ArgumentNullException(nameof(projectsService));
             _applicationIdentityService = applicationIdentityService ?? throw new ArgumentNullException(nameof(applicationIdentityService));
         }
 
@@ -40,25 +46,24 @@ namespace TeamStore.DevUI.Controllers
 
             var reportsListViewModel = new ReportsViewModel();
             reportsListViewModel.Reports.Add("Credential Access", "CredentialAccess");
+            reportsListViewModel.Reports.Add("Archived Items", "ArchivedItems");
             reportsListViewModel.Reports.Add("User Logins", "UserLogins");
 
             return View(reportsListViewModel);
         }
 
-        // GET: Reports/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> ArchivedItems()
         {
             if (await ValidateSystemAdministrator() == false)
             {
                 return Unauthorized();
             }
 
-            if (id == null)
-            {
-                return NotFound();
-            }
-            
-            return View();
+            var viewModel = new ArchivedItemsReportViewModel();
+
+            var projects = await _projectsService.GetProjects(false, true);
+
+            return View(viewModel);
         }
     }
 }

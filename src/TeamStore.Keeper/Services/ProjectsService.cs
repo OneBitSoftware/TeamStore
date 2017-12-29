@@ -41,10 +41,10 @@
         }
 
         /// <summary>
-        /// Gets all projects for which the current user has access to. Excludes archived projects.
+        /// Gets all projects for which the current user has access to. Can include archived projects. Can skip decryption.
         /// </summary>
         /// <returns>A list of Project objects</returns>
-        public async Task<List<Project>> GetProjects(bool skipDecryption = false)
+        public async Task<List<Project>> GetProjects(bool skipDecryption = false, bool includeArchived = false)
         {
             // Get user to validate access
             var currentUser = await _applicationIdentityService.GetCurrentUser();
@@ -57,18 +57,30 @@
 
             // Get projects with access
             // TODO: attempt to make this in 1 query
-            var projects = await _dbContext.Projects.Where(p =>
-                p.IsArchived == false)
-                .Include(p => p.AccessIdentifiers)
-                .ToListAsync();
+            var projects = new List<Project>();
 
+            if (includeArchived) // filter out archived
+            {
+                projects = await _dbContext.Projects
+                    .Include(p => p.AccessIdentifiers)
+                    .ToListAsync();
+            }
+            else
+            {
+                projects = await _dbContext.Projects
+                    .Where(p => p.IsArchived == false)
+                    .Include(p => p.AccessIdentifiers)
+                    .ToListAsync();
+            }
+
+            // filter our those without access for the current user
             var projectsWithAccess = projects.Where(p =>
                 p.AccessIdentifiers.Any(ai => ai.Identity != null && ai.Identity.Id == currentUser.Id))
                 .ToList();
 
             if (projectsWithAccess == null) return null;
 
-            if (skipDecryption == false)
+            if (skipDecryption == false) // double false...
             {
                 foreach (var project in projectsWithAccess)
                 {
@@ -134,14 +146,25 @@
         /// </summary>
         /// <param name="skipDecryption">Wether to return encrypted projects</param>
         /// <returns>A Task result of a List of Projects.</returns>
-        private async Task<List<Project>> GetProjectsForAdmin(bool skipDecryption = false)
+        private async Task<List<Project>> GetProjectsForAdmin(bool skipDecryption = false, bool includeArchived = false)
         {
-            var projects = await _dbContext.Projects.Where(p =>
-                p.IsArchived == false)
-                .Include(p => p.AccessIdentifiers)
-                .ToListAsync();
+            var projects = new List<Project>();
 
-            if (skipDecryption == false)
+            if (includeArchived)
+            {
+                projects = await _dbContext.Projects
+                    .Include(p => p.AccessIdentifiers)
+                    .ToListAsync();
+            }
+            else
+            {
+                projects = await _dbContext.Projects.Where(p => p
+                    .IsArchived == includeArchived)
+                    .Include(p => p.AccessIdentifiers)
+                    .ToListAsync();
+            }
+
+            if (skipDecryption == false) // double false...
             {
                 foreach (var project in projects)
                 {
@@ -184,7 +207,7 @@
             // Ensure the creating user has Owner permissions to be able to grant access to other users
             // It is important to distinguish between creating through a UI call vs importing projects
             // This method is used in both cases
-            if (project.AccessIdentifiers.Any(ai=>ai.Identity?.AzureAdObjectIdentifier == currentUser.AzureAdObjectIdentifier) == false)
+            if (project.AccessIdentifiers.Any(ai => ai.Identity?.AzureAdObjectIdentifier == currentUser.AzureAdObjectIdentifier) == false)
             {
                 project.AccessIdentifiers.Add(new AccessIdentifier()
                 {
