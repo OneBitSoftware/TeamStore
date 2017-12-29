@@ -64,6 +64,61 @@ function passwordClick(element) {
 }
 
 /**
+ * Performs a copy to clipboard for the selected password
+ * Appends the anti-forgery token in the post message and header.
+ * The click logic is complex:
+ * @param {any} element
+ */
+function passwordCopy(element) {
+    var assetId = element.data("id");
+    var postUrl = "/Projects/GetPassword";
+    var token = $('input[name="__RequestVerificationToken"]').val(); // prepare token
+    var projectId = $("input#projectId").val();
+    var postData = {
+        __RequestVerificationToken: token,
+        formDigest: '2134',
+        projectId: projectId,
+        assetId: assetId
+    };
+
+    $.ajax({
+        type: 'POST',
+        url: postUrl,
+        data: JSON.stringify(postData),
+        contentType: 'application/json',
+        cache: false,
+        async: false, //The AJAX should be SYNCHRONOUS, in order document.execCommand("copy") to work successfully
+        headers: { 'RequestVerificationToken': token },
+        success: function (successResult) {
+            let copyFrom = document.createElement("textarea");
+            document.body.appendChild(copyFrom);
+            copyFrom.textContent = successResult;
+            copyFrom.select();
+            document.execCommand("copy");
+            $(copyFrom).remove();
+
+            var toolTip = $("div.ob-copyTooltip[data-id=" + assetId + "]");
+            toolTip.show();
+
+            setTimeout(function () {
+                toolTip.hide();
+            }, 1000);
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+            var toolTip = $("div.ob-copyTooltip[data-id=" + assetId + "]");
+            toolTip.text(textStatus);
+            toolTip.css("background-color", "#f00");
+            toolTip.css("color", "#fff");
+            toolTip.show();
+
+            setTimeout(function () {
+                toolTip.hide();
+            }, 1000);
+        }
+    });
+}
+
+/**
  * Binds the click event on all password labels
  */
 function bindAllPasswordLabels() {
@@ -80,8 +135,10 @@ function bindAllPasswordCopyToClipboard() {
     $("button.ob-copyIcon").on('click', function (e) {
         var assetId = $(this).data("id");
         var iconType = $(this).data("type");
-        console.log(assetId);
-        console.log(iconType);
+        //console.log(assetId);
+        //console.log(iconType);
+
+        passwordCopy($(this));
     });
 };
 
