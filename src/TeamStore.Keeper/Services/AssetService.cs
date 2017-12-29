@@ -210,16 +210,24 @@
             var assets = new List<Asset>();
             foreach (var asset in retrievedAssets)
             {
-                var title = _encryptionService.DecryptString(asset.Title);
-                if (title.ToLowerInvariant().Contains(searchPrefix.ToLowerInvariant()))
+                try
                 {
-                    DecryptAsset(asset);
-                    assets.Add(asset);
-                }
+                    var title = _encryptionService.DecryptString(asset.Title);
+                    if (title.ToLowerInvariant().Contains(searchPrefix.ToLowerInvariant()))
+                    {
+                        DecryptAsset(asset);
+                        assets.Add(asset);
+                    }
 
-                if (assets.Count >= maxResults)
+                    if (assets.Count >= maxResults)
+                    {
+                        break;
+                    }
+                }
+                catch // swallow any decryption exceptions here
                 {
-                    break;
+                    // TODO: LOG
+                    continue;
                 }
             }
 
