@@ -98,7 +98,8 @@ function bindSearchAssetInput() {
             dropdown.addClass('invisible-asset-holder');
         }
     });
-    
+
+    var timeout = null;
     $("div.dropdown#assetSearchAutocomplete input").on('input', function (e) {
         var searchPrefix = $(this).val(),
             getUrl = "/Home/GetAssetResults?searchToken=" + searchPrefix,
@@ -112,48 +113,51 @@ function bindSearchAssetInput() {
         }
 
         spinner.show();
-        var context = {
-            input: this,
-            searchPrefix: searchPrefix,
-            spinner: spinner,
-            dropdown: dropdown
-        };
+        clearTimeout(timeout);
+        timeout = setTimeout(function () {
+            var context = {
+                input: this,
+                searchPrefix: searchPrefix,
+                spinner: spinner,
+                dropdown: dropdown
+            };
 
-        $.ajax({
-            type: 'GET',
-            url: getUrl,
-            contentType: 'application/json',
-            cache: false,
-            success: function (successResult) {
-                if ($(this.input).val() !== this.searchPrefix) {
-                    return;
-                }
-
-                var dropdown = this.dropdown;
-                if (successResult.length) {
-                    successResult.sort(function (a, b) {
-                        return a.displayTitle.toString().toLowerCase() > b.displayTitle.toString().toLowerCase();
-                    });
-
-                    dropdown.empty();
-                    for (var i = 0; i < successResult.length; i++) {
-                        var entry = successResult[i];
-                        dropdown.append('<li class="asset"><a href="/Projects/Details/' + entry.projectId + '">' + entry.displayTitle + '</a></li>');
+            $.ajax({
+                type: 'GET',
+                url: getUrl,
+                contentType: 'application/json',
+                cache: false,
+                success: function (successResult) {
+                    if ($(this.input).val() !== this.searchPrefix) {
+                        return;
                     }
 
-                    dropdown.removeClass('invisible-asset-holder');
-                }
-                else {
-                    dropdown.addClass('invisible-asset-holder');
-                }
+                    var dropdown = this.dropdown;
+                    if (successResult.length) {
+                        successResult.sort(function (a, b) {
+                            return a.displayTitle.toString().toLowerCase() > b.displayTitle.toString().toLowerCase();
+                        });
 
-                this.spinner.hide();
-            }.bind(context),
-            error: function () {
-                spinner.hide();
-                dropdown.addClass('invisible-asset-holder');
-            }.bind(context)
-        });  
+                        dropdown.empty();
+                        for (var i = 0; i < successResult.length; i++) {
+                            var entry = successResult[i];
+                            dropdown.append('<li class="asset"><a href="/Projects/Details/' + entry.projectId + '">' + entry.displayTitle + '</a></li>');
+                        }
+
+                        dropdown.removeClass('invisible-asset-holder');
+                    }
+                    else {
+                        dropdown.addClass('invisible-asset-holder');
+                    }
+
+                    this.spinner.hide();
+                }.bind(context),
+                error: function () {
+                    spinner.hide();
+                    dropdown.addClass('invisible-asset-holder');
+                }.bind(context)
+            });
+        }.bind(this), 800);
     });
 };
 
