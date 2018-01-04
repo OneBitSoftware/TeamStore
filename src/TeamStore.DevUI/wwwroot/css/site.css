@@ -57,6 +57,10 @@ ul.dropdown-menu {
     animation: spin 2s linear infinite;
 }
 
+.top-buffer {
+    margin-top: 7px;
+}
+
 @-webkit-keyframes spin {
     0% {
         -webkit-transform: rotate(0deg);
