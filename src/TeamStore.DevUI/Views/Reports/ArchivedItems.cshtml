@@ -1,0 +1,34 @@
+﻿@model TeamStore.DevUI.ViewModels.Reports.ArchivedItemsReportViewModel
+
+@{
+    ViewData["Title"] = "Archived Items";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Archived Items</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+                <th>
+                    Project
+                </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.Projects) {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.Title)</td>
+            <td>@Html.DisplayFor(modelItem => item.IsArchived)</td>
+        </tr>
+        <tr>
+            @foreach (var asset in item.AssetsList)
+            {
+                <td>@asset.DisplayTitle</td>
+                <td>@asset.IsArchived</td>
+            }
+        </tr>
+}
+    </tbody>
+</table>

@@ -25,10 +25,10 @@
         Task<Project> GetProject(int projectId, bool skipDecryption);
 
         /// <summary>
-        /// Gets all projects for which the current user has access to. Excludes archived projects. All data is decrypted.
+        /// Gets all projects for which the current user has access to. Can include archived projects. Can skip decryption.
         /// </summary>
         /// <returns>A list of Project objects</returns>
-        Task<List<Project>> GetProjects(bool skipDecryption = false);
+        Task<List<Project>> GetProjects(bool skipDecryption = false, bool includeArchived = false);
 
         /// <summary>
         /// Encrypts and persists a Project in the database
