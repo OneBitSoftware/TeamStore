@@ -90,32 +90,103 @@ function passwordCopy(element) {
         async: false, //The AJAX should be SYNCHRONOUS, in order document.execCommand("copy") to work successfully
         headers: { 'RequestVerificationToken': token },
         success: function (successResult) {
-            let copyFrom = document.createElement("textarea");
-            document.body.appendChild(copyFrom);
-            copyFrom.textContent = successResult;
-            copyFrom.select();
-            document.execCommand("copy");
-            $(copyFrom).remove();
-
-            var toolTip = $("div.ob-copyTooltip[data-id=" + assetId + "]");
-            toolTip.show();
-
-            setTimeout(function () {
-                toolTip.hide();
-            }, 1000);
+            copyText(successResult, element);
         },
         error: function (XMLHttpRequest, textStatus, errorThrown) {
-            var toolTip = $("div.ob-copyTooltip[data-id=" + assetId + "]");
+            var toolTip = $("<div class='ob-copyTooltip'>Copied!</div>");
+            toolTip.insertAfter(copyIconElement);
+
             toolTip.text(textStatus);
             toolTip.css("background-color", "#f00");
             toolTip.css("color", "#fff");
             toolTip.show();
 
             setTimeout(function () {
-                toolTip.hide();
+                toolTip.remove();
             }, 1000);
         }
     });
+}
+
+/**
+ * Performs a copy to clipboard for the selected login
+ * The click logic is complex:
+ * @param {any} element
+ */
+function loginCopy(element) {
+    var assetId = element.data("id");
+    var textAfter = $(element).get(0).nextSibling.textContent.trim();
+    copyText(textAfter, element);
+}
+
+/**
+ * Performs a copy to clipboard for the given text and shows a tooltip message for success/error near the given parentElement
+ * @param {string} text The text to copy to clipboard
+ * @param {any} parentElement The element to put the tooltip message next to
+ */
+function copyText(text, parentElement) {
+    let copyFrom = document.createElement("textarea");
+    copyFrom.style.width = 0;
+    copyFrom.style.height = 0;
+    copyFrom.style.position = 'fixed';
+    copyFrom.style.top = '-1000px';
+    copyFrom.style.left = '-1000px';
+    document.body.appendChild(copyFrom);
+
+    // This element here is added only for IE check - if the copy-paste is successed - then the user allowed the browser to copy
+    let pasteTo = document.createElement("textarea");
+    pasteTo.style.width = 0;
+    pasteTo.style.height = 0;
+    pasteTo.style.position = 'fixed';
+    pasteTo.style.top = '-1000px';
+    pasteTo.style.left = '-1000px';
+    document.body.appendChild(pasteTo);
+
+    copyFrom.textContent = text;
+    copyFrom.select();
+    var canCopy = document.execCommand("copy");
+    pasteTo.select();
+    var canPaste = document.execCommand('paste');
+
+    var copySuccess;
+    if (canPaste) {
+        // This is the actual check (for IE only) - if the copy-paste is successed - then the user allowed the browser to copy
+        copySuccess = pasteTo.value === copyFrom.value;
+
+        // Since IE supports paste,
+        // if user allowed clipboard: copySuccess === true
+        // else: copySuccess === false
+        if (copySuccess) {
+            var toolTip = $("<div class='ob-copyTooltip'>Copied!</div>");
+            toolTip.insertAfter(parentElement);
+
+            setTimeout(function () {
+                toolTip.remove();
+            }, 2000);
+        }
+        else {
+            var toolTip = $("<div class='ob-copyTooltip'>NOT COPIED! Please, refresh the page and allow your browser to copy!</div>");
+            toolTip.insertAfter(parentElement);
+
+            toolTip.css("background-color", "#f00");
+            toolTip.css("color", "#fff");
+            toolTip.css("width", "300px");
+            toolTip.css("left", "80px");
+
+            setTimeout(function () {
+                toolTip.remove();
+            }, 2000);
+        }
+        
+    }
+    else if (canPaste == false) { // This means that the Browser is not IE (Chrome, Firefox, Edge, etc.)
+        var toolTip = $("<div class='ob-copyTooltip'>Copied!</div>");
+        toolTip.insertAfter(parentElement);
+
+        setTimeout(function () {
+            toolTip.remove();
+        }, 2000);
+    }
 }
 
 /**
@@ -135,10 +206,13 @@ function bindAllPasswordCopyToClipboard() {
     $("button.ob-copyIcon").on('click', function (e) {
         var assetId = $(this).data("id");
         var iconType = $(this).data("type");
-        //console.log(assetId);
-        //console.log(iconType);
 
-        passwordCopy($(this));
+        if (iconType == "password") {
+            passwordCopy($(this));
+        }
+        else if (iconType == "login") {
+            loginCopy($(this));
+        }
     });
 };
 

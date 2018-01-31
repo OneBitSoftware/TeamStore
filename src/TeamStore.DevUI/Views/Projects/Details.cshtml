@@ -78,7 +78,7 @@
                 <td>
                     <a asp-action="AssetDetails" asp-route-projectId="@Model.Id" asp-route-assetId="@item.AssetId">@item.DisplayTitle</a>
                 </td>
-                <td>
+                <td class="ob-relative-cell">
                     @if (string.IsNullOrWhiteSpace(item.Login) == false)
                     {
                         <button class="ob-copyIcon ob-pointer" data-id="@item.AssetId" data-type="login">
@@ -87,7 +87,7 @@
                         @item.Login
                     }
                 </td>
-                <td class="ob-password-cell">
+                <td class="ob-relative-cell">
                     @if (string.IsNullOrWhiteSpace(item.Login) == false)
                     {
                         <button class="ob-copyIcon ob-pointer" data-id="@item.AssetId" data-type="password">
@@ -96,9 +96,6 @@
                         <span class="ob-passwordLabel ob-pointer" data-id="@item.AssetId" title="Click to reveal password">
                             ******
                         </span>
-                        <div class="ob-copyTooltip" data-id="@item.AssetId">
-                            Copied!
-                        </div>
                     }
                 </td>
                 <td>@item.Notes</td>
