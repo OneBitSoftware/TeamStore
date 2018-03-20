@@ -78,7 +78,7 @@
                 <td>
                     <a asp-action="AssetDetails" asp-route-projectId="@Model.Id" asp-route-assetId="@item.AssetId">@item.DisplayTitle</a>
                 </td>
-                <td>
+                <td class="ob-relative-cell">
                     @if (string.IsNullOrWhiteSpace(item.Login) == false)
                     {
                         <button class="ob-copyIcon ob-pointer" data-id="@item.AssetId" data-type="login">
@@ -87,7 +87,7 @@
                         @item.Login
                     }
                 </td>
-                <td>
+                <td class="ob-relative-cell">
                     @if (string.IsNullOrWhiteSpace(item.Login) == false)
                     {
                         <button class="ob-copyIcon ob-pointer" data-id="@item.AssetId" data-type="password">

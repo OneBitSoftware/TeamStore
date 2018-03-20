@@ -1,36 +1,43 @@
-﻿body {
+﻿body
+{
     padding-top: 50px;
     padding-bottom: 20px;
 }
 
 /* Wrapping element */
 /* Set some basic padding to keep content from hitting the edges */
-.body-content {
+.body-content
+{
     padding-left: 15px;
     padding-right: 15px;
 }
 
 /* Carousel */
-.carousel-caption p {
+.carousel-caption p
+{
     font-size: 20px;
     line-height: 1.4;
 }
 
 /* Make .svg files in the carousel display properly in older browsers */
-.carousel-inner .item img[src$=".svg"] {
+.carousel-inner .item img[src$=".svg"]
+{
     width: 100%;
 }
 
 /* QR code generator */
-#qrCode {
+#qrCode
+{
     margin: 15px;
 }
 
-.ob-pointer {
+.ob-pointer
+{
     cursor: pointer;
 }
 
-.ob-copyIcon {
+.ob-copyIcon
+{
     padding: 0;
     background: none;
     border: none;
@@ -81,16 +88,31 @@ ul.dropdown-menu {
     }
 }
 
-@media all and (min-width:1200px) {
-    .container {
-        width: 100%;
-    }
+.ob-relative-cell
+{
+    position: relative;
 }
 
+.ob-copyTooltip
+{
+    position: absolute;
+    right: -5px;
+    top: -5px;
+    border: solid 1px #000;
+    border-radius: 10px;
+    background-color: #39d84a;
+    padding: 5px;
+    z-index: 1000;
+}
+
+
+
 /* Hide/rearrange for smaller screens */
-@media screen and (max-width: 767px) {
+@media screen and (max-width: 767px)
+{
     /* Hide captions */
-    .carousel-caption {
+    .carousel-caption
+    {
         display: none;
     }
 }
