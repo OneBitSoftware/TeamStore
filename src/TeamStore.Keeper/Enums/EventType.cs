@@ -13,7 +13,9 @@
         CustomEvent = 9,
         ArchiveProject = 10,
         ArchiveAsset = 11,
-        UpdatePassword = 12
+        UpdatePassword = 12,
+        CreateProject = 13,
+        UpdateProject = 14,
 
     }
 }

@@ -109,6 +109,8 @@ namespace TeamStore.DevUI.Controllers
 
             long size = files.Sum(f => f.Length);
 
+            string accessIpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString();
+
             // full path to file in temp location
             var filePath = Path.GetTempFileName();
             foreach (var formFile in files)
@@ -137,7 +139,7 @@ namespace TeamStore.DevUI.Controllers
                                 {
                                     _assetService.EncryptAsset(asset);
                                 }
-                                var createResult = await _projectsService.ImportProject(project);
+                                var createResult = await _projectsService.ImportProject(project, accessIpAddress);
                             }
                         }
                         else

@@ -198,17 +198,16 @@
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Description,Category, IsPublic")] Project project)
+        public async Task<IActionResult> Create([Bind("Id,Title,Description,Category, IsPublic")] ProjectViewModel projectViewModel)
         {
             if (ModelState.IsValid)
             {
-                await _projectsService.CreateProject(project);
+                string accessIpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString();
+                await _projectsService.CreateProject(ProjectFactory.Convert(projectViewModel), accessIpAddress);
                 return RedirectToAction(nameof(Index));
             }
 
-            // CR 12/12/2017 This action returns and accepts a database Project.
-            // Change to view model
-            return View(project);
+            return View(projectViewModel);
         }
 
         [HttpGet]
@@ -269,9 +268,10 @@
             {
                 return NotFound();
             }
-            // CR 12/12/2017 This action returns and accepts a database Project.
 
-            return View(project);
+            var projectViewModel = ProjectFactory.Convert(project);
+
+            return View(projectViewModel);
         }
 
         // POST: Projects/Edit/5
@@ -279,11 +279,9 @@
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,Category")] Project project)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,Category,IsPublic")] ProjectViewModel projectViewModel)
         {
-            // CR 12/12/2017 This action returns and accepts a database Project.
-
-            if (id != project.Id)
+            if ((id != projectViewModel.Id) || (id < 1))
             {
                 return NotFound();
             }
@@ -292,18 +290,25 @@
             {
                 try
                 {
-                    //_context.Update(project);
-                    //await _context.SaveChangesAsync();
+                    // get project
+                    var retrievedProject = await _projectsService.GetProject(id);
+
+                    // change fields
+                    retrievedProject.Title = projectViewModel.Title;
+                    retrievedProject.Description = projectViewModel.Description;
+                    retrievedProject.Category = projectViewModel.Category;
+                    retrievedProject.IsPublic = projectViewModel.IsPublic;
+
+                    // send to service or update
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-
                     throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(project);
+            return View(projectViewModel);
         }
 
         // GET: Projects/Delete/5

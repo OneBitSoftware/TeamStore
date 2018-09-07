@@ -27,6 +27,24 @@
         Task LogArchiveProjectEventAsync(int projectId, int actingUserId, string remoteIpAddress);
 
         /// <summary>
+        /// Logs a project create event
+        /// </summary>
+        /// <param name="projectId">The ID of the project to archive</param>
+        /// <param name="actingUserId">The id of the ApplicationUser performing the action</param>
+        /// <param name="remoteIpAddress">The IP address of the user calling the action</param>
+        /// <returns>A Task result</returns>
+        Task LogCreateProjectEventAsync(int projectId, int actingUserId, string remoteIpAddress);
+
+        /// <summary>
+        /// Logs a project update event
+        /// </summary>
+        /// <param name="projectId">The ID of the project to archive</param>
+        /// <param name="actingUserId">The id of the ApplicationUser performing the action</param>
+        /// <param name="remoteIpAddress">The IP address of the user calling the action</param>
+        /// <returns>A Task result</returns>
+        Task LogUpdateProjectEventAsync(int projectId, int actingUserId, string remoteIpAddress);
+
+        /// <summary>
         /// Logs a Sign in event.
         /// </summary>
         /// <param name="identity">The created Claims Identity during sign-ing.</param>

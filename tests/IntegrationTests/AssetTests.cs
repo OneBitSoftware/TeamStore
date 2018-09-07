@@ -21,7 +21,7 @@ namespace IntegrationTests
         {
             // Arrange
             var allProjects = await _projectsService.GetProjects(true);
-            var newProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newProjectId = await _projectsService.CreateProject(CreateTestProject(), "127.0.1.1");
             var newCredential = CreateTestCredential();
             var newNote = CreateTestNote();
 
@@ -69,7 +69,7 @@ namespace IntegrationTests
         {
             // Arrange
             var allProjects = await _projectsService.GetProjects(true);
-            var newProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newProjectId = await _projectsService.CreateProject(CreateTestProject(), "127.0.1.1");
             var newCredential = new Credential();
             newCredential.Login = login;
             newCredential.Password = password;
@@ -102,7 +102,7 @@ namespace IntegrationTests
         {
             // Arrange
             var allProjects = await _projectsService.GetProjects(true);
-            var newProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newProjectId = await _projectsService.CreateProject(CreateTestProject(), "127.0.1.1");
             var newNote = new Note();
             newNote.Title = title;
             newNote.Notes = notes;
@@ -129,7 +129,7 @@ namespace IntegrationTests
         public async void CreateUpdateNote_ShouldReturnCorrectProperties()
         {
             // Arrange
-            var newProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newProjectId = await _projectsService.CreateProject(CreateTestProject(), "127.0.1.1");
             var newNote = CreateTestNote();
 
             // Act
@@ -157,7 +157,7 @@ namespace IntegrationTests
         public async void CreateUpdateCredential_ShouldReturnCorrectProperties()
         {
             // Arrange
-            var newProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newProjectId = await _projectsService.CreateProject(CreateTestProject(), "127.0.1.1");
             var newCredential = CreateTestCredential();
 
             // Act
@@ -187,7 +187,7 @@ namespace IntegrationTests
         public async void CreateArchiveCredential_ShouldNotReturnAsset()
         {
             // Arrange
-            var newProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newProjectId = await _projectsService.CreateProject(CreateTestProject(), "127.0.1.1");
             var newCredential = CreateTestCredential();
 
             // Act
@@ -211,7 +211,7 @@ namespace IntegrationTests
         public async void CreateArchiveNote_ShouldNotReturnAsset()
         {
             // Arrange
-            var newProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newProjectId = await _projectsService.CreateProject(CreateTestProject(), "127.0.1.1");
             var newNote = CreateTestNote();
 
             // Act
@@ -239,7 +239,7 @@ namespace IntegrationTests
         public async void LoadAssets_ShouldNotReturnArchivedAssets()
         {
             // Arrange
-            var newProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newProjectId = await _projectsService.CreateProject(CreateTestProject(), "127.0.1.1");
             var newCredential = CreateTestCredential();
             var newCredentialArchived = CreateTestCredential();
 

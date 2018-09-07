@@ -9,6 +9,8 @@ namespace TeamStore.ViewModels
         public string Category { get; set; }
         public string Description { get; set; }
         public string Title { get; set; }
+        public bool IsArchived { get; set; }
+        public bool IsPublic { get; set; }
         public IEnumerable<AccessIdentifierViewModel> AccessList { get; set; }
         public IEnumerable<ProjectAssetViewModel> AssetsList { get; set; }
         public bool RevokeAccessSuccess { get; set; }
