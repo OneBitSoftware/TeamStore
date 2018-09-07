@@ -1,5 +1,5 @@
 ﻿"use strict";
-
+var SEARCH_TOKEN_MIN_LENGTH = 3;
 /**
  * Performs a click event for a password mask
  * Appends the anti-forgery token in the post message and header.
@@ -216,8 +216,86 @@ function bindAllPasswordCopyToClipboard() {
     });
 };
 
+function bindSearchAssetInput() {
+    $("div.dropdown#assetSearchAutocomplete input").on('focusin', function (e) {
+        if ($(this).val().length >= SEARCH_TOKEN_MIN_LENGTH) {
+            $(this).triggerHandler('input');
+        }
+    });
+
+    $(document).on('click', function (e) {
+        var dropdown = $('div.dropdown#assetSearchAutocomplete ul.dropdown-menu');
+        if (!dropdown.find($(e.target)).length) {
+            dropdown.addClass('invisible-asset-holder');
+        }
+    });
+
+    var timeout = null;
+    $("div.dropdown#assetSearchAutocomplete input").on('input', function (e) {
+        var searchPrefix = $(this).val(),
+            getUrl = "/Home/GetAssetResults?searchToken=" + searchPrefix,
+            dropdown = $(this).siblings('ul.dropdown-menu'),
+            spinner = $(this).parents('div.row').find('div.loader');
+
+        if (searchPrefix.length < SEARCH_TOKEN_MIN_LENGTH) {
+            spinner.hide();
+            dropdown.addClass('invisible-asset-holder');
+            return;
+        }
+
+        spinner.show();
+        clearTimeout(timeout);
+        timeout = setTimeout(function () {
+            var context = {
+                input: this,
+                searchPrefix: searchPrefix,
+                spinner: spinner,
+                dropdown: dropdown
+            };
+
+            $.ajax({
+                type: 'GET',
+                url: getUrl,
+                contentType: 'application/json',
+                cache: false,
+                success: function (successResult) {
+                    if ($(this.input).val() !== this.searchPrefix) {
+                        return;
+                    }
+
+                    var dropdown = this.dropdown;
+                    if (successResult.length) {
+                        successResult.sort(function (a, b) {
+                            return a.displayTitle.toString().toLowerCase() > b.displayTitle.toString().toLowerCase();
+                        });
+
+                        dropdown.empty();
+                        for (var i = 0; i < successResult.length; i++) {
+                            var entry = successResult[i];
+                            dropdown.append('<li class="asset"><a href="/Projects/Details/' + entry.projectId + '">' + entry.displayTitle + '</a></li>');
+                        }
+
+                        dropdown.removeClass('invisible-asset-holder');
+                    }
+                    else {
+                        dropdown.addClass('invisible-asset-holder');
+                    }
+
+                    this.spinner.hide();
+                }.bind(context),
+                error: function () {
+                    spinner.hide();
+                    dropdown.addClass('invisible-asset-holder');
+                }.bind(context)
+            });
+        }.bind(this), 800);
+    });
+};
+
 $(document).ready(function () {
     // Bind all password label click functions
     bindAllPasswordLabels();
     bindAllPasswordCopyToClipboard();
+    // bind asset search box
+    bindSearchAssetInput();
 });

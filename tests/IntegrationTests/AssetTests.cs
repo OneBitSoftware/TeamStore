@@ -262,11 +262,38 @@ namespace IntegrationTests
             // Assert
             Assert.Null(archivedAsset);
             Assert.Equal(1, retrievedProjectAfterArchive.Assets.Count);
-            Assert.Equal(false, retrievedProjectAfterArchive.Assets.Any(a=>a.Id == newCredentialArchived.Id));
+            Assert.Equal(false, retrievedProjectAfterArchive.Assets.Any(a => a.Id == newCredentialArchived.Id));
 
             // Cleanup
             await _projectsService.ArchiveProject(retrievedProjectAfterArchive, "127.0.1.1");
             var archivedProject = await _projectsService.GetProject(newProjectId);
+            Assert.Null(archivedProject);
+        }
+
+ 
+        [Theory,
+            InlineData("Test entry", "test", 1),
+            InlineData("Varitesttesttest", "test", 2),
+            InlineData("Simplest", "est", 5)]
+        public async void RetrieveAssetSearchResults_ShouldGetMinSearchResults(string title, string searchPrefix, int minOccurences)
+        {
+            // Arrange
+            var newNoteProjectId = await _projectsService.CreateProject(CreateTestProject());
+            for (int i = 0; i < minOccurences; i++)
+            {
+                await _assetService.AddAssetToProjectAsync(newNoteProjectId, CreateTestNote(title), "127.0.1.1");
+            }
+
+            // Act
+            var retrievedNoteProject = await _projectsService.GetProject(newNoteProjectId);
+            var assetSearchResults = await _assetService.GetAssetResultsAsync(searchPrefix, minOccurences);
+
+            // Assert
+            Assert.Equal(assetSearchResults.Count, minOccurences);
+
+            // Cleanup
+            await _projectsService.ArchiveProject(retrievedNoteProject, "127.0.1.1");
+            var archivedProject = await _projectsService.GetProject(newNoteProjectId);
             Assert.Null(archivedProject);
         }
     }

@@ -58,7 +58,7 @@ namespace IntegrationTests
             _projectsService = new ProjectsService(_dbContext, _encryptionService, _eventService, _applicationIdentityService, _permissionService);
             _assetService = new AssetService(_dbContext, _projectsService, _encryptionService, _eventService, _applicationIdentityService);
 
-            _testUser = _applicationIdentityService.FindUserAsync(u=>u.AzureAdObjectIdentifier == "TestAdObjectId11234567890").Result;
+            _testUser = _applicationIdentityService.FindUserAsync(u => u.AzureAdObjectIdentifier == "TestAdObjectId11234567890").Result;
             if (_testUser == null)
             {
                 _testUser = new ApplicationUser()
@@ -126,8 +126,12 @@ namespace IntegrationTests
         /// <returns></returns>
         protected Project CreateTestProject()
         {
-            string testTitle = "Project 1234 Test";
-            string testDescription = "Created during integration tests";
+            var project = CreateTestProject("Project 1234 Test");
+            return project;
+        }
+
+        protected Project CreateTestProject(string testTitle, string testDescription = "Created during integration tests")
+        {
             string testCategory = "Category Tests";
 
             Project newDecryptedProject = new Project();
@@ -156,9 +160,12 @@ namespace IntegrationTests
 
         protected Note CreateTestNote()
         {
-            var title = "Test note 12345";
-            var notes = "Test body test body Test body test body Test body test body Test body test body";
+            var testNote = CreateTestNote("Test note 12345");
+            return testNote;
+        }
 
+        protected Note CreateTestNote(string title, string notes = "Test body test body Test body test body Test body test body Test body test body")
+        {
             var testNote = new Note();
             testNote.Title = "Test Note";
             testNote.Title = title;
