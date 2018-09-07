@@ -49,7 +49,7 @@
             });
 
             // Act - Create and Get Project
-            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject);
+            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject, "127.0.1.1");
             var retrievedProject = await _projectsService.GetProject(createdProjectId);
 
             // Assert before Grant - should be 1 default user

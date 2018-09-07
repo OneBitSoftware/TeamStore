@@ -1,4 +1,4 @@
-namespace IntegrationTests
+﻿namespace IntegrationTests
 {
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
@@ -40,7 +40,7 @@ namespace IntegrationTests
             newDecryptedProject.Category = testCategory;
 
             // Act
-            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject);
+            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject, "127.0.1.1");
             var retrievedProject = await _projectsService.GetProject(createdProjectId);
 
             // Assert
@@ -67,7 +67,7 @@ namespace IntegrationTests
             // Act
             await Assert.ThrowsAsync<ArgumentException>(async () =>
             {
-                await _projectsService.CreateProject(newDecryptedProject);
+                await _projectsService.CreateProject(newDecryptedProject, "127.0.1.1");
             });
         }
 
@@ -105,7 +105,7 @@ namespace IntegrationTests
             newDecryptedProject.AccessIdentifiers.Add(accessIdentifier2);
 
             // Act
-            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject);
+            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject, "127.0.1.1");
             var retrievedProject = await _projectsService.GetProject(createdProjectId);
 
             // Assert
@@ -154,7 +154,7 @@ namespace IntegrationTests
             });
 
             // Act
-            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject);
+            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject, "127.0.1.1");
             var retrievedProject = await _projectsService.GetProject(createdProjectId);
             var accessResult = await _permissionService.GrantAccessAsync(retrievedProject.Id, newUpn, Role.Editor, "1.2.3.4", _projectsService);
             var retrievedUser = await _applicationIdentityService.FindUserByUpnAsync(newUpn);
@@ -198,7 +198,7 @@ namespace IntegrationTests
             };
 
             // Act
-            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject);
+            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject, "127.0.1.1");
             var retrievedProject = await _projectsService.GetProject(createdProjectId);
 
             _fakeHttpContextItems.Remove(ApplicationIdentityService.CURRENTUSERKEY); // change user
@@ -217,6 +217,73 @@ namespace IntegrationTests
             await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
             var archivedProject = await _projectsService.GetProject(createdProjectId);
             Assert.Null(archivedProject);
+        }
+
+        [Fact]
+        public async void UpdateProject_ShouldRetrieveNewData()
+        {
+            // Arrange
+            _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, _testUser);
+
+            string testTitle = "Project 1234 Test";
+            string testDescription = "Created during integration tests";
+            string testCategory = "Integration Tests";
+            Project newDecryptedProject = new Project();
+            newDecryptedProject.Title = testTitle;
+            newDecryptedProject.Description = testDescription;
+            newDecryptedProject.Category = testCategory;
+            newDecryptedProject.IsPublic = false;
+
+            // Act
+            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject, "127.0.1.1");
+            var retrievedProject = await _projectsService.GetProject(createdProjectId);
+
+            retrievedProject.Title = "Updated title 1";
+            retrievedProject.Description = "Updated description 1";
+            retrievedProject.Category = "Updated category 1";
+            retrievedProject.IsPublic = true;
+
+            await _projectsService.UpdateProject(retrievedProject, "127.0.1.1");
+
+            var updatedProject = await _projectsService.GetProject(createdProjectId);
+
+            // Аssert
+            Assert.Equal("Updated title 1", updatedProject.Title);
+            Assert.Equal("Updated description 1", updatedProject.Description);
+            Assert.Equal("Updated category 1", updatedProject.Category);
+            Assert.Equal(true, updatedProject.IsPublic);
+        }
+
+        [Fact]
+        public async void UpdateProject_ShouldPreventAccessListChanges()
+        {
+            // Arrange
+            _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, _testUser);
+
+            string testTitle = "Project 1234 Test";
+            string testDescription = "Created during integration tests";
+            string testCategory = "Integration Tests";
+            Project newDecryptedProject = new Project();
+            newDecryptedProject.Title = testTitle;
+            newDecryptedProject.Description = testDescription;
+            newDecryptedProject.Category = testCategory;
+            newDecryptedProject.IsPublic = false;
+
+            // Act
+            var createdProjectId = await _projectsService.CreateProject(newDecryptedProject, "127.0.1.1");
+            var retrievedProject = await _projectsService.GetProject(createdProjectId);
+
+            retrievedProject.Title = "Updated title 1";
+            retrievedProject.Description = "Updated description 1";
+            retrievedProject.Category = "Updated category 1";
+            retrievedProject.IsPublic = true;
+
+            retrievedProject.AccessIdentifiers.Add(new AccessIdentifier() { Identity = new ApplicationUser() {  DisplayName = "Test", Upn = "test@test.com"} });
+
+            // Аssert
+            var exception = await Assert.ThrowsAsync(typeof(Exception), 
+                () => _projectsService.UpdateProject(retrievedProject, "127.0.1.1"));
+            Assert.Equal("You cannot update a project's access list unless you are sharing access.", exception.Message);
         }
     }
 }

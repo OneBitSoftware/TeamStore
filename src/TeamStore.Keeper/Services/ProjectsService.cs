@@ -191,15 +191,13 @@
         /// </summary>
         /// <param name="decryptedProject">The Project object to encrypt and persist</param>
         /// <returns>A Task of int with the Project Id.</returns>
-        public async Task<int> CreateProject(Project project)
+        public async Task<int> CreateProject(Project project, string remoteIpAddress)
         {
             // Validate title
             if (string.IsNullOrWhiteSpace(project.Title)) throw new ArgumentException("A project must have a title.");
 
             // Encrypt
-            project.Title = _encryptionService.EncryptString(project.Title);
-            project.Description = _encryptionService.EncryptString(project.Description);
-            project.Category = _encryptionService.EncryptString(project.Category);
+            EncryptProject(project);
 
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); // we fail on no current user
@@ -232,9 +230,17 @@
             await _dbContext.Projects.AddAsync(project);
             var updatedRowCount = await _dbContext.SaveChangesAsync(); // returns 2 or 3 (currentUser)
 
-            // LOG event TODO
+            // LOG event
+            await _eventService.LogUpdateProjectEventAsync(project.Id, currentUser.Id, remoteIpAddress);
 
             return project.Id;
+        }
+
+        private void EncryptProject(Project project)
+        {
+            project.Title = _encryptionService.EncryptString(project.Title);
+            project.Description = _encryptionService.EncryptString(project.Description);
+            project.Category = _encryptionService.EncryptString(project.Category);
         }
 
         /// <summary>
@@ -243,7 +249,7 @@
         /// </summary>
         /// <param name="decryptedProject">The Project object to encrypt and persist</param>
         /// <returns>A Task of int with the Project Id.</returns>
-        public async Task<int> ImportProject(Project project)
+        public async Task<int> ImportProject(Project project, string remoteIpAddress)
         {
             // reset all Id's of the entity hierarchy to avoid primary key conflicts
             project.Id = 0;
@@ -268,7 +274,7 @@
                 await _dbContext.SaveChangesAsync(); // save the current user in the database
             }
 
-            return await CreateProject(project);
+            return await CreateProject(project, remoteIpAddress);
         }
 
         /// <summary>
@@ -300,11 +306,56 @@
 
             await _eventService.LogArchiveProjectEventAsync(decryptedProject.Id, currentUser.Id, remoteIpAddress);
 
-            var updatedRowCount = await _dbContext.SaveChangesAsync(); // save to db
-            if (updatedRowCount > 1)
+            await _dbContext.SaveChangesAsync(); // save to db
+        }
+
+        public async Task UpdateProject(Project updatedProject, string remoteIpAddress)
+        {
+            // Validate
+            if (updatedProject.Id < 1) throw new ArgumentException("You must pass a valid project id.");
+
+            // Validate current user
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+
+            // validate that access hasn't changed by getting a fresh, NoTracking copy of the project.
+            var retrievedProject = await _dbContext.Projects.Where(p =>
+                p.Id == updatedProject.Id &&
+                p.IsArchived == false &&
+                p.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
+                .Include(p => p.AccessIdentifiers)
+                .ThenInclude(p => p.Identity)
+                .AsNoTracking()  // <--
+                .FirstOrDefaultAsync();
+
+            // iterate through all untouched Access Identifiers
+            foreach (var accessIdentifier in updatedProject.AccessIdentifiers)
             {
-                // we have a problem
+                // check if the project-to-be-saved has an identity that doesn't already have access
+                if (retrievedProject.AccessIdentifiers.Any(ai=>
+                    ai.Identity.AzureAdObjectIdentifier == accessIdentifier.Identity.AzureAdObjectIdentifier) == false)
+                {
+                    // throw if such an item exists.
+                    throw new Exception("You cannot update a project's access list unless you are sharing access.");
+                }
             }
+
+            // this is an alternative check with .Intersect
+            var matchingItems = updatedProject.AccessIdentifiers.Select(ai => ai.Identity.AzureAdObjectIdentifier)
+                .Intersect(retrievedProject.AccessIdentifiers.Select(ai => ai.Identity.AzureAdObjectIdentifier));
+            if (matchingItems.Count() != updatedProject.AccessIdentifiers.Count())
+            {
+                throw new Exception("You cannot update a project's access list unless you are sharing access.");
+            }
+
+            // Encrypt
+            EncryptProject(updatedProject);
+
+            // Persist in DB
+            var updatedRowCount = await _dbContext.SaveChangesAsync(); // save to db
+
+            // LOG Event
+            await _eventService.LogUpdateProjectEventAsync(updatedProject.Id, currentUser.Id, remoteIpAddress);
         }
     }
 }

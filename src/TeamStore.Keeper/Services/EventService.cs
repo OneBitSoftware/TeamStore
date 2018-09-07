@@ -243,5 +243,52 @@
                 // we have a problem
             }
         }
+        /// <summary>
+        /// Logs a project create event
+        /// </summary>
+        /// <param name="projectId">The ID of the project to archive</param>
+        /// <param name="actingUserId">The id of the ApplicationUser performing the action</param>
+        /// <param name="remoteIpAddress">The IP address of the user calling the action</param>
+        /// <returns>A Task result</returns>
+        public async Task LogCreateProjectEventAsync(int projectId, int actingUserId, string remoteIpAddress)
+        {
+            var createProjectEvent = new Models.Event();
+            createProjectEvent.DateTime = DateTime.UtcNow;
+            createProjectEvent.Type = Enums.EventType.CreateProject.ToString();
+            createProjectEvent.RemoteIpAddress = remoteIpAddress;
+            createProjectEvent.ActedByUser = actingUserId.ToString();
+            createProjectEvent.ProjectId = projectId;
+
+            await _dbContext.Events.AddAsync(createProjectEvent);
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
+        }
+
+        /// <summary>
+        /// Logs a project update event
+        /// </summary>
+        /// <param name="projectId">The ID of the project to archive</param>
+        /// <param name="actingUserId">The id of the ApplicationUser performing the action</param>
+        /// <param name="remoteIpAddress">The IP address of the user calling the action</param>
+        /// <returns>A Task result</returns>
+        public async Task LogUpdateProjectEventAsync(int projectId, int actingUserId, string remoteIpAddress)
+        {
+            var updateProjectEvent = new Models.Event();
+            updateProjectEvent.DateTime = DateTime.UtcNow;
+            updateProjectEvent.Type = Enums.EventType.UpdateProject.ToString();
+            updateProjectEvent.RemoteIpAddress = remoteIpAddress;
+            updateProjectEvent.ActedByUser = actingUserId.ToString();
+            updateProjectEvent.ProjectId = projectId;
+
+            await _dbContext.Events.AddAsync(updateProjectEvent);
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
+        }
     }
 }

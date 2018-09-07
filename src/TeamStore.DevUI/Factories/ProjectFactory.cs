@@ -58,6 +58,17 @@
             return assetViewModel;
         }
 
+        public static Project Convert(ProjectViewModel projectViewModel)
+        {
+            var project = new Project();
+            project.Title = projectViewModel.Title;
+            project.Category = projectViewModel.Category;
+            project.Description = projectViewModel.Description;
+            project.IsPublic = projectViewModel.IsPublic;
+
+            return project;
+        }
+
         public static ProjectViewModel Convert(Project project)
         {
             var projectViewModel = new ProjectViewModel();
