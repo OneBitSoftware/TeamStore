@@ -165,26 +165,26 @@ function copyText(text, parentElement) {
             }, 2000);
         }
         else {
-            var toolTip = $("<div class='ob-copyTooltip'>NOT COPIED! Please, refresh the page and allow your browser to copy!</div>");
-            toolTip.insertAfter(parentElement);
+            var toolTipNot = $("<div class='ob-copyTooltip'>NOT COPIED! Please, refresh the page and allow your browser to copy!</div>");
+            toolTipNot.insertAfter(parentElement);
 
-            toolTip.css("background-color", "#f00");
-            toolTip.css("color", "#fff");
-            toolTip.css("width", "300px");
-            toolTip.css("left", "80px");
+            toolTipNot.css("background-color", "#f00");
+            toolTipNot.css("color", "#fff");
+            toolTipNot.css("width", "300px");
+            toolTipNot.css("left", "80px");
 
             setTimeout(function () {
-                toolTip.remove();
+                toolTipNot.remove();
             }, 2000);
         }
         
     }
-    else if (canPaste == false) { // This means that the Browser is not IE (Chrome, Firefox, Edge, etc.)
-        var toolTip = $("<div class='ob-copyTooltip'>Copied!</div>");
-        toolTip.insertAfter(parentElement);
+    else if (canPaste === false) { // This means that the Browser is not IE (Chrome, Firefox, Edge, etc.)
+        var toolTipCopied = $("<div class='ob-copyTooltip'>Copied!</div>");
+        toolTipCopied.insertAfter(parentElement);
 
         setTimeout(function () {
-            toolTip.remove();
+            toolTipCopied.remove();
         }, 2000);
     }
 }
@@ -207,10 +207,10 @@ function bindAllPasswordCopyToClipboard() {
         var assetId = $(this).data("id");
         var iconType = $(this).data("type");
 
-        if (iconType == "password") {
+        if (iconType === "password") {
             passwordCopy($(this));
         }
-        else if (iconType == "login") {
+        else if (iconType === "login") {
             loginCopy($(this));
         }
     });
