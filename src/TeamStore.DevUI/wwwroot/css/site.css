@@ -104,8 +104,16 @@ ul.dropdown-menu {
     padding: 5px;
     z-index: 1000;
 }
+@media all and (min-width:1200px){}
+.container {
+    width: 100%;
+}
 
-
+@media all and (min-width:768px) {
+    .container {
+        width: 100%;
+    }
+}
 
 /* Hide/rearrange for smaller screens */
 @media screen and (max-width: 767px)
