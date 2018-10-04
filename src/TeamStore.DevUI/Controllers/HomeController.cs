@@ -5,7 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.ApplicationInsights;
 using System.Security.Claims;
+using TeamStore.Factories;
 using TeamStore.ViewModels;
 using TeamStore.Keeper.Interfaces;
 
@@ -14,13 +16,16 @@ namespace TeamStore.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        private IProjectsService _projectsService { get; set; }
+        private readonly IProjectsService _projectsService;
+        private readonly IAssetService _assetService;
 
-        public HomeController(IProjectsService projectsService)
+        public HomeController(IProjectsService projectsService, IAssetService assetService)
         {
             _projectsService = projectsService ?? throw new ArgumentNullException(nameof(projectsService));
+            _assetService = assetService ?? throw new ArgumentNullException(nameof(assetService));
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var homeViewModel = new HomeViewModel();
@@ -30,6 +35,35 @@ namespace TeamStore.Controllers
             homeViewModel.Projects = await _projectsService.GetProjects();
 
             return View(homeViewModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAssetResults(string searchToken)
+        {
+            if (String.IsNullOrWhiteSpace(searchToken))
+            {
+                return BadRequest();
+            }
+
+            string accessIpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString();
+            if (string.IsNullOrWhiteSpace(accessIpAddress))
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                const int MaxSearchResults = 50;
+                var assets = await _assetService.GetAssetResultsAsync(searchToken, MaxSearchResults);
+                return new OkObjectResult(AssetFactory.ConvertAssetSearch(assets));
+            }
+            catch (Exception ex)
+            {
+                // LOG through SERVICE TODO
+                var t = new TelemetryClient();
+                t.TrackException(ex);
+                return BadRequest();
+            }
         }
 
         [AllowAnonymous]

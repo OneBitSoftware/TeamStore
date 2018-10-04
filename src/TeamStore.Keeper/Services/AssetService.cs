@@ -193,6 +193,47 @@
             return retrievedAssets;
         }
 
+        // searching assets should get all matching assets
+        public async Task<List<Asset>> GetAssetResultsAsync(string searchPrefix, int maxResults)
+        {
+            // Validate current user
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+
+            // Get assets with appropriate access checks
+            var retrievedAssets = await _dbContext.Assets.Where(a =>
+                a.IsArchived == false &&
+                a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
+                .ToListAsync();
+
+            // LOG access asset - open project? TODO
+            var assets = new List<Asset>();
+            foreach (var asset in retrievedAssets)
+            {
+                try
+                {
+                    var title = _encryptionService.DecryptString(asset.Title);
+                    if (title.ToLowerInvariant().Contains(searchPrefix.ToLowerInvariant()))
+                    {
+                        DecryptAsset(asset);
+                        assets.Add(asset);
+                    }
+
+                    if (assets.Count >= maxResults)
+                    {
+                        break;
+                    }
+                }
+                catch // swallow any decryption exceptions here
+                {
+                    // TODO: LOG
+                    continue;
+                }
+            }
+
+            return assets;
+        }
+
         // Question: Why are we returning on update??
 
         public async Task<Asset> UpdateAssetAsync(int projectId, Asset asset, string remoteIpAddress)
@@ -221,7 +262,7 @@
             }
 
             // LOG Event
-            await _eventService.LogUpdateAssetEventAsync(projectId,  remoteIpAddress, currentUser.Id, asset.Id);
+            await _eventService.LogUpdateAssetEventAsync(projectId, remoteIpAddress, currentUser.Id, asset.Id);
 
             return asset;
         }
@@ -278,7 +319,7 @@
             await _dbContext.Entry(project)
                 .Collection(p => p.Assets)
                 .Query()
-                .Where(asset=>asset.IsArchived == false)
+                .Where(asset => asset.IsArchived == false)
                 .LoadAsync();
 
             foreach (var asset in project.Assets)
@@ -316,7 +357,7 @@
 
             if (string.IsNullOrWhiteSpace(asset.Notes) == false)
             {
-                asset.Notes = _encryptionService.EncryptString(asset.Notes); 
+                asset.Notes = _encryptionService.EncryptString(asset.Notes);
             }
         }
 
@@ -340,7 +381,7 @@
 
             if (string.IsNullOrWhiteSpace(asset.Notes) == false)
             {
-                asset.Notes = _encryptionService.DecryptString(asset.Notes); 
+                asset.Notes = _encryptionService.DecryptString(asset.Notes);
             }
         }
 

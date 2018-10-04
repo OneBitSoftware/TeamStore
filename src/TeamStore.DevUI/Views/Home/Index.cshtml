@@ -5,7 +5,7 @@
 }
 
 <div class="row">
-    <div class="col-md-3">
+    <div class="col-md-9">
         <h2>Your Projects</h2>
         <ul>
             @if (Model.Projects.Count == 0)
@@ -21,6 +21,18 @@
             }
         </ul>
     </div>
+    <div class="col-md-3 top-buffer">
+        <div class="col-md-11">
+            <div class="dropdown" id="assetSearchAutocomplete">
+                <input class="dropdown-toggle form-control" type="text" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" placeholder="Search assets" />           
+                <ul class="dropdown-menu invisible-asset-holder" aria-labelledby="dropdownMenu1"></ul>
+            </div>
+        </div>  
+        <div class="col-md-1">
+            <div class="loader" style="display: none;"></div>
+        </div>
+    </div>
+
 </div>
 
 <div class="row">
