@@ -278,7 +278,7 @@ namespace IntegrationTests
         public async void RetrieveAssetSearchResults_ShouldGetMinSearchResults(string title, string searchPrefix, int minOccurences)
         {
             // Arrange
-            var newNoteProjectId = await _projectsService.CreateProject(CreateTestProject());
+            var newNoteProjectId = await _projectsService.CreateProject(CreateTestProject(), "127.0.0.1");
             for (int i = 0; i < minOccurences; i++)
             {
                 await _assetService.AddAssetToProjectAsync(newNoteProjectId, CreateTestNote(title), "127.0.1.1");
