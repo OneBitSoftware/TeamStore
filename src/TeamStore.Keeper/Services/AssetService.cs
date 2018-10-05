@@ -76,13 +76,14 @@
             retrievedAsset.Modified = DateTime.UtcNow;
             retrievedAsset.ModifiedBy = currentUser;
 
-            // LOG event
-
             var updatedRowCount = await _dbContext.SaveChangesAsync();
             if (updatedRowCount > 1)
             {
                 // we have a problem
             }
+
+            // LOG event
+            await _eventService.LogArchiveAssetEventAsync(projectId, remoteIpAddress, currentUser.Id, assetId);
         }
 
         /// <summary>
@@ -155,12 +156,28 @@
                 .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
                 .FirstOrDefaultAsync();
 
-            // LOG access asset
-            await _eventService.LogAssetAccessEventAsync(projectId, currentUser.Id, remoteIpAddress, assetId);
+            string assetLogin = string.Empty;
 
             // decrypt
             if (retrievedAsset == null) return null;
             DecryptAsset(retrievedAsset);
+
+            // extract asset login
+            if (retrievedAsset.GetType() == typeof(Credential))
+            {
+                assetLogin = (retrievedAsset as Credential).Login;
+            }
+
+            // log event
+            await _eventService.LogAssetAccessEventAsync(
+                projectId,
+                retrievedAsset.Project.Title,
+                currentUser.Id,
+                currentUser.Upn,
+                remoteIpAddress,
+                assetId,
+                retrievedAsset.Title,
+                assetLogin);
 
             return retrievedAsset;
         }
@@ -241,6 +258,7 @@
             // Validate
             if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
             if (asset == null) throw new ArgumentNullException(nameof(asset));
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
