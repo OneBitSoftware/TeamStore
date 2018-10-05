@@ -20,6 +20,11 @@
         public string ActedByUser { get; set; }
 
         /// <summary>
+        /// The database primary key of the user who performed the event.
+        /// </summary>
+        public string ActedByUserId { get; set; }
+
+        /// <summary>
         /// If this is an access grant/revoke event, this stores the primary key of the added or removed user/group
         /// </summary>
         public int? TargetUserId { get; set; }
@@ -30,9 +35,24 @@
         public int? AssetId { get; set; }
 
         /// <summary>
+        /// The title of the asset related to the operation
+        /// </summary>
+        public string AssetTitle { get; set; }
+
+        /// <summary>
+        /// The login of the asset related to the operation
+        /// </summary>
+        public string AssetLogin { get; set; }
+
+        /// <summary>
         /// The database primary key of the project related to the operation
         /// </summary>
         public int? ProjectId { get; set; }
+
+        /// <summary>
+        /// The title of the project related to the operation
+        /// </summary>
+        public string ProjectTitle { get; set; }
 
         /// <summary>
         /// The time of the event.
