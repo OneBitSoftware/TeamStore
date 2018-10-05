@@ -1,4 +1,4 @@
-﻿namespace TeamStore.Keeper.Services
+namespace TeamStore.Keeper.Services
 {
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Extensions;
@@ -89,6 +89,39 @@
             }
 
             return projectsWithAccess.ToList();
+        }
+
+        /// <summary>
+        /// Gets all archived projects. Requires system administrator access. Can skip decryption.
+        /// </summary>
+        /// <returns>A list of Project objects</returns>
+        public async Task<List<Project>> GetArchivedProjectsAsync(bool skipDecryption = false)
+        {
+            // Get user to validate access
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
+
+            // check system administrator permissions
+            if (await _applicationIdentityService.IsCurrentUserAdmin() == false)
+            {
+                throw new Exception("This operation is only allowed for system administrators");
+            }
+
+            var archivedProjects = await _dbContext.Projects
+                .Where(p => p.IsArchived == true)
+                .Include(p => p.AccessIdentifiers)
+                .Include(p => p.Assets)
+                .ToListAsync();
+
+            if (skipDecryption == false) // double false...
+            {
+                foreach (var project in archivedProjects)
+                {
+                    DecryptProject(project);
+                }
+            }
+
+            return archivedProjects;
         }
 
         /// <summary>
@@ -292,6 +325,14 @@
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); // we fail on no current user
 
+            if (await _permissionService.CheckAccessAsync(decryptedProject.Id, currentUser, Enums.Role.Owner, this) == false)
+            {
+                // CR: this should rather return a failed result
+                throw new Exception("The current user does not have enough permissions to archive this project.");
+            }
+
+            _dbContext.Entry(decryptedProject).Collection(x => x.Assets).Load();
+
             // Refresh the entity to discard changes and avoid saving a decrypted project
             _dbContext.Entry(decryptedProject).State = EntityState.Unchanged;
 
@@ -300,6 +341,11 @@
             {
                 _dbContext.Entry(asset).State = EntityState.Unchanged;
                 asset.IsArchived = true;
+                asset.Modified = DateTime.UtcNow;
+                asset.ModifiedBy = currentUser;
+
+                // LOG asset archive event
+                await _eventService.LogArchiveAssetEventAsync(decryptedProject.Id, remoteIpAddress, currentUser.Id, asset.Id);
             }
 
             decryptedProject.IsArchived = true; // set archive status
@@ -318,6 +364,12 @@
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
 
+            if (await _permissionService.CheckAccessAsync(updatedProject.Id, currentUser, Enums.Role.Owner, this) == false)
+            {
+                // CR: this should rather return a failed result
+                throw new Exception("Only owners can update projects.");
+            }
+
             // validate that access hasn't changed by getting a fresh, NoTracking copy of the project.
             var retrievedProject = await _dbContext.Projects.Where(p =>
                 p.Id == updatedProject.Id &&
@@ -332,7 +384,7 @@
             foreach (var accessIdentifier in updatedProject.AccessIdentifiers)
             {
                 // check if the project-to-be-saved has an identity that doesn't already have access
-                if (retrievedProject.AccessIdentifiers.Any(ai=>
+                if (retrievedProject.AccessIdentifiers.Any(ai =>
                     ai.Identity.AzureAdObjectIdentifier == accessIdentifier.Identity.AzureAdObjectIdentifier) == false)
                 {
                     // throw if such an item exists.
@@ -357,5 +409,6 @@
             // LOG Event
             await _eventService.LogUpdateProjectEventAsync(updatedProject.Id, currentUser.Id, remoteIpAddress);
         }
+
     }
 }

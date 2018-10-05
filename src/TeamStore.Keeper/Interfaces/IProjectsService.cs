@@ -31,6 +31,12 @@
         Task<List<Project>> GetProjects(bool skipDecryption = false, bool includeArchived = false);
 
         /// <summary>
+        /// Gets all archived projects. Can skip decryption.
+        /// </summary>
+        /// <returns>A list of Project objects</returns>
+        Task<List<Project>> GetArchivedProjectsAsync(bool skipDecryption = false);
+
+        /// <summary>
         /// Encrypts and persists a Project in the database
         /// </summary>
         /// <param name="decryptedProject">The Project object to encrypt and persist</param>
