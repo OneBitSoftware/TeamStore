@@ -1,6 +1,8 @@
 ﻿namespace TeamStore.Keeper.Services
 {
+    using Microsoft.EntityFrameworkCore;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Security.Claims;
     using System.Threading.Tasks;
@@ -8,6 +10,7 @@
     using TeamStore.Keeper.Enums;
     using TeamStore.Keeper.Factories;
     using TeamStore.Keeper.Interfaces;
+    using TeamStore.Keeper.Models;
 
     public class EventService : IEventService
     {
@@ -38,12 +41,14 @@
         /// <returns>A Task object</returns>
         public async Task LogRevokeAccessEventAsync(
             int projectId,
-            string remoteIpAddress, 
+            string remoteIpAddress,
             int targetUserId,
             Role role,
             int revokingUserId,
             string customData)
         {
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
             var revokeAccess = new Models.Event();
             revokeAccess.DateTime = DateTime.UtcNow;
             revokeAccess.Type = Enums.EventType.RevokeAccess.ToString();
@@ -79,6 +84,8 @@
             int grantingUserId,
             string customData)
         {
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
             var grantAccess = new Models.Event();
             grantAccess.DateTime = DateTime.UtcNow;
             grantAccess.Type = Enums.EventType.GrantAccess.ToString();
@@ -106,6 +113,8 @@
         /// <returns>A Task result</returns>
         public async Task LogArchiveProjectEventAsync(int projectId, int actingUserId, string remoteIpAddress)
         {
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
             var archiveEvent = new Models.Event();
             archiveEvent.DateTime = DateTime.UtcNow;
             archiveEvent.Type = Enums.EventType.ArchiveProject.ToString();
@@ -129,6 +138,8 @@
         /// <returns>A void Task object</returns>
         public async Task LogLoginEventAsync(ClaimsIdentity identity, string accessIpAddress)
         {
+            if (string.IsNullOrWhiteSpace(accessIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
             // Get/Create user
             var claim = identity.Claims.FirstOrDefault(c => c.Type == Constants.CLAIMS_OBJECTIDENTIFIER);
 
@@ -137,6 +148,7 @@
 
             var loginEvent = new Models.Event();
             loginEvent.DateTime = DateTime.UtcNow;
+            loginEvent.ActedByUser = claim.Value;
             loginEvent.ActedByUser = claim.Value;
             loginEvent.Type = Enums.EventType.Signin.ToString();
             loginEvent.Data = "AADSignInIpAddress: " + signInIpAddress;
@@ -148,6 +160,24 @@
             {
                 // we have a problem
             }
+        }
+
+        /// <summary>
+        /// Retrieves all sign-in events for the specified period.
+        /// </summary>
+        /// <param name="startDateTime">The start time of the login events</param>
+        /// <param name="endDateTime">The end time of the login events</param>
+        /// <returns>A Task of IEnumerable<Event> objects.</returns>
+        public async Task<IEnumerable<Models.Event>> GetLoginEventsAsync(DateTime startDateTime, DateTime endDateTime)
+        {
+            var results = await _dbContext.Events
+                .Where(e =>
+                    e.DateTime >= startDateTime &&
+                    e.DateTime <= endDateTime &&
+                    e.Type == EventType.Signin.ToString())
+                .ToListAsync();
+
+            return results;
         }
 
         public async Task LogCustomEventAsync(string actingUserId, string customData)
@@ -173,6 +203,8 @@
             int assetId,
             string assetDescription)
         {
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
             var createAssetEvent = new Models.Event();
             createAssetEvent.DateTime = DateTime.UtcNow;
             createAssetEvent.Type = Enums.EventType.CreateAsset.ToString();
@@ -190,15 +222,30 @@
             }
         }
 
-        public async Task LogAssetAccessEventAsync(int projectId, int actingUserId, string remoteIpAddress, int assetId)
+        public async Task LogAssetAccessEventAsync(
+            int projectId,
+            string projectTitle,
+            int actingUserId,
+            string actingUserUpn,
+            string remoteIpAddress,
+            int assetId,
+            string assetTitle,
+            string assetLogin
+            )
         {
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
             var retrieveAssetEvent = new Models.Event();
             retrieveAssetEvent.DateTime = DateTime.UtcNow;
             retrieveAssetEvent.Type = Enums.EventType.RetrieveAsset.ToString();
             retrieveAssetEvent.RemoteIpAddress = remoteIpAddress;
-            retrieveAssetEvent.ActedByUser = actingUserId.ToString();
+            retrieveAssetEvent.ActedByUserId = actingUserId.ToString();
+            retrieveAssetEvent.ActedByUser = actingUserUpn;
             retrieveAssetEvent.ProjectId = projectId;
+            retrieveAssetEvent.ProjectTitle = projectTitle;
             retrieveAssetEvent.AssetId = assetId;
+            retrieveAssetEvent.AssetTitle = assetTitle;
+            retrieveAssetEvent.AssetLogin= assetLogin;
 
             await _dbContext.Events.AddAsync(retrieveAssetEvent);
             var updatedRowCount = await _dbContext.SaveChangesAsync();
@@ -208,11 +255,31 @@
             }
         }
 
+        /// <summary>
+        /// Gets all Asset access logs for the specified period.
+        /// </summary>
+        /// <param name="startDateTime">The start time of the asset retrievals.</param>
+        /// <param name="endDateTime">The end time of the asset retrievals.</param>
+        /// <returns>A Task of IEnumerable<Event> objects.</returns>
+        public async Task<IEnumerable<Event>> GetAssetAccessEventsAsync(DateTime startDateTime, DateTime endDateTime)
+        {
+            var results = await _dbContext.Events
+                .Where(e =>
+                    e.DateTime >= startDateTime &&
+                    e.DateTime <= endDateTime &&
+                    e.Type == EventType.RetrieveAsset.ToString())
+            .ToListAsync();
+
+            return results;
+        }
+
         public async Task LogUpdatePasswordEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId)
         {
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
             var retrieveAssetEvent = new Models.Event();
             retrieveAssetEvent.DateTime = DateTime.UtcNow;
-            retrieveAssetEvent.Type = Enums.EventType.UpdatePassword.ToString();
+            retrieveAssetEvent.Type = EventType.UpdatePassword.ToString();
             retrieveAssetEvent.RemoteIpAddress = remoteIpAddress;
             retrieveAssetEvent.ActedByUser = actingUserId.ToString();
             retrieveAssetEvent.ProjectId = projectId;
@@ -228,6 +295,8 @@
 
         public async Task LogUpdateAssetEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId)
         {
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
             var retrieveAssetEvent = new Models.Event();
             retrieveAssetEvent.DateTime = DateTime.UtcNow;
             retrieveAssetEvent.Type = Enums.EventType.UpdateAsset.ToString();
@@ -252,6 +321,8 @@
         /// <returns>A Task result</returns>
         public async Task LogCreateProjectEventAsync(int projectId, int actingUserId, string remoteIpAddress)
         {
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
             var createProjectEvent = new Models.Event();
             createProjectEvent.DateTime = DateTime.UtcNow;
             createProjectEvent.Type = Enums.EventType.CreateProject.ToString();
@@ -276,6 +347,8 @@
         /// <returns>A Task result</returns>
         public async Task LogUpdateProjectEventAsync(int projectId, int actingUserId, string remoteIpAddress)
         {
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
             var updateProjectEvent = new Models.Event();
             updateProjectEvent.DateTime = DateTime.UtcNow;
             updateProjectEvent.Type = Enums.EventType.UpdateProject.ToString();
@@ -284,6 +357,26 @@
             updateProjectEvent.ProjectId = projectId;
 
             await _dbContext.Events.AddAsync(updateProjectEvent);
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
+        }
+
+        public async Task LogArchiveAssetEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId)
+        {
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
+            var retrieveAssetEvent = new Models.Event();
+            retrieveAssetEvent.DateTime = DateTime.UtcNow;
+            retrieveAssetEvent.Type = Enums.EventType.ArchiveAsset.ToString();
+            retrieveAssetEvent.RemoteIpAddress = remoteIpAddress;
+            retrieveAssetEvent.ActedByUser = actingUserId.ToString();
+            retrieveAssetEvent.ProjectId = projectId;
+            retrieveAssetEvent.AssetId = assetId;
+
+            await _dbContext.Events.AddAsync(retrieveAssetEvent);
             var updatedRowCount = await _dbContext.SaveChangesAsync();
             if (updatedRowCount > 1)
             {

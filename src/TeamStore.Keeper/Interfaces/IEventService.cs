@@ -1,5 +1,7 @@
 ﻿namespace TeamStore.Keeper.Interfaces
 {
+    using System;
+    using System.Collections.Generic;
     using System.Security.Claims;
     using System.Threading.Tasks;
     using TeamStore.Keeper.Enums;
@@ -8,7 +10,9 @@
     public interface IEventService
     {
 
-        Task LogAssetAccessEventAsync(int projectId, int actingUserId, string remoteIpAddress, int assetId);
+        Task LogAssetAccessEventAsync(int projectId, string projectTitle, int actingUserId, string actingUserUpn, string remoteIpAddress, int assetId, string assetTitle, string assetLogin);
+
+        Task<IEnumerable<Event>> GetAssetAccessEventsAsync(DateTime startDateTime, DateTime endDateTime);
 
         Task LogCreateAssetEventAsync(
             int projectId,
@@ -51,6 +55,14 @@
         /// <param name="accessIpAddress">The IP address of the originating request.</param>
         /// <returns>A void Task object</returns>
         Task LogLoginEventAsync(ClaimsIdentity identity, string remoteIpAddress);
+
+        /// <summary>
+        /// Retrieves all sign-in events for the specified period.
+        /// </summary>
+        /// <param name="startDateTime">The start time of the login events</param>
+        /// <param name="endDateTime">The end time of the login events</param>
+        /// <returns>A Task of IEnumerable<Event> objects.</returns>
+        Task<IEnumerable<Event>> GetLoginEventsAsync(DateTime startDateTime, DateTime endDateTime);
 
         /// <summary>
         /// Logs a Grant Access event
@@ -96,6 +108,7 @@
         Task LogUpdatePasswordEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId);
 
         Task LogUpdateAssetEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId);
+        Task LogArchiveAssetEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId);
 
         Task LogCustomEventAsync(string actingUserId, string customData);
     }
