@@ -72,7 +72,7 @@
             _dbContext.Entry(project).State = EntityState.Unchanged; // project will be encrypted here
 
             // Verify current user has permissions to grant access, aka Owner
-            if (await CurrentUserHasAccess(project, projectsService, Role.Owner) == false)
+            if (await CurrentUserHasAccessAsync(projectId, projectsService, Role.Owner) == false)
             {
                 await _eventService.LogCustomEventAsync(currentUser.Id.ToString(), $"User {currentUser.Upn} attepted to give access to {upn} without having access to project with ID: {projectId}.");
                 throw new Exception("The current user does not have permissions to grant access.");
@@ -110,7 +110,7 @@
 
             await _dbContext.SaveChangesAsync();
 
-            return new AccessChangeResult() { Success = true }; 
+            return new AccessChangeResult() { Success = true };
         }
 
         /// <summary>
@@ -147,8 +147,8 @@
             }
 
             // Validate that the AzureAD Object Identifier has access
-            var existingAccess = _dbContext.AccessIdentifiers.Where(a => 
-                a.Project.Id == projectId && 
+            var existingAccess = _dbContext.AccessIdentifiers.Where(a =>
+                a.Project.Id == projectId &&
                 ((ApplicationUser)a.Identity).Upn == upn &&
                 a.Role == role);
 
@@ -160,7 +160,7 @@
                 project.AccessIdentifiers.Remove(item);
 
                 // Save Revoke Access event
-                await _eventService.LogRevokeAccessEventAsync(projectId, remoteIpAddress, item.Id, role, currentUser.Id, "AADObjectId:" + item.Identity.AzureAdObjectIdentifier );
+                await _eventService.LogRevokeAccessEventAsync(projectId, remoteIpAddress, item.Id, role, currentUser.Id, "AADObjectId:" + item.Identity.AzureAdObjectIdentifier);
 
             } // this will not error out when there are no results, which should be OK
 
@@ -181,9 +181,18 @@
             // Get/find the project
             if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
             if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
-            var project = await projectsService.GetProject(projectId, true);
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new ArgumentNullException(nameof(currentUser));
 
-            return await CurrentUserHasAccess(project, projectsService, role);
+            var accessList = _dbContext.AccessIdentifiers.Where(ai =>
+                ai.Project.Id == projectId &&
+                ai.Role == role &&
+                ai.Identity == currentUser);
+
+            if (accessList.Count() > 0)
+                return true;
+
+            return false;
         }
 
         /// <summary>
@@ -197,9 +206,17 @@
             // Get/find the project
             if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
             if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
-            var project = await projectsService.GetProject(projectId, true);
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new ArgumentNullException(nameof(currentUser));
 
-            return await CurrentUserHasAccess(project, projectsService);
+            var accessList = _dbContext.AccessIdentifiers.Where(ai =>
+                ai.Project.Id == projectId &&
+                ai.Identity == currentUser);
+
+            if (accessList.Count() > 0)
+                return true;
+
+            return false;
         }
 
         /// <summary>
@@ -209,24 +226,24 @@
         /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
         /// <param name="role">The role/level of access to check</param>
         /// <returns>True if the current user has the role access to the specified project</returns>
-        public async Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService, Role role)
-        {
-            // Get/find the project
-            if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
-            var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new ArgumentNullException(nameof(currentUser));
-            if (project == null) throw new ArgumentNullException(nameof(project));
+        //public async Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService, Role role)
+        //{
+        //    // Get/find the project
+        //    if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
+        //    var currentUser = await _applicationIdentityService.GetCurrentUser();
+        //    if (currentUser == null) throw new ArgumentNullException(nameof(currentUser));
+        //    if (project == null) throw new ArgumentNullException(nameof(project));
 
-            var accessList = project.AccessIdentifiers.Where(ai =>
-                ai.Project == project &&
-                ai.Role == role &&
-                ai.Identity == currentUser);
+        //    var accessList = project.AccessIdentifiers.Where(ai =>
+        //        ai.Project == project &&
+        //        ai.Role == role &&
+        //        ai.Identity == currentUser);
 
-            if (accessList.Count() > 0)
-                return true;
+        //    if (accessList.Count() > 0)
+        //        return true;
 
-            return false;
-        }
+        //    return false;
+        //}
 
         /// <summary>
         /// Checks if the current ApplicationUser has any access to the specified project 
@@ -234,23 +251,23 @@
         /// <param name="project">The instance of the project to check for access</param>
         /// <param name="projectsService">An instance of IProjectService to resolve projects</param>
         /// <returns>True if the current user has the role access to the specified project</returns>
-        public async Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService)
-        {
-            // Get/find the project
-            if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
-            var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new ArgumentNullException(nameof(currentUser));
-            if (project == null) throw new ArgumentNullException(nameof(project));
+        //public async Task<bool> CurrentUserHasAccess(Project project, IProjectsService projectsService)
+        //{
+        //    // Get/find the project
+        //    if (projectsService == null) throw new ArgumentNullException(nameof(projectsService));
+        //    var currentUser = await _applicationIdentityService.GetCurrentUser();
+        //    if (currentUser == null) throw new ArgumentNullException(nameof(currentUser));
+        //    if (project == null) throw new ArgumentNullException(nameof(project));
 
-            var accessList = project.AccessIdentifiers.Where(ai =>
-                ai.Project == project &&
-                ai.Identity == currentUser);
+        //    var accessList = project.AccessIdentifiers.Where(ai =>
+        //        ai.Project == project &&
+        //        ai.Identity == currentUser);
 
-            if (accessList.Count() > 0)
-                return true;
+        //    if (accessList.Count() > 0)
+        //        return true;
 
-            return false;
-        }
+        //    return false;
+        //}
 
         /// <summary>
         /// Checks if an ApplicationUser has the requested role against a project
@@ -265,9 +282,9 @@
             if (project == null) throw new ArgumentNullException(nameof(project));
             if (targetUser == null) throw new ArgumentNullException(nameof(targetUser));
 
-            var result = project.AccessIdentifiers.Where(ai => 
-                ai.Project == project && 
-                ai.Identity == targetUser && 
+            var result = project.AccessIdentifiers.Where(ai =>
+                ai.Project == project &&
+                ai.Identity == targetUser &&
                 ai.Role == role).FirstOrDefault();
 
             if (result != null)
