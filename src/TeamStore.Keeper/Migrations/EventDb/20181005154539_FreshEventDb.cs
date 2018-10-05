@@ -15,12 +15,16 @@ namespace TeamStore.Keeper.Migrations.EventDb
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     ActedByUser = table.Column<string>(type: "TEXT", nullable: true),
+                    ActedByUserId = table.Column<string>(type: "TEXT", nullable: true),
                     AssetId = table.Column<int>(type: "INTEGER", nullable: true),
+                    AssetLogin = table.Column<string>(type: "TEXT", nullable: true),
+                    AssetTitle = table.Column<string>(type: "TEXT", nullable: true),
                     Data = table.Column<string>(type: "TEXT", nullable: true),
                     DateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
                     NewValue = table.Column<string>(type: "TEXT", nullable: true),
                     OldValue = table.Column<string>(type: "TEXT", nullable: true),
                     ProjectId = table.Column<int>(type: "INTEGER", nullable: true),
+                    ProjectTitle = table.Column<string>(type: "TEXT", nullable: true),
                     RemoteIpAddress = table.Column<string>(type: "TEXT", nullable: true),
                     TargetUserId = table.Column<int>(type: "INTEGER", nullable: true),
                     Type = table.Column<string>(type: "TEXT", nullable: true)

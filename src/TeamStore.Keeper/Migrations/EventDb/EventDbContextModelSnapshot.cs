@@ -26,7 +26,13 @@ namespace TeamStore.Keeper.Migrations.EventDb
 
                     b.Property<string>("ActedByUser");
 
+                    b.Property<string>("ActedByUserId");
+
                     b.Property<int?>("AssetId");
+
+                    b.Property<string>("AssetLogin");
+
+                    b.Property<string>("AssetTitle");
 
                     b.Property<string>("Data");
 
@@ -37,6 +43,8 @@ namespace TeamStore.Keeper.Migrations.EventDb
                     b.Property<string>("OldValue");
 
                     b.Property<int?>("ProjectId");
+
+                    b.Property<string>("ProjectTitle");
 
                     b.Property<string>("RemoteIpAddress");
 
