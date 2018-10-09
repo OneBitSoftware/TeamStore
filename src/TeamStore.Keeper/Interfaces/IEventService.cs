@@ -14,6 +14,8 @@
 
         Task<IEnumerable<Event>> GetAssetAccessEventsAsync(DateTime startDateTime, DateTime endDateTime);
 
+        Task<Event> GetAssetLastAccessEventAsync(int assetId);
+
         Task LogCreateAssetEventAsync(
             int projectId,
             int actingUserId,

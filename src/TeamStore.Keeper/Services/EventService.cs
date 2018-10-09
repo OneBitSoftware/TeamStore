@@ -273,6 +273,17 @@
             return results;
         }
 
+        public async Task<Event> GetAssetLastAccessEventAsync(int assetId)
+        {
+            // gets the last access event for a given asset id
+            var result = await _dbContext.Events
+                    .Where(e => e.AssetId == assetId)
+                    .OrderByDescending(e => e.DateTime)
+                    .FirstOrDefaultAsync();
+
+            return result;
+        }
+
         public async Task LogUpdatePasswordEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId)
         {
             if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");

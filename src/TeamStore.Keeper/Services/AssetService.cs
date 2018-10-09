@@ -162,6 +162,8 @@
             if (retrievedAsset == null) return null;
             DecryptAsset(retrievedAsset);
 
+            DecryptProjectTitle(retrievedAsset);
+
             // extract asset login
             if (retrievedAsset.GetType() == typeof(Credential))
             {
@@ -410,6 +412,16 @@
         public string DecryptPassword(string encryptedPassword)
         {
             return _encryptionService.DecryptString(encryptedPassword);
+        }
+
+        private void DecryptProjectTitle(Asset asset)
+        {
+            var projectTitle = asset?.Project?.Title;
+
+            if (string.IsNullOrWhiteSpace(projectTitle) == false)
+            {
+                asset.Project.Title = _encryptionService.DecryptString(projectTitle);
+            }
         }
     }
 }
