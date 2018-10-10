@@ -364,11 +364,12 @@ namespace TeamStore.Keeper.Services
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
 
-            if (await _permissionService.CheckAccessAsync(updatedProject.Id, currentUser, Enums.Role.Owner, this) == false)
-            {
-                // CR: this should rather return a failed result
-                throw new Exception("Only owners can update projects.");
-            }
+            // TODO: this code reloads the project entity from the DB, causing it to persist encrypted strings. 
+            //if (await _permissionService.CheckAccessAsync(updatedProject.Id, currentUser, Enums.Role.Owner, this) == false)
+            //{
+            //    // CR: this should rather return a failed result
+            //    throw new Exception("Only owners can update projects.");
+            //}
 
             // validate that access hasn't changed by getting a fresh, NoTracking copy of the project.
             var retrievedProject = await _dbContext.Projects.Where(p =>
