@@ -12,7 +12,7 @@
 
         Task LogAssetAccessEventAsync(int projectId, string projectTitle, int actingUserId, string actingUserUpn, string remoteIpAddress, int assetId, string assetTitle, string assetLogin);
 
-        Task<IEnumerable<Event>> GetAssetAccessEventsAsync(DateTime startDateTime, DateTime endDateTime);
+        Task<IEnumerable<Event>> GetAssetAccessEventsAsync(DateTime startDateTime, DateTime endDateTime, string login = "");
 
         Task<Event> GetAssetLastAccessEventAsync(int assetId);
 
