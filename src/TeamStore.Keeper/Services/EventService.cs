@@ -245,7 +245,7 @@
             retrieveAssetEvent.ProjectTitle = projectTitle;
             retrieveAssetEvent.AssetId = assetId;
             retrieveAssetEvent.AssetTitle = assetTitle;
-            retrieveAssetEvent.AssetLogin= assetLogin;
+            retrieveAssetEvent.AssetLogin = assetLogin;
 
             await _dbContext.Events.AddAsync(retrieveAssetEvent);
             var updatedRowCount = await _dbContext.SaveChangesAsync();
@@ -261,12 +261,13 @@
         /// <param name="startDateTime">The start time of the asset retrievals.</param>
         /// <param name="endDateTime">The end time of the asset retrievals.</param>
         /// <returns>A Task of IEnumerable<Event> objects.</returns>
-        public async Task<IEnumerable<Event>> GetAssetAccessEventsAsync(DateTime startDateTime, DateTime endDateTime)
+        public async Task<IEnumerable<Event>> GetAssetAccessEventsAsync(DateTime startDateTime, DateTime endDateTime, string login = "")
         {
             var results = await _dbContext.Events
                 .Where(e =>
+                    (login != "" ? e.ActedByUser == login : true) &&
                     e.DateTime >= startDateTime &&
-                    e.DateTime <= endDateTime &&
+                    e.DateTime <= endDateTime &&                   
                     e.Type == EventType.RetrieveAsset.ToString())
             .ToListAsync();
 
