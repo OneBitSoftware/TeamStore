@@ -1,5 +1,6 @@
 ﻿namespace TeamStore.Keeper.Interfaces
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using TeamStore.Keeper.Models;
@@ -35,6 +36,12 @@
         /// </summary>
         /// <returns>A list of Project objects</returns>
         Task<List<Project>> GetArchivedProjectsAsync(bool skipDecryption = false);
+
+        /// <summary>
+        /// Gets all archived projects items for a period. Can skip decryption and project title.
+        /// </summary>
+        /// <returns>A list of Project objects</returns>
+        Task<List<Project>> GetArchivedProjectsAsync(DateTime startDateTime, DateTime endDateTime, string projectTitle = "", bool skipDecryption = false);
 
         /// <summary>
         /// Encrypts and persists a Project in the database
