@@ -2,17 +2,17 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Text;
     using System.Linq;
     using System.Threading.Tasks;
     using TeamStore.Keeper.DataAccess;
     using TeamStore.Keeper.Interfaces;
     using TeamStore.Keeper.Models;
-    using Microsoft.EntityFrameworkCore.Extensions;
     using Microsoft.EntityFrameworkCore;
 
     public class AssetService : IAssetService
     {
+        private readonly string UnauthorisedExceptionMessage = "Unauthorised requests are not allowed.";
+
         private readonly ApplicationDbContext _dbContext;
         private readonly IProjectsService _projectService;
         private readonly IEncryptionService _encryptionService;
@@ -253,6 +253,14 @@
             return assets;
         }
 
+        public async Task<List<Asset>> GetAllAssetsAsync()
+        { 
+            // CR Put wrapped validation method in all methods
+            if (!await IsUserAuthorized()) throw new Exception(UnauthorisedExceptionMessage);
+            
+            return await _dbContext.Assets.ToListAsync();
+        }
+
         // Question: Why are we returning on update??
 
         public async Task<Asset> UpdateAssetAsync(int projectId, Asset asset, string remoteIpAddress)
@@ -422,6 +430,13 @@
             {
                 asset.Project.Title = _encryptionService.DecryptString(projectTitle);
             }
+        }
+
+        // Validate current user
+        private async Task<bool> IsUserAuthorized() 
+        {            
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            return currentUser != null;
         }
     }
 }

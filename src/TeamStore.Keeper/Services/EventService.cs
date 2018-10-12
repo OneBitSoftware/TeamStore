@@ -278,7 +278,8 @@
         {
             // gets the last access event for a given asset id
             var result = await _dbContext.Events
-                    .Where(e => e.AssetId == assetId)
+                    .Where(e => e.AssetId == assetId &&
+                                e.Type == EventType.RetrieveAsset.ToString())
                     .OrderByDescending(e => e.DateTime)
                     .FirstOrDefaultAsync();
 

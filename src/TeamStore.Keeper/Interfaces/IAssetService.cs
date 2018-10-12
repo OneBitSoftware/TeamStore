@@ -21,6 +21,11 @@
         Task<List<Asset>> GetAssetResultsAsync(string searchPrefix, int maxResults);
 
         /// <summary>
+        /// Returns list of all assets that are not archived.
+        /// </summary>
+        Task<List<Asset>> GetAllAssetsAsync();
+
+        /// <summary>
         /// Loads the Assets for a given Project explicitly. Used when the initial Projects query does not
         /// explicitly include them.
         /// </summary>
