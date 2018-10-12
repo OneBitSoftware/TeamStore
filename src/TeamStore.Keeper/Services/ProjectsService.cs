@@ -124,6 +124,23 @@ namespace TeamStore.Keeper.Services
             return archivedProjects;
         }
 
+        public async Task<List<Project>> GetArchivedProjectsAsync(DateTime startDateTime, DateTime endDateTime, string projectTitle = "", bool skipDecryption = false)
+        {
+            List<Project> archivedProjects =  await this.GetArchivedProjectsAsync(skipDecryption);
+            List<Project> filteredProjects = archivedProjects
+                .Where(p => (projectTitle != "" ? p.Title == projectTitle : true))
+                .ToList();
+
+            for (int i = 0; i < filteredProjects.Count(); i++)
+            {
+                filteredProjects[i].Assets = filteredProjects[i].Assets
+                    .Where(a => (a.Modified >= startDateTime && a.Modified <= endDateTime))
+                    .ToList();
+            }
+
+            return filteredProjects;
+        }
+
         /// <summary>
         /// Retrieves a Project by Project Id, if the user has access to it.
         /// </summary>
