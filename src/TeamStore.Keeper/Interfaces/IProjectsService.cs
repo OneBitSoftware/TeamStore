@@ -37,6 +37,13 @@
         Task<List<Project>> GetArchivedProjectsAsync(bool skipDecryption = false);
 
         /// <summary>
+        /// Loads the related Assets for a project from the database
+        /// </summary>
+        /// <param name="project">The Project object to load assets for</param>
+        /// <returns>A Task object</returns>
+        Task LoadAssetsForProjectAsync(Project project);
+
+        /// <summary>
         /// Encrypts and persists a Project in the database
         /// </summary>
         /// <param name="decryptedProject">The Project object to encrypt and persist</param>
@@ -60,6 +67,7 @@
         /// <param name="remoteIpAddress">The IP address of the request causing the event</param>
         /// <returns>A Task result</returns>
         Task ArchiveProject(Project decryptedProject, string remoteIpAddress);
+        Task ArchiveProject(Project decryptedProject, string remoteIpAddress, ApplicationUser actingUser);
 
         /// <summary>
         /// Persists a passed <see cref="Project"/> in the database, setting modified dates and users.

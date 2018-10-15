@@ -68,8 +68,8 @@
             if (retrievedAsset == null) throw new Exception("The asset was not found or the current user does not have access to it.");
 
             // Refresh the entity to discard changes and avoid saving a decrypted project
-            _dbContext.Entry(retrievedAsset).State = EntityState.Unchanged;
-            _dbContext.Entry(retrievedAsset.Project).State = EntityState.Unchanged;
+            //_dbContext.Entry(retrievedAsset).State = EntityState.Unchanged;
+            //_dbContext.Entry(retrievedAsset.Project).State = EntityState.Unchanged;
             retrievedAsset.IsArchived = true;
 
             // Set modified time/user
@@ -116,6 +116,13 @@
             if (string.IsNullOrWhiteSpace(asset.Title)) throw new ArgumentNullException(nameof(asset.Title));
 
             // persist through context
+
+            // Ensure project is encrypted
+            if (asset.Project.IsProjectTitleDecrypted == true || asset.Project.IsDecrypted == true)
+            {
+                throw new Exception("Saving a decrypted project is not allowed");
+            }
+
             await _dbContext.Assets.AddAsync(asset);
             var updatedRowCount = await _dbContext.SaveChangesAsync();
             if (updatedRowCount > 1)
@@ -144,7 +151,7 @@
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
             // Get assets with appropriate access checks
             var retrievedAsset = await _dbContext.Assets.Where(a =>
@@ -161,7 +168,6 @@
             // decrypt
             if (retrievedAsset == null) return null;
             DecryptAsset(retrievedAsset);
-
             DecryptProjectTitle(retrievedAsset);
 
             // extract asset login
@@ -191,7 +197,7 @@
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
             // Get assets with appropriate access checks
             var retrievedAssets = await _dbContext.Assets.Where(a =>
@@ -354,6 +360,11 @@
         /// <param name="asset">The asset to encrypt</param>
         public void EncryptAsset(Asset asset)
         {
+            if (asset.IsDecrypted == false)
+            {
+                return;
+            }
+
             // TODO: create a test to validate the argumentnullexception
             if (asset == null) throw new ArgumentNullException(nameof(asset));
             if (string.IsNullOrWhiteSpace(asset.Title)) throw new Exception("An asset title cannot be an empty string. Cannot encrypt and decrypt.");
@@ -374,11 +385,12 @@
             }
 
             asset.Title = _encryptionService.EncryptString(asset.Title);
-
             if (string.IsNullOrWhiteSpace(asset.Notes) == false)
             {
                 asset.Notes = _encryptionService.EncryptString(asset.Notes);
             }
+
+            asset.IsDecrypted = false;
         }
 
         /// <summary>
@@ -387,6 +399,11 @@
         /// <param name="asset">The Asset to decrypt</param>
         public void DecryptAsset(Asset asset)
         {
+            if (asset.IsDecrypted == true)
+            {
+                return;
+            }
+
             if (asset.GetType() == typeof(Credential))
             {
                 var credential = asset as Credential;
@@ -403,6 +420,8 @@
             {
                 asset.Notes = _encryptionService.DecryptString(asset.Notes);
             }
+
+            asset.IsDecrypted = true;
         }
 
         /// <summary>
@@ -416,11 +435,29 @@
 
         private void DecryptProjectTitle(Asset asset)
         {
-            var projectTitle = asset?.Project?.Title;
-
-            if (string.IsNullOrWhiteSpace(projectTitle) == false)
+            if (asset?.Project?.IsProjectTitleDecrypted == false)
             {
-                asset.Project.Title = _encryptionService.DecryptString(projectTitle);
+                var projectTitle = asset?.Project?.Title;
+
+                if (string.IsNullOrWhiteSpace(projectTitle) == false)
+                {
+                    asset.Project.Title = _encryptionService.DecryptString(projectTitle);
+                    asset.Project.IsProjectTitleDecrypted = true;
+                } 
+            }
+        }
+
+        private void EncryptProjectTitle(Asset asset)
+        {
+            if (asset?.Project?.IsProjectTitleDecrypted == true)
+            {
+                var projectTitle = asset?.Project?.Title;
+
+                if (string.IsNullOrWhiteSpace(projectTitle) == false)
+                {
+                    asset.Project.Title = _encryptionService.EncryptString(projectTitle);
+                    asset.Project.IsProjectTitleDecrypted = false;
+                }
             }
         }
     }

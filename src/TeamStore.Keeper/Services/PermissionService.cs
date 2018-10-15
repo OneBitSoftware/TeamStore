@@ -69,7 +69,10 @@
             if (project == null) throw new ArgumentNullException(nameof(project));
 
             // Refresh the entity to discard changes and avoid saving a decrypted project
-            _dbContext.Entry(project).State = EntityState.Unchanged; // project will be encrypted here
+            if (project.IsDecrypted == true)
+            {
+                _dbContext.Entry(project).State = EntityState.Unchanged; // project will be encrypted here
+            }
 
             // Verify current user has permissions to grant access, aka Owner
             if (await CurrentUserHasAccessAsync(projectId, projectsService, Role.Owner) == false)
@@ -79,7 +82,7 @@
             }
 
             // Check if the target user already has access
-            if (CheckAccess(project, upn, Role.Owner, projectsService))
+            if (CheckAccess(project, upn, Role.Owner))
             {
                 await _eventService.LogCustomEventAsync(currentUser.Id.ToString(), $"The user {currentUser.Upn} attepted to give access to {upn} who already has access to project with ID: {projectId}.");
                 return new AccessChangeResult() { Success = false, Message = $"User {upn} already has access." }; // no need to grant
@@ -108,7 +111,7 @@
             // Save Grant event
             await _eventService.LogGrantAccessEventAsync(projectId, remoteIpAddress, role, newAccessIdentifier.Identity.Id, currentUser.Id, "UPN: " + upn);
 
-            await _dbContext.SaveChangesAsync();
+            var modifiedRows = await _dbContext.SaveChangesAsync();
 
             return new AccessChangeResult() { Success = true };
         }
@@ -277,14 +280,14 @@
         /// <param name="role">The role of interest</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>True if the user has the specified role, false if not.</returns>
-        public bool CheckAccess(Project project, ApplicationUser targetUser, Role role, IProjectsService projectsService)
+        public bool CheckAccess(Project project, ApplicationUser targetUser, Role role)
         {
             if (project == null) throw new ArgumentNullException(nameof(project));
             if (targetUser == null) throw new ArgumentNullException(nameof(targetUser));
 
             var result = project.AccessIdentifiers.Where(ai =>
-                ai.Project == project &&
-                ai.Identity == targetUser &&
+                ai.Project.Id == project.Id &&
+                ai.Identity.Id == targetUser.Id &&
                 ai.Role == role).FirstOrDefault();
 
             if (result != null)
@@ -299,9 +302,8 @@
         /// <param name="project">The Project to check</param>
         /// <param name="targetUserUpn">The UPN of the ApplicationUser to check</param>
         /// <param name="role">The role of interest</param>
-        /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>True if the user has the specified role, false if not.</returns>
-        public bool CheckAccess(Project project, string targetUserUpn, Role role, IProjectsService projectsService)
+        public bool CheckAccess(Project project, string targetUserUpn, Role role)
         {
             if (project == null) throw new ArgumentNullException(nameof(project));
             if (string.IsNullOrWhiteSpace(targetUserUpn)) throw new ArgumentNullException(nameof(targetUserUpn));
@@ -333,7 +335,7 @@
             if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
             var project = await projectsService.GetProject(projectId, true);
 
-            return CheckAccess(project, targetUser, role, projectsService);
+            return CheckAccess(project, targetUser, role);
         }
     }
 }
