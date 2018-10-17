@@ -167,6 +167,8 @@
 
             // decrypt
             if (retrievedAsset == null) return null;
+            retrievedAsset.IsDecrypted = false;
+
             DecryptAsset(retrievedAsset);
             DecryptProjectTitle(retrievedAsset);
 
@@ -212,6 +214,7 @@
 
             foreach (var asset in retrievedAssets)
             {
+                asset.IsDecrypted = false;
                 DecryptAsset(asset);
             }
 
@@ -240,6 +243,7 @@
                     var title = _encryptionService.DecryptString(asset.Title);
                     if (title.ToLowerInvariant().Contains(searchPrefix.ToLowerInvariant()))
                     {
+                        asset.IsDecrypted = false;
                         DecryptAsset(asset);
                         assets.Add(asset);
                     }
@@ -317,6 +321,8 @@
             credential.Modified = DateTime.UtcNow;
             credential.ModifiedBy = currentUser;
 
+            _dbContext.Entry(asset.Project).State = EntityState.Unchanged;
+
             // Persist in DB
             _dbContext.Assets.Update(credential);
             var updatedRowCount = await _dbContext.SaveChangesAsync();
@@ -350,6 +356,7 @@
 
             foreach (var asset in project.Assets)
             {
+                asset.IsDecrypted = false;
                 DecryptAsset(asset);
             }
         }
@@ -443,7 +450,7 @@
                 {
                     asset.Project.Title = _encryptionService.DecryptString(projectTitle);
                     asset.Project.IsProjectTitleDecrypted = true;
-                } 
+                }
             }
         }
 

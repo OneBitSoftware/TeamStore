@@ -160,6 +160,8 @@ namespace TeamStore.Keeper.Services
 
             if (result == null) return null;
 
+            result.IsDecrypted = false;
+
             // this line makes sure that the retrieved project is not retrieved
             // from EF's cache, as it will go through decryption and fail
             // It might be better to have a decrypted status rather than tinker with EF's state
@@ -202,6 +204,11 @@ namespace TeamStore.Keeper.Services
                     .ToListAsync();
             }
 
+            foreach (var project in projects) //ensure status is decrypted after DB retrieval
+            {
+                project.IsDecrypted = false;
+            }
+
             if (skipDecryption == false) // double false...
             {
                 foreach (var project in projects)
@@ -221,7 +228,16 @@ namespace TeamStore.Keeper.Services
         {
             if (result.IsDecrypted == false)
             {
-                result.Title = _encryptionService.DecryptString(result.Title);
+                try
+                {
+                    // in case the title is persisted with a non-decrypted string, this helps recover the application.
+                    result.Title = _encryptionService.DecryptString(result.Title);
+                }
+                catch
+                {
+                    result.Title = "Decryption error";
+                }
+
                 result.Description = _encryptionService.DecryptString(result.Description);
                 result.Category = _encryptionService.DecryptString(result.Category);
                 result.IsDecrypted = true; 
@@ -438,8 +454,6 @@ namespace TeamStore.Keeper.Services
 
             var modifiedRows = await _dbContext.SaveChangesAsync(); // save to db
         }
-
-
 
         public async Task UpdateProject(Project updatedProject, string remoteIpAddress)
         {
