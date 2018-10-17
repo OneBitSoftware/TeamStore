@@ -83,7 +83,7 @@
         /// <param name="role">The role of interest</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>True if the user has the specified role, false if not.</returns>
-        bool CheckAccess(Project project, ApplicationUser targetUser, Role role, IProjectsService projectsService);
+        bool CheckAccess(Project project, ApplicationUser targetUser, Role role);
 
         /// <summary>
         /// Checks if an ApplicationUser has the requested role against a project
@@ -93,7 +93,7 @@
         /// <param name="role">The role of interest</param>
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>True if the user has the specified role, false if not.</returns>
-        bool CheckAccess(Project project, string targetUserUpn, Role role, IProjectsService projectsService);
+        bool CheckAccess(Project project, string targetUserUpn, Role role);
 
         /// <summary>
         /// Checks if an ApplicationUser has the requested role against a project

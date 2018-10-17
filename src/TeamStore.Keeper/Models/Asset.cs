@@ -6,6 +6,11 @@
 
     public abstract class Asset : IAsset
     {
+        public Asset()
+        {
+            IsDecrypted = true;
+        }
+
         public int Id { get; set; }
 
         /// <summary>
@@ -31,5 +36,11 @@
 
         [ForeignKey("ProjectForeignKey")]
         public Project Project { get; set; }
+
+        /// <summary>
+        /// Tracks if the asset fields are decrypted. Not stored in the database.
+        /// </summary>
+        [NotMapped]
+        public bool IsDecrypted { get; set; }
     }
 }
