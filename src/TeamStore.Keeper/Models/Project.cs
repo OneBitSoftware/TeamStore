@@ -1,6 +1,7 @@
 ﻿namespace TeamStore.Keeper.Models
 {
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations.Schema;
 
     /// <summary>
     /// Represents a Project entity in the application
@@ -17,6 +18,8 @@
 
             Description = string.Empty;
             Category = string.Empty;
+
+            IsDecrypted = true;
         }
 
         /// <summary>
@@ -58,5 +61,17 @@
         /// Determines if the Project appears in the UI lists and search
         /// </summary>
         public bool IsPublic { get; set; }
+
+        /// <summary>
+        /// Tracks if the project fields are decrypted. Not stored in the database
+        /// </summary>
+        [NotMapped]
+        public  bool IsDecrypted { get; set; }
+
+        /// <summary>
+        /// Tracks if the project title is decrypted. Not stored in the database
+        /// </summary>
+        [NotMapped]
+        public bool IsProjectTitleDecrypted { get; set; }
     }
 }

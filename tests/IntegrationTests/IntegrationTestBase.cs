@@ -73,6 +73,7 @@ namespace IntegrationTests
 
                 _dbContext.ApplicationIdentities.Add(_testUser);
                 _dbContext.SaveChanges();
+                _testUser = _applicationIdentityService.FindUserAsync(u => u.AzureAdObjectIdentifier == "TestAdObjectId11234567890").Result;
             }
         }
 
@@ -94,6 +95,7 @@ namespace IntegrationTests
 
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             optionsBuilder.UseSqlite(connectionString);
+            optionsBuilder.EnableSensitiveDataLogging(true);
 
             // When in tests, we use context.EnsureCreated() instead of migrations OLD COMMENT
             var dbContext = new ApplicationDbContext(optionsBuilder.Options, true, true);
@@ -138,7 +140,7 @@ namespace IntegrationTests
             newDecryptedProject.Title = testTitle;
             newDecryptedProject.Description = testDescription;
             newDecryptedProject.Category = testCategory;
-
+            newDecryptedProject.IsDecrypted = true;
             return newDecryptedProject;
         }
 

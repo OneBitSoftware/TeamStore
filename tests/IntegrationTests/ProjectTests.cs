@@ -156,7 +156,7 @@
             // Act
             var createdProjectId = await _projectsService.CreateProject(newDecryptedProject, "127.0.1.1");
             var retrievedProject = await _projectsService.GetProject(createdProjectId);
-            var accessResult = await _permissionService.GrantAccessAsync(retrievedProject.Id, newUpn, Role.Editor, "1.2.3.4", _projectsService);
+            var accessResult = await _permissionService.GrantAccessAsync(retrievedProject.Id, newUpn, Role.Owner, "1.2.3.4", _projectsService);
             var retrievedUser = await _applicationIdentityService.FindUserByUpnAsync(newUpn);
             _fakeHttpContextItems.Remove(ApplicationIdentityService.CURRENTUSERKEY);
             _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, retrievedUser);
@@ -214,6 +214,8 @@
             Assert.Equal("mock@upn.com-91", (await _applicationIdentityService.GetCurrentUser()).Upn);
 
             // Cleanup
+            _fakeHttpContextItems.Remove(ApplicationIdentityService.CURRENTUSERKEY); // change user
+            _fakeHttpContextItems.Add(ApplicationIdentityService.CURRENTUSERKEY, _testUser);
             await _projectsService.ArchiveProject(retrievedProject, "127.0.1.1");
             var archivedProject = await _projectsService.GetProject(createdProjectId);
             Assert.Null(archivedProject);

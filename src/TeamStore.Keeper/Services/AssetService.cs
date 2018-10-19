@@ -53,23 +53,44 @@
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
-            // Get Asset from DB with a permission and project check
-            var retrievedAsset = await _dbContext.Assets.Where(a =>
-                a.Id == assetId &&
-                a.IsArchived == false &&
-                a.Project.Id == projectId &&
-                a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
-                .Include(p => p.Project.AccessIdentifiers)
-                .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
-                .FirstOrDefaultAsync();
+            Asset retrievedAsset;
+
+            if (await _applicationIdentityService.IsCurrentUserAdmin())
+            {
+                // Get Asset from DB with a permission and project check
+                retrievedAsset = await _dbContext.Assets.Where(a =>
+                    a.Id == assetId &&
+                    a.IsArchived == false &&
+                    a.Project.Id == projectId)
+                    .Include(p => p.Project.AccessIdentifiers)
+                    .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                    .FirstOrDefaultAsync();
+            }
+            else
+            {
+                // Get Asset from DB with a permission and project check
+                retrievedAsset = await _dbContext.Assets.Where(a =>
+                    a.Id == assetId &&
+                    a.IsArchived == false &&
+                    a.Project.Id == projectId &&
+                    a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
+                    .Include(p => p.Project.AccessIdentifiers)
+                    .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                    .FirstOrDefaultAsync();
+            }
+
+
+
+            retrievedAsset.IsDecrypted = false;
 
             if (retrievedAsset == null) throw new Exception("The asset was not found or the current user does not have access to it.");
 
             // Refresh the entity to discard changes and avoid saving a decrypted project
-            _dbContext.Entry(retrievedAsset).State = EntityState.Unchanged;
+            //_dbContext.Entry(retrievedAsset).State = EntityState.Unchanged;
             _dbContext.Entry(retrievedAsset.Project).State = EntityState.Unchanged;
+            retrievedAsset.Project.IsProjectTitleDecrypted = false;
             retrievedAsset.IsArchived = true;
 
             // Set modified time/user
@@ -82,8 +103,22 @@
                 // we have a problem
             }
 
+            // decrypt before logging
+            // TODO: try-catch
+            DecryptAsset(retrievedAsset);
+            DecryptProjectTitle(retrievedAsset);
+
             // LOG event
-            await _eventService.LogArchiveAssetEventAsync(projectId, remoteIpAddress, currentUser.Id, assetId);
+            await _eventService.LogArchiveAssetEventAsync(
+                projectId,
+                retrievedAsset.Project.Title,
+                remoteIpAddress,
+                currentUser.Id,
+                currentUser.Upn,
+                assetId,
+                retrievedAsset.Title,
+                retrievedAsset.GetType() == typeof(Credential) ? (retrievedAsset as Credential).Login : string.Empty
+                );
         }
 
         /// <summary>
@@ -116,6 +151,13 @@
             if (string.IsNullOrWhiteSpace(asset.Title)) throw new ArgumentNullException(nameof(asset.Title));
 
             // persist through context
+
+            // Ensure project is encrypted
+            if (asset.Project.IsProjectTitleDecrypted == true || asset.Project.IsDecrypted == true)
+            {
+                throw new Exception("Saving a decrypted project is not allowed");
+            }
+
             await _dbContext.Assets.AddAsync(asset);
             var updatedRowCount = await _dbContext.SaveChangesAsync();
             if (updatedRowCount > 1)
@@ -144,10 +186,24 @@
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
+
+            Asset retrievedAsset;
 
             // Get assets with appropriate access checks
-            var retrievedAsset = await _dbContext.Assets.Where(a =>
+            if (await _applicationIdentityService.IsCurrentUserAdmin())
+            {
+                retrievedAsset = await _dbContext.Assets.Where(a =>
+                a.Id == assetId &&
+                a.IsArchived == false &&
+                a.Project.Id == projectId)
+                .Include(p => p.Project.AccessIdentifiers)
+                .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                .FirstOrDefaultAsync();
+            }
+            else
+            {
+                retrievedAsset = await _dbContext.Assets.Where(a =>
                 a.Id == assetId &&
                 a.IsArchived == false &&
                 a.Project.Id == projectId &&
@@ -155,13 +211,15 @@
                 .Include(p => p.Project.AccessIdentifiers)
                 .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
                 .FirstOrDefaultAsync();
+            }
 
             string assetLogin = string.Empty;
 
             // decrypt
             if (retrievedAsset == null) return null;
-            DecryptAsset(retrievedAsset);
+            retrievedAsset.IsDecrypted = false;
 
+            DecryptAsset(retrievedAsset);
             DecryptProjectTitle(retrievedAsset);
 
             // extract asset login
@@ -191,21 +249,37 @@
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
+
+            List<Asset> retrievedAssets;
 
             // Get assets with appropriate access checks
-            var retrievedAssets = await _dbContext.Assets.Where(a =>
-                a.IsArchived == false &&
-                a.Project.Id == projectId &&
-                a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
-                .Include(p => p.Project.AccessIdentifiers)
-                .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
-                .ToListAsync();
+            if (await _applicationIdentityService.IsCurrentUserAdmin())
+            {
+                retrievedAssets = await _dbContext.Assets.Where(a =>
+                   a.IsArchived == false &&
+                   a.Project.Id == projectId)
+                   .Include(p => p.Project.AccessIdentifiers)
+                   .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                   .ToListAsync();
+            }
+            else
+            {
+                retrievedAssets = await _dbContext.Assets.Where(a =>
+                    a.IsArchived == false &&
+                    a.Project.Id == projectId &&
+                    a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
+                    .Include(p => p.Project.AccessIdentifiers)
+                    .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                    .ToListAsync();
+            }
+
 
             // LOG access asset - open project? TODO
 
             foreach (var asset in retrievedAssets)
             {
+                asset.IsDecrypted = false;
                 DecryptAsset(asset);
             }
 
@@ -217,13 +291,24 @@
         {
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
+
+            List<Asset> retrievedAssets;
 
             // Get assets with appropriate access checks
-            var retrievedAssets = await _dbContext.Assets.Where(a =>
+            if (await _applicationIdentityService.IsCurrentUserAdmin())
+            {
+                retrievedAssets = await _dbContext.Assets.Where(a =>
+                a.IsArchived == false)
+                .ToListAsync();
+            }
+            else
+            {
+                retrievedAssets = await _dbContext.Assets.Where(a =>
                 a.IsArchived == false &&
                 a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
                 .ToListAsync();
+            }
 
             // LOG access asset - open project? TODO
             var assets = new List<Asset>();
@@ -234,6 +319,7 @@
                     var title = _encryptionService.DecryptString(asset.Title);
                     if (title.ToLowerInvariant().Contains(searchPrefix.ToLowerInvariant()))
                     {
+                        asset.IsDecrypted = false;
                         DecryptAsset(asset);
                         assets.Add(asset);
                     }
@@ -246,6 +332,7 @@
                 catch // swallow any decryption exceptions here
                 {
                     // TODO: LOG
+                    // TODO: set "error" in title?
                     continue;
                 }
             }
@@ -306,7 +393,9 @@
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
+
+            // CR: check access restrictions
 
             // Encrypt
             EncryptAsset(asset);
@@ -339,7 +428,7 @@
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
             //retrieve asset (performs current user check and permission check)
             var asset = await this.GetAssetAsync(projectId, assetId, remoteIpAddress);
@@ -352,6 +441,8 @@
             // Set modified times
             credential.Modified = DateTime.UtcNow;
             credential.ModifiedBy = currentUser;
+
+            _dbContext.Entry(asset.Project).State = EntityState.Unchanged;
 
             // Persist in DB
             _dbContext.Assets.Update(credential);
@@ -376,6 +467,8 @@
         /// <returns>The populated Project</returns>
         public async Task LoadAssetsAsync(Project project)
         {
+            if (project == null) return;
+
             // NOTE: this will ignore assets already loaded, so the IsArchived status might not be truthful.
             // Avoid using this method if the project assets are already populated
             await _dbContext.Entry(project)
@@ -386,6 +479,7 @@
 
             foreach (var asset in project.Assets)
             {
+                asset.IsDecrypted = false;
                 DecryptAsset(asset);
             }
         }
@@ -396,6 +490,11 @@
         /// <param name="asset">The asset to encrypt</param>
         public void EncryptAsset(Asset asset)
         {
+            if (asset.IsDecrypted == false)
+            {
+                return;
+            }
+
             // TODO: create a test to validate the argumentnullexception
             if (asset == null) throw new ArgumentNullException(nameof(asset));
             if (string.IsNullOrWhiteSpace(asset.Title)) throw new Exception("An asset title cannot be an empty string. Cannot encrypt and decrypt.");
@@ -416,11 +515,12 @@
             }
 
             asset.Title = _encryptionService.EncryptString(asset.Title);
-
             if (string.IsNullOrWhiteSpace(asset.Notes) == false)
             {
                 asset.Notes = _encryptionService.EncryptString(asset.Notes);
             }
+
+            asset.IsDecrypted = false;
         }
 
         /// <summary>
@@ -429,6 +529,11 @@
         /// <param name="asset">The Asset to decrypt</param>
         public void DecryptAsset(Asset asset)
         {
+            if (asset.IsDecrypted == true)
+            {
+                return;
+            }
+
             if (asset.GetType() == typeof(Credential))
             {
                 var credential = asset as Credential;
@@ -445,6 +550,8 @@
             {
                 asset.Notes = _encryptionService.DecryptString(asset.Notes);
             }
+
+            asset.IsDecrypted = true;
         }
 
         /// <summary>
@@ -458,11 +565,29 @@
 
         private void DecryptProjectTitle(Asset asset)
         {
-            var projectTitle = asset?.Project?.Title;
-
-            if (string.IsNullOrWhiteSpace(projectTitle) == false)
+            if (asset?.Project?.IsProjectTitleDecrypted == false)
             {
-                asset.Project.Title = _encryptionService.DecryptString(projectTitle);
+                var projectTitle = asset?.Project?.Title;
+
+                if (string.IsNullOrWhiteSpace(projectTitle) == false)
+                {
+                    asset.Project.Title = _encryptionService.DecryptString(projectTitle);
+                    asset.Project.IsProjectTitleDecrypted = true;
+                }
+            }
+        }
+
+        private void EncryptProjectTitle(Asset asset)
+        {
+            if (asset?.Project?.IsProjectTitleDecrypted == true)
+            {
+                var projectTitle = asset?.Project?.Title;
+
+                if (string.IsNullOrWhiteSpace(projectTitle) == false)
+                {
+                    asset.Project.Title = _encryptionService.EncryptString(projectTitle);
+                    asset.Project.IsProjectTitleDecrypted = false;
+                }
             }
         }
 

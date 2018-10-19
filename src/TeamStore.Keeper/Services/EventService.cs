@@ -377,17 +377,29 @@
             }
         }
 
-        public async Task LogArchiveAssetEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId)
-        {
+        public async Task LogArchiveAssetEventAsync(
+            int projectId,
+            string projectTitle,
+            string remoteIpAddress,
+            int actingUserId,
+            string actingUserUpn,
+            int assetId,
+            string assetTitle,
+            string assetLogin)
+        { 
             if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
 
             var retrieveAssetEvent = new Models.Event();
             retrieveAssetEvent.DateTime = DateTime.UtcNow;
             retrieveAssetEvent.Type = Enums.EventType.ArchiveAsset.ToString();
             retrieveAssetEvent.RemoteIpAddress = remoteIpAddress;
-            retrieveAssetEvent.ActedByUser = actingUserId.ToString();
+            retrieveAssetEvent.ActedByUser = actingUserUpn;
+            retrieveAssetEvent.ActedByUserId = actingUserId.ToString();
             retrieveAssetEvent.ProjectId = projectId;
+            retrieveAssetEvent.ProjectTitle = projectTitle;
             retrieveAssetEvent.AssetId = assetId;
+            retrieveAssetEvent.AssetTitle = assetTitle;
+            retrieveAssetEvent.AssetLogin = assetLogin;
 
             await _dbContext.Events.AddAsync(retrieveAssetEvent);
             var updatedRowCount = await _dbContext.SaveChangesAsync();

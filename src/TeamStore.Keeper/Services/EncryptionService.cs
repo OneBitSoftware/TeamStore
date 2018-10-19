@@ -66,7 +66,14 @@
 
             var bytes = Encoding.UTF8.GetBytes(stringToDecrypt);
             var base64 = Convert.ToBase64String(bytes);
-            return _protector.Unprotect(stringToDecrypt);
+            try
+            {
+                return _protector.Unprotect(stringToDecrypt);
+            }
+            catch (CryptographicException)
+            {
+                throw new Exception("The provided string could not be decrypted.");
+            }
         }
     }
 }

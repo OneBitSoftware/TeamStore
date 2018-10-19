@@ -26,7 +26,8 @@ namespace IntegrationTests
             var newNote = CreateTestNote();
 
             // Act
-            var retrievedProject = await _projectsService.GetProject(newProjectId);
+            var retrievedProject = await _projectsService.GetProject(newProjectId, true);
+            //await _projectsService.LoadAssetsForProjectAsync(retrievedProject);
             var persistedAsset = await _assetService.AddAssetToProjectAsync(newProjectId, newCredential, "127.0.1.1");
             var persistedNote = await _assetService.AddAssetToProjectAsync(newProjectId, newNote, "127.0.1.1");
             var retrievedAsset = await _assetService.GetAssetAsync(newProjectId, persistedAsset.Id, "127.0.1.1");
@@ -253,19 +254,29 @@ namespace IntegrationTests
             var archivedAsset = await _assetService.GetAssetAsync(newProjectId, newCredentialArchived.Id, "127.0.1.1");
 
             // Act - reload project (it is already populated) by refreshing the context and load assets (should exlude archived)
+            _dbContext.Dispose();
             _dbContext = GetDbContext();
+            _applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor, _fakeHttpContextItems);
             _projectsService = new ProjectsService(_dbContext, _encryptionService, _eventService, _applicationIdentityService, _permissionService);
             _assetService = new AssetService(_dbContext, _projectsService, _encryptionService, _eventService, _applicationIdentityService);
+            _testUser = _applicationIdentityService.FindUserAsync(u => u.AzureAdObjectIdentifier == "TestAdObjectId11234567890").Result;
+
             var retrievedProjectAfterArchive = await _projectsService.GetProject(newProjectId);
             await _assetService.LoadAssetsAsync(retrievedProjectAfterArchive);
 
             // Assert
             Assert.Null(archivedAsset);
-            Assert.Equal(1, retrievedProjectAfterArchive.Assets.Count);
-            Assert.Equal(false, retrievedProjectAfterArchive.Assets.Any(a => a.Id == newCredentialArchived.Id));
+            Assert.Equal(1, retrievedProjectAfterArchive.Assets.Count());
+            Assert.Equal(false, retrievedProjectAfterArchive.Assets.Any(a => a.Id == newCredentialArchived.Id && a.IsArchived == true));
 
             // Cleanup
-            await _projectsService.ArchiveProject(retrievedProjectAfterArchive, "127.0.1.1");
+            //_dbContext = GetDbContext();
+            //_applicationIdentityService = new ApplicationIdentityService(_dbContext, _graphService, _httpContextAccessor, _fakeHttpContextItems);
+            //_projectsService = new ProjectsService(_dbContext, _encryptionService, _eventService, _applicationIdentityService, _permissionService);
+
+            var rr = _dbContext.Entry(_testUser).State;
+            var retrievedProjectAfterArchiveForCleanup = await _projectsService.GetProject(newProjectId);
+            await _projectsService.ArchiveProject(retrievedProjectAfterArchiveForCleanup, "127.0.1.1", _testUser);
             var archivedProject = await _projectsService.GetProject(newProjectId);
             Assert.Null(archivedProject);
         }
