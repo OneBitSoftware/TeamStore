@@ -291,7 +291,7 @@
         {
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
             List<Asset> retrievedAssets;
 
@@ -351,7 +351,7 @@
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
             // CR: check access restrictions
 
@@ -386,7 +386,7 @@
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
             //retrieve asset (performs current user check and permission check)
             var asset = await this.GetAssetAsync(projectId, assetId, remoteIpAddress);
