@@ -16,7 +16,11 @@
             newUser.DisplayName = GetClaimValue("name", identity.Claims);
             newUser.AzureAdNameIdentifier = GetClaimValue(ClaimTypes.NameIdentifier, identity.Claims);
             newUser.AzureAdName = GetClaimValue(ClaimTypes.Name, identity.Claims);
-            newUser.Upn = GetClaimValue(ClaimTypes.Upn, identity.Claims);
+
+            var upn = GetClaimValue(ClaimTypes.Upn, identity.Claims);
+            var email = GetClaimValue(ClaimTypes.Email, identity.Claims);
+
+            newUser.Upn = string.IsNullOrWhiteSpace(upn) ? email : upn;
             newUser.AzureAdObjectIdentifier = GetClaimValue("http://schemas.microsoft.com/identity/claims/objectidentifier", identity.Claims);
             newUser.TenantId = GetClaimValue("http://schemas.microsoft.com/identity/claims/tenantid", identity.Claims);
 
