@@ -10,7 +10,15 @@
     public interface IEventService
     {
 
-        Task LogAssetAccessEventAsync(int projectId, string projectTitle, int actingUserId, string actingUserUpn, string remoteIpAddress, int assetId, string assetTitle, string assetLogin);
+        Task LogAssetAccessEventAsync(
+            int projectId,
+            string projectTitle,
+            int actingUserId,
+            string actingUserUpn,
+            string remoteIpAddress,
+            int assetId,
+            string assetTitle,
+            string assetLogin);
 
         Task<IEnumerable<Event>> GetAssetAccessEventsAsync(DateTime startDateTime, DateTime endDateTime, string login = "");
 
@@ -110,7 +118,15 @@
         Task LogUpdatePasswordEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId);
 
         Task LogUpdateAssetEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId);
-        Task LogArchiveAssetEventAsync(int projectId, string remoteIpAddress, int actingUserId, int assetId);
+        Task LogArchiveAssetEventAsync(
+            int projectId,
+            string projectTitle,
+            string remoteIpAddress,
+            int actingUserId,
+            string actingUserUpn,
+            int assetId,
+            string assetTitle,
+            string assetLogin);
 
         Task LogCustomEventAsync(string actingUserId, string customData);
     }
