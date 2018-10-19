@@ -80,10 +80,16 @@ namespace TeamStore.Keeper.Services
 
             if (projectsWithAccess == null) return null;
 
+            foreach (var project in projectsWithAccess)
+            {
+                project.IsDecrypted = false;
+            }
+
             if (skipDecryption == false) // double false...
             {
                 foreach (var project in projectsWithAccess)
                 {
+                    project.IsDecrypted = false;
                     DecryptProject(project);
                 }
             }
@@ -113,6 +119,11 @@ namespace TeamStore.Keeper.Services
                 .Include(p => p.Assets)
                 .ToListAsync();
 
+            foreach (var project in archivedProjects)
+            {
+                project.IsDecrypted = false;
+            }
+
             if (skipDecryption == false) // double false...
             {
                 foreach (var project in archivedProjects)
@@ -126,7 +137,7 @@ namespace TeamStore.Keeper.Services
 
         public async Task<List<Project>> GetArchivedProjectsAsync(DateTime startDateTime, DateTime endDateTime, string projectTitle = "", bool skipDecryption = false)
         {
-            List<Project> archivedProjects =  await this.GetArchivedProjectsAsync(skipDecryption);
+            List<Project> archivedProjects = await this.GetArchivedProjectsAsync(skipDecryption);
             List<Project> filteredProjects = archivedProjects
                 .Where(p => (projectTitle != "" ? p.Title == projectTitle : true))
                 .ToList();
@@ -164,16 +175,31 @@ namespace TeamStore.Keeper.Services
 
             // Validate access
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
-            // Get project - ensures user has access to it
-            var result = await _dbContext.Projects.Where(p =>
-                p.Id == projectId &&
-                p.IsArchived == false &&
-                p.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
-                .Include(p => p.AccessIdentifiers)
-                .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
-                .FirstOrDefaultAsync();
+            Project result;
+
+            if (await _applicationIdentityService.IsCurrentUserAdmin())
+            {
+                // Get project - ensures user has access to it
+                result = await _dbContext.Projects.Where(p =>
+                    p.Id == projectId &&
+                    p.IsArchived == false)
+                    .Include(p => p.AccessIdentifiers)
+                    .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                    .FirstOrDefaultAsync();
+            }
+            else
+            {
+                // Get project - ensures user has access to it
+                result = await _dbContext.Projects.Where(p =>
+                    p.Id == projectId &&
+                    p.IsArchived == false &&
+                    p.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
+                    .Include(p => p.AccessIdentifiers)
+                    .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                    .FirstOrDefaultAsync();
+            }
 
             if (result == null) return null;
 
@@ -255,9 +281,25 @@ namespace TeamStore.Keeper.Services
                     result.Title = "Decryption error";
                 }
 
-                result.Description = _encryptionService.DecryptString(result.Description);
-                result.Category = _encryptionService.DecryptString(result.Category);
-                result.IsDecrypted = true; 
+                try
+                {
+                    result.Description = _encryptionService.DecryptString(result.Description);
+                }
+                catch
+                {
+                    result.Description = "Decryption error";
+                }
+
+                try
+                {
+                    result.Category = _encryptionService.DecryptString(result.Category);
+                }
+                catch
+                {
+                    result.Category = "Decryption error";
+                }
+
+                result.IsDecrypted = true;
                 result.IsProjectTitleDecrypted = true;
             }
         }
@@ -376,7 +418,7 @@ namespace TeamStore.Keeper.Services
 
             // TODO: ensure the current user has access to archive this project
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            var currentRetrievedUser = _applicationIdentityService.FindUserAsync(u => u.AzureAdObjectIdentifier == currentUser.AzureAdObjectIdentifier).Result;
+            var currentRetrievedUser = await _applicationIdentityService.FindUserAsync(u => u.AzureAdObjectIdentifier == currentUser.AzureAdObjectIdentifier);
 
             if (currentRetrievedUser == null) throw new Exception("Unauthorised requests are not allowed."); // we fail on no current user
 
@@ -400,10 +442,21 @@ namespace TeamStore.Keeper.Services
                 //_dbContext.Entry(asset).State = EntityState.Unchanged;
                 asset.IsArchived = true;
                 asset.Modified = DateTime.UtcNow;
+
+                currentRetrievedUser = await _applicationIdentityService.FindUserAsync(u => u.AzureAdObjectIdentifier == currentUser.AzureAdObjectIdentifier);
                 asset.ModifiedBy = currentRetrievedUser;
 
                 // LOG asset archive event
-                await _eventService.LogArchiveAssetEventAsync(decryptedProject.Id, remoteIpAddress, currentRetrievedUser.Id, asset.Id);
+                await _eventService.LogArchiveAssetEventAsync(
+                    decryptedProject.Id,
+                    asset.Project.Title,
+                    remoteIpAddress,
+                    currentUser.Id,
+                    currentUser.Upn,
+                    asset.Id,
+                    asset.Title,
+                    asset.GetType() == typeof(Credential) ? (asset as Credential).Login : string.Empty
+                    );
             }
 
             decryptedProject.IsArchived = true; // set archive status
@@ -411,21 +464,30 @@ namespace TeamStore.Keeper.Services
             await _eventService.LogArchiveProjectEventAsync(decryptedProject.Id, currentRetrievedUser.Id, remoteIpAddress);
 
             var entries = _dbContext.ChangeTracker.Entries()
-                .Where(e=>
-                    e.Entity.GetType() == typeof(ApplicationUser) 
+                .Where(e =>
+                    e.Entity.GetType() == typeof(ApplicationUser)
                     && e.State == EntityState.Added);
 
             foreach (var item in entries)
             {
-                _dbContext.Entry(item).State = EntityState.Detached;
+                try
+                {
+                    _dbContext.Entry(item).State = EntityState.Detached;
+                }
+                catch 
+                {
+                }
 
             }
 
             var modifiedRows = await _dbContext.SaveChangesAsync(); // save to db
         }
 
-        public async Task ArchiveProject(Project decryptedProject, string remoteIpAddress, ApplicationUser actingUser)
+        // CR: remove duplicate code from ArchiveProject methods
+        public async Task ArchiveProjectInternal(Project decryptedProject, string remoteIpAddress, ApplicationUser actingUser)
         {
+            // CR: consider logging this as a seperate event such as ArchiveProjectAsActingUser
+
             // Validation
             if (decryptedProject == null) throw new ArgumentException("You must pass a valid project.");
 
@@ -452,7 +514,16 @@ namespace TeamStore.Keeper.Services
                 asset.ModifiedBy = actingUser;
 
                 // LOG asset archive event
-                await _eventService.LogArchiveAssetEventAsync(decryptedProject.Id, remoteIpAddress, actingUser.Id, asset.Id);
+                await _eventService.LogArchiveAssetEventAsync(
+                    decryptedProject.Id,
+                    asset.Project.Title,
+                    remoteIpAddress,
+                    actingUser.Id,
+                    actingUser.Upn,
+                    asset.Id,
+                    asset.Title,
+                    asset.GetType() == typeof(Credential) ? (asset as Credential).Login : string.Empty
+                    );
             }
 
             decryptedProject.IsArchived = true; // set archive status
@@ -479,7 +550,7 @@ namespace TeamStore.Keeper.Services
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
             // TODO: this code reloads the project entity from the DB, causing it to persist encrypted strings. 
             //if (await _permissionService.CheckAccessAsync(updatedProject.Id, currentUser, Enums.Role.Owner, this) == false)

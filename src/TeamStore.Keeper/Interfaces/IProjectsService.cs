@@ -75,7 +75,8 @@
         /// <param name="remoteIpAddress">The IP address of the request causing the event</param>
         /// <returns>A Task result</returns>
         Task ArchiveProject(Project decryptedProject, string remoteIpAddress);
-        Task ArchiveProject(Project decryptedProject, string remoteIpAddress, ApplicationUser actingUser);
+
+        Task ArchiveProjectInternal(Project decryptedProject, string remoteIpAddress, ApplicationUser actingUser);
 
         /// <summary>
         /// Persists a passed <see cref="Project"/> in the database, setting modified dates and users.
