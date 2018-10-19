@@ -53,23 +53,44 @@
 
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
-            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
-            // Get Asset from DB with a permission and project check
-            var retrievedAsset = await _dbContext.Assets.Where(a =>
-                a.Id == assetId &&
-                a.IsArchived == false &&
-                a.Project.Id == projectId &&
-                a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
-                .Include(p => p.Project.AccessIdentifiers)
-                .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
-                .FirstOrDefaultAsync();
+            Asset retrievedAsset;
+
+            if (await _applicationIdentityService.IsCurrentUserAdmin())
+            {
+                // Get Asset from DB with a permission and project check
+                retrievedAsset = await _dbContext.Assets.Where(a =>
+                    a.Id == assetId &&
+                    a.IsArchived == false &&
+                    a.Project.Id == projectId)
+                    .Include(p => p.Project.AccessIdentifiers)
+                    .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                    .FirstOrDefaultAsync();
+            }
+            else
+            {
+                // Get Asset from DB with a permission and project check
+                retrievedAsset = await _dbContext.Assets.Where(a =>
+                    a.Id == assetId &&
+                    a.IsArchived == false &&
+                    a.Project.Id == projectId &&
+                    a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
+                    .Include(p => p.Project.AccessIdentifiers)
+                    .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                    .FirstOrDefaultAsync();
+            }
+
+
+
+            retrievedAsset.IsDecrypted = false;
 
             if (retrievedAsset == null) throw new Exception("The asset was not found or the current user does not have access to it.");
 
             // Refresh the entity to discard changes and avoid saving a decrypted project
             //_dbContext.Entry(retrievedAsset).State = EntityState.Unchanged;
-            //_dbContext.Entry(retrievedAsset.Project).State = EntityState.Unchanged;
+            _dbContext.Entry(retrievedAsset.Project).State = EntityState.Unchanged;
+            retrievedAsset.Project.IsProjectTitleDecrypted = false;
             retrievedAsset.IsArchived = true;
 
             // Set modified time/user
@@ -82,8 +103,22 @@
                 // we have a problem
             }
 
+            // decrypt before logging
+            // TODO: try-catch
+            DecryptAsset(retrievedAsset);
+            DecryptProjectTitle(retrievedAsset);
+
             // LOG event
-            await _eventService.LogArchiveAssetEventAsync(projectId, remoteIpAddress, currentUser.Id, assetId);
+            await _eventService.LogArchiveAssetEventAsync(
+                projectId,
+                retrievedAsset.Project.Title,
+                remoteIpAddress,
+                currentUser.Id,
+                currentUser.Upn,
+                assetId,
+                retrievedAsset.Title,
+                retrievedAsset.GetType() == typeof(Credential) ? (retrievedAsset as Credential).Login : string.Empty
+                );
         }
 
         /// <summary>
@@ -153,8 +188,22 @@
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
+            Asset retrievedAsset;
+
             // Get assets with appropriate access checks
-            var retrievedAsset = await _dbContext.Assets.Where(a =>
+            if (await _applicationIdentityService.IsCurrentUserAdmin())
+            {
+                retrievedAsset = await _dbContext.Assets.Where(a =>
+                a.Id == assetId &&
+                a.IsArchived == false &&
+                a.Project.Id == projectId)
+                .Include(p => p.Project.AccessIdentifiers)
+                .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                .FirstOrDefaultAsync();
+            }
+            else
+            {
+                retrievedAsset = await _dbContext.Assets.Where(a =>
                 a.Id == assetId &&
                 a.IsArchived == false &&
                 a.Project.Id == projectId &&
@@ -162,6 +211,7 @@
                 .Include(p => p.Project.AccessIdentifiers)
                 .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
                 .FirstOrDefaultAsync();
+            }
 
             string assetLogin = string.Empty;
 
@@ -201,14 +251,29 @@
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
 
+            List<Asset> retrievedAssets;
+
             // Get assets with appropriate access checks
-            var retrievedAssets = await _dbContext.Assets.Where(a =>
-                a.IsArchived == false &&
-                a.Project.Id == projectId &&
-                a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
-                .Include(p => p.Project.AccessIdentifiers)
-                .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
-                .ToListAsync();
+            if (await _applicationIdentityService.IsCurrentUserAdmin())
+            {
+                retrievedAssets = await _dbContext.Assets.Where(a =>
+                   a.IsArchived == false &&
+                   a.Project.Id == projectId)
+                   .Include(p => p.Project.AccessIdentifiers)
+                   .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                   .ToListAsync();
+            }
+            else
+            {
+                retrievedAssets = await _dbContext.Assets.Where(a =>
+                    a.IsArchived == false &&
+                    a.Project.Id == projectId &&
+                    a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
+                    .Include(p => p.Project.AccessIdentifiers)
+                    .ThenInclude(p => p.Identity) // NOTE: intellisense doesn't work here (23.09.2017) https://github.com/dotnet/roslyn/issues/8237
+                    .ToListAsync();
+            }
+
 
             // LOG access asset - open project? TODO
 
@@ -228,11 +293,22 @@
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
 
+            List<Asset> retrievedAssets;
+
             // Get assets with appropriate access checks
-            var retrievedAssets = await _dbContext.Assets.Where(a =>
+            if (await _applicationIdentityService.IsCurrentUserAdmin())
+            {
+                retrievedAssets = await _dbContext.Assets.Where(a =>
+                a.IsArchived == false)
+                .ToListAsync();
+            }
+            else
+            {
+                retrievedAssets = await _dbContext.Assets.Where(a =>
                 a.IsArchived == false &&
                 a.Project.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
                 .ToListAsync();
+            }
 
             // LOG access asset - open project? TODO
             var assets = new List<Asset>();
@@ -256,6 +332,7 @@
                 catch // swallow any decryption exceptions here
                 {
                     // TODO: LOG
+                    // TODO: set "error" in title?
                     continue;
                 }
             }
@@ -275,6 +352,8 @@
             // Validate current user
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             if (currentUser == null) throw new Exception("Unauthorised requests are not allowed."); ;
+
+            // CR: check access restrictions
 
             // Encrypt
             EncryptAsset(asset);
@@ -346,6 +425,8 @@
         /// <returns>The populated Project</returns>
         public async Task LoadAssetsAsync(Project project)
         {
+            if (project == null) return;
+
             // NOTE: this will ignore assets already loaded, so the IsArchived status might not be truthful.
             // Avoid using this method if the project assets are already populated
             await _dbContext.Entry(project)
