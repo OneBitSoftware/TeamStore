@@ -119,9 +119,15 @@ namespace TeamStore.Keeper.Services
                 .Include(p => p.Assets)
                 .ToListAsync();
 
+            // CR : Extract to method -> MarkProjectDecryptionStatus(bool)
             foreach (var project in archivedProjects)
             {
                 project.IsDecrypted = false;
+
+                foreach (var asset in project.Assets)
+                {
+                    asset.IsDecrypted = false;
+                }
             }
 
             if (skipDecryption == false) // double false...
@@ -138,17 +144,19 @@ namespace TeamStore.Keeper.Services
         public async Task<List<Project>> GetArchivedProjectsAsync(DateTime startDateTime, DateTime endDateTime, string projectTitle = "", bool skipDecryption = false)
         {
             List<Project> archivedProjects = await this.GetArchivedProjectsAsync(skipDecryption);
+            //Filter projects by Title if any
             List<Project> filteredProjects = archivedProjects
                 .Where(p => (projectTitle != "" ? p.Title == projectTitle : true))
                 .ToList();
 
+            //Filter project's assets by date period
             for (int i = 0; i < filteredProjects.Count(); i++)
             {
                 filteredProjects[i].Assets = filteredProjects[i].Assets
                     .Where(a => (a.Modified >= startDateTime && a.Modified <= endDateTime))
                     .ToList();
             }
-
+            // CR : Remove empty projects -> e.g. archived but no assets in this period 
             return filteredProjects;
         }
 
@@ -470,6 +478,7 @@ namespace TeamStore.Keeper.Services
 
             foreach (var item in entries)
             {
+                // CR : Fix this or leave a comment on why it is needed
                 try
                 {
                     _dbContext.Entry(item).State = EntityState.Detached;
