@@ -1,5 +1,6 @@
 ﻿namespace TeamStore.Keeper.Interfaces
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using TeamStore.Keeper.Models;
@@ -47,5 +48,8 @@
         /// <param name="password">The password to decrypt</param>
         /// <returns>The decrypted password</returns>
         string DecryptPassword(string password);
+
+        Task<List<Asset>> GetAllStaleAssets(DateTime staleDate);
+        Task<List<Asset>> GetAllUnusedAssets(DateTime staleDate);
     }
 }

@@ -261,6 +261,40 @@
             return await _dbContext.Assets.ToListAsync();
         }
 
+        public async Task<List<Asset>> GetAllStaleAssets(DateTime staleDate)
+        {
+            // CR Put wrapped validation method in all methods
+            if (!await IsUserAuthorized()) throw new Exception(UnauthorisedExceptionMessage);
+
+            return await _dbContext.Assets
+                .Where(a => !a.IsArchived)
+                .Where(a => (a.Modified <= staleDate && a.ModifiedBy != null) || //Latest modified before stale date
+                            (a.ModifiedBy == null && a.Created <= staleDate)) //Never modified and created before stale date
+                .ToListAsync();
+        }
+
+        public async Task<List<Asset>> GetAllUnusedAssets(DateTime borderDate)
+        {
+            // CR Put wrapped validation method in all methods
+            if (!await IsUserAuthorized()) throw new Exception(UnauthorisedExceptionMessage);
+
+            List<Asset> assets = await _dbContext.Assets
+                .Where(a => !a.IsArchived)
+                .ToListAsync();
+
+            List<Asset> unusedAssets = new List<Asset>();
+            foreach (var asset in assets)
+            {
+                DateTime? lastAccessEventDate = _eventService.GetAssetLastAccessEventAsync(asset.Id)?.Result?.DateTime;
+                if (lastAccessEventDate == null || lastAccessEventDate < borderDate)
+                {
+                    unusedAssets.Add(asset);
+                }
+            }
+
+            return unusedAssets;
+        }
+
         // Question: Why are we returning on update??
 
         public async Task<Asset> UpdateAssetAsync(int projectId, Asset asset, string remoteIpAddress)
@@ -437,6 +471,6 @@
         {            
             var currentUser = await _applicationIdentityService.GetCurrentUser();
             return currentUser != null;
-        }
+        }       
     }
 }
