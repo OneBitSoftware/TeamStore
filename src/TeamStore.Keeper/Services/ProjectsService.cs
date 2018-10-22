@@ -560,20 +560,37 @@ namespace TeamStore.Keeper.Services
             //}
 
             // validate that access hasn't changed by getting a fresh, NoTracking copy of the project.
-            var retrievedProject = await _dbContext.Projects.Where(p =>
-                p.Id == updatedProject.Id &&
-                p.IsArchived == false &&
-                p.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
-                .Include(p => p.AccessIdentifiers)
-                .ThenInclude(p => p.Identity)
-                .AsNoTracking()  // <--
-                .FirstOrDefaultAsync();
+
+            Project retrievedProject;
+
+            if (await _applicationIdentityService.IsCurrentUserAdmin())
+            {
+                retrievedProject = await _dbContext.Projects.Where(p =>
+                    p.Id == updatedProject.Id &&
+                    p.IsArchived == false)
+                    .Include(p => p.AccessIdentifiers)
+                    .ThenInclude(p => p.Identity)
+                    .AsNoTracking()  // <--
+                    .FirstOrDefaultAsync();
+            }
+            else
+            {
+                retrievedProject = await _dbContext.Projects.Where(p =>
+                    p.Id == updatedProject.Id &&
+                    p.IsArchived == false &&
+                    p.AccessIdentifiers.Any(ai => ai.Identity.Id == currentUser.Id))
+                    .Include(p => p.AccessIdentifiers)
+                    .ThenInclude(p => p.Identity)
+                    .AsNoTracking()  // <--
+                    .FirstOrDefaultAsync();
+            }
+
 
             // iterate through all untouched Access Identifiers
             foreach (var accessIdentifier in updatedProject.AccessIdentifiers)
             {
                 // check if the project-to-be-saved has an identity that doesn't already have access
-                if (retrievedProject.AccessIdentifiers.Any(ai =>
+                if (retrievedProject != null && retrievedProject.AccessIdentifiers.Any(ai =>
                     ai.Identity.AzureAdObjectIdentifier == accessIdentifier.Identity.AzureAdObjectIdentifier) == false)
                 {
                     // throw if such an item exists.
