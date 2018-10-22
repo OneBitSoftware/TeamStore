@@ -422,7 +422,7 @@ namespace TeamStore.Keeper.Services
 
             if (currentRetrievedUser == null) throw new Exception("Unauthorised requests are not allowed."); // we fail on no current user
 
-            if (await _permissionService.CheckAccessAsync(decryptedProject.Id, currentRetrievedUser, Enums.Role.Owner, this) == false)
+            if (await _applicationIdentityService.IsCurrentUserAdmin() == false && await _permissionService.CheckAccessAsync(decryptedProject.Id, currentRetrievedUser, Enums.Role.Owner, this) == false)
             {
                 // CR: this should rather return a failed result
                 throw new Exception("The current user does not have enough permissions to archive this project.");
