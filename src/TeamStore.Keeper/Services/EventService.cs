@@ -15,6 +15,7 @@
     public class EventService : IEventService
     {
         private readonly IApplicationIdentityService _applicationIdentityService;
+        private readonly IEncryptionService _encryptionService;
 
         private EventDbContext _dbContext;
 
@@ -25,10 +26,12 @@
         /// <param name="applicationIdentityService">An instance of ApplicationIdentityService to retrieve users.</param>
         public EventService(
             EventDbContext context,
-            IApplicationIdentityService applicationIdentityService)
+            IApplicationIdentityService applicationIdentityService,
+            IEncryptionService encryptionService)
         {
             _dbContext = context ?? throw new ArgumentNullException(nameof(context));
             _applicationIdentityService = applicationIdentityService ?? throw new ArgumentNullException(nameof(applicationIdentityService));
+            _encryptionService = encryptionService;
         }
 
         /// <summary>
@@ -270,6 +273,20 @@
                     e.DateTime <= endDateTime &&                   
                     e.Type == EventType.RetrieveAsset.ToString())
             .ToListAsync();
+
+            foreach (var evt in results)
+            {
+                try
+                {
+                    evt.ProjectTitle = _encryptionService.DecryptString(evt.ProjectTitle);
+                }
+                catch (Exception)
+                {
+
+                    evt.ProjectTitle = "Decryption error!";
+                }
+                
+            }
 
             return results;
         }
