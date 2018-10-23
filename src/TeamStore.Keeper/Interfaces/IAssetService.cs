@@ -13,6 +13,8 @@
 
         Task<Asset> UpdateAssetPasswordAsync(int projectId, int assetId, string password, string remoteIpAddress);
 
+        Task<Asset> UpdateAssetNotesAsync(int projectId, int assetId, string notes, string remoteIpAddress);
+
         Task ArchiveAssetAsync(int projectId, int assetId, string remoteIpAddress);
 
         Task<Asset> GetAssetAsync(int projectId, int assetId, string remoteIpAddress);

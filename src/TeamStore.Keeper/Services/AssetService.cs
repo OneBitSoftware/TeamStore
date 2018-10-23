@@ -458,6 +458,47 @@
             return asset;
         }
 
+        //CR : Redundant code with UpdatePassword
+        // TODO tests: modified date, password as expected, current user changed, all fails
+        public async Task<Asset> UpdateAssetNotesAsync(int projectId, int assetId, string notes, string remoteIpAddress)
+        {
+            // Validate
+            if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
+            if (assetId < 1) throw new ArgumentException("You must pass a valid asset id.");
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
+            // Validate current user
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
+
+            //retrieve asset (performs current user check and permission check)
+            var asset = await this.GetAssetAsync(projectId, assetId, remoteIpAddress);
+            var note = asset as Note;
+
+            // set new password and encrypt
+            note.Notes = notes;
+            EncryptAsset(note);
+
+            // Set modified times
+            note.Modified = DateTime.UtcNow;
+            note.ModifiedBy = currentUser;
+
+            _dbContext.Entry(asset.Project).State = EntityState.Unchanged;
+
+            // Persist in DB
+            _dbContext.Assets.Update(note);
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
+
+            // LOG Event
+            await _eventService.LogUpdatePasswordEventAsync(projectId, remoteIpAddress, currentUser.Id, asset.Id);
+
+            return asset;
+        }
+
         /// <summary>
         /// Loads the Assets for a given Project explicitly, then decrypts them. 
         /// Used when the initial Projects query does not explicitly include them. 
