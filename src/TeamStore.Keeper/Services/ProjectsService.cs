@@ -436,6 +436,8 @@ namespace TeamStore.Keeper.Services
                 throw new Exception("The current user does not have enough permissions to archive this project.");
             }
 
+            this.EncryptProject(decryptedProject);
+
             _dbContext.Entry(decryptedProject).Collection(x => x.Assets).Load();
             _dbContext.Entry(currentUser).State = EntityState.Detached;
             _dbContext.Entry(currentRetrievedUser).State = EntityState.Detached;
