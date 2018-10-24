@@ -399,7 +399,7 @@
 
             // Encrypt
             EncryptAsset(asset);
-
+            asset.Project.Title = _encryptionService.EncryptString(asset.Project.Title);
             // Set modified times
             asset.Modified = DateTime.UtcNow;
             asset.ModifiedBy = currentUser;
