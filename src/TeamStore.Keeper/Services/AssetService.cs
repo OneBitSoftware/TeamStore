@@ -2,17 +2,17 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Text;
     using System.Linq;
     using System.Threading.Tasks;
     using TeamStore.Keeper.DataAccess;
     using TeamStore.Keeper.Interfaces;
     using TeamStore.Keeper.Models;
-    using Microsoft.EntityFrameworkCore.Extensions;
     using Microsoft.EntityFrameworkCore;
 
     public class AssetService : IAssetService
     {
+        private readonly string UnauthorisedExceptionMessage = "Unauthorised requests are not allowed.";
+
         private readonly ApplicationDbContext _dbContext;
         private readonly IProjectsService _projectService;
         private readonly IEncryptionService _encryptionService;
@@ -340,6 +340,48 @@
             return assets;
         }
 
+        public async Task<List<Asset>> GetAllAssetsAsync()
+        { 
+            // CR Put wrapped validation method in all methods
+            if (!await IsUserAuthorized()) throw new Exception(UnauthorisedExceptionMessage);
+            
+            return await _dbContext.Assets.ToListAsync();
+        }
+
+        public async Task<List<Asset>> GetAllStaleAssets(DateTime staleDate)
+        {
+            // CR Put wrapped validation method in all methods
+            if (!await IsUserAuthorized()) throw new Exception(UnauthorisedExceptionMessage);
+
+            return await _dbContext.Assets
+                .Where(a => !a.IsArchived)
+                .Where(a => (a.Modified <= staleDate && a.ModifiedBy != null) || //Latest modified before stale date
+                            (a.ModifiedBy == null && a.Created <= staleDate)) //Never modified and created before stale date
+                .ToListAsync();
+        }
+
+        public async Task<List<Asset>> GetAllUnusedAssets(DateTime borderDate)
+        {
+            // CR Put wrapped validation method in all methods
+            if (!await IsUserAuthorized()) throw new Exception(UnauthorisedExceptionMessage);
+
+            List<Asset> assets = await _dbContext.Assets
+                .Where(a => !a.IsArchived)
+                .ToListAsync();
+
+            List<Asset> unusedAssets = new List<Asset>();
+            foreach (var asset in assets)
+            {
+                DateTime? lastAccessEventDate = _eventService.GetAssetLastAccessEventAsync(asset.Id)?.Result?.DateTime;
+                if (lastAccessEventDate == null || lastAccessEventDate < borderDate)
+                {
+                    unusedAssets.Add(asset);
+                }
+            }
+
+            return unusedAssets;
+        }
+
         // Question: Why are we returning on update??
 
         public async Task<Asset> UpdateAssetAsync(int projectId, Asset asset, string remoteIpAddress)
@@ -357,7 +399,7 @@
 
             // Encrypt
             EncryptAsset(asset);
-
+            asset.Project.Title = _encryptionService.EncryptString(asset.Project.Title);
             // Set modified times
             asset.Modified = DateTime.UtcNow;
             asset.ModifiedBy = currentUser;
@@ -404,6 +446,47 @@
 
             // Persist in DB
             _dbContext.Assets.Update(credential);
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
+
+            // LOG Event
+            await _eventService.LogUpdatePasswordEventAsync(projectId, remoteIpAddress, currentUser.Id, asset.Id);
+
+            return asset;
+        }
+
+        //CR : Redundant code with UpdatePassword
+        // TODO tests: modified date, password as expected, current user changed, all fails
+        public async Task<Asset> UpdateAssetNotesAsync(int projectId, int assetId, string notes, string remoteIpAddress)
+        {
+            // Validate
+            if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
+            if (assetId < 1) throw new ArgumentException("You must pass a valid asset id.");
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
+            // Validate current user
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
+
+            //retrieve asset (performs current user check and permission check)
+            var asset = await this.GetAssetAsync(projectId, assetId, remoteIpAddress);
+            var note = asset as Note;
+
+            // set new password and encrypt
+            note.Notes = notes;
+            EncryptAsset(note);
+
+            // Set modified times
+            note.Modified = DateTime.UtcNow;
+            note.ModifiedBy = currentUser;
+
+            _dbContext.Entry(asset.Project).State = EntityState.Unchanged;
+
+            // Persist in DB
+            _dbContext.Assets.Update(note);
             var updatedRowCount = await _dbContext.SaveChangesAsync();
             if (updatedRowCount > 1)
             {
@@ -548,5 +631,12 @@
                 }
             }
         }
+
+        // Validate current user
+        private async Task<bool> IsUserAuthorized() 
+        {            
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            return currentUser != null;
+        }       
     }
 }

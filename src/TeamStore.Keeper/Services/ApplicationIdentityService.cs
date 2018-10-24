@@ -366,5 +366,10 @@
 
             return true;
         }
+
+        public async Task<int> GetAllUsersCount()
+        {
+            return await _dbContext.ApplicationIdentities.CountAsync();
+        }
     }
 }

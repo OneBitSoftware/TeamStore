@@ -91,5 +91,6 @@
         /// <param name="applicationUser">The ApplicationUser to remove as a System Administrator</param>
         /// <returns>True if the operation succeeded, otherwise False.</returns>
         Task<bool> RemoveSystemAdministrator(ApplicationUser applicationUser);
+        Task<int> GetAllUsersCount();
     }
 }
