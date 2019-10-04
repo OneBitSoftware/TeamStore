@@ -548,5 +548,10 @@
                 }
             }
         }
+
+        public Task<Asset> UpdateAssetNotesAsync(int projectId, int assetId, string notes, string remoteIpAddress)
+        {
+            return null;
+        }
     }
 }
