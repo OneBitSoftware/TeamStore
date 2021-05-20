@@ -135,13 +135,15 @@
         /// </summary>
         /// <param name="identity">The ClaimsIdentity holding the object identifier claim to lookup.</param>
         /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
-        public async Task<ApplicationUser> FindUserAsync(ClaimsIdentity identity)
+        public Task<ApplicationUser> FindUserAsync(ClaimsIdentity identity)
         {
             var claim = identity.Claims.FirstOrDefault(c => c.Type == Constants.CLAIMS_OBJECTIDENTIFIER);
             if (claim == null) return null;
             if (string.IsNullOrWhiteSpace(claim.Value)) return null;
 
-            return await FindUserAsync(ai => ai.AzureAdObjectIdentifier == claim.Value);
+            return FindUserAsync(ai => 
+                string.IsNullOrWhiteSpace(ai.AzureAdObjectIdentifier) == false &&
+                ai.AzureAdObjectIdentifier == claim.Value);
         }
 
         /// <summary>
@@ -190,7 +192,9 @@
             if (string.IsNullOrWhiteSpace(upn)) return null;
 
             var returnedObject = await _dbContext.ApplicationIdentities
-                .Where(u => ((ApplicationUser)u).Upn == upn)
+                .Where(u =>
+                string.IsNullOrWhiteSpace(((ApplicationUser)u).Upn) == false &&
+                ((ApplicationUser)u).Upn.ToLowerInvariant() == upn.ToLowerInvariant())
                 .FirstOrDefaultAsync();
 
             var returnUser = returnedObject as ApplicationUser;
@@ -205,7 +209,10 @@
         public async Task<ApplicationUser> EnsureUserByObjectIdAsync(string azureAdObjectIdentifier)
         {
             // TODO: implement EnsureUserByUpnAsync and EnsureUserByObjectIdAsync with Func!!
-            var existingUser = await FindUserAsync(ai => ai.AzureAdObjectIdentifier == azureAdObjectIdentifier);
+            var existingUser = await FindUserAsync(ai => 
+                string.IsNullOrWhiteSpace(ai.AzureAdObjectIdentifier) == false &&
+                ai.AzureAdObjectIdentifier == azureAdObjectIdentifier);
+
             if (existingUser != null)
             {
                 return existingUser;
@@ -241,7 +248,11 @@
             // returns it. Most likely it should be persisted and returned.
 
             // TODO: implement EnsureUserByUpnAsync and EnsureUserByObjectIdAsync with Func!!
-            var existingUser = await FindUserAsync(ai => ((ApplicationUser)ai).Upn == upn);
+            var existingUser = await FindUserAsync(ai =>
+                string.IsNullOrWhiteSpace(((ApplicationUser)ai).Upn) == false &&
+                ((ApplicationUser)ai).Upn.ToLowerInvariant() == upn.ToLowerInvariant()
+            );
+
             if (existingUser != null)
             {
                 return existingUser;
@@ -255,6 +266,14 @@
                 {
                     // TODO: LOG
                     return null;// not sure if we should rather throw
+                }
+
+                var existingAzureAdObjectId = await _dbContext.ApplicationIdentities.FirstOrDefaultAsync(
+                    ai => ai.AzureAdObjectIdentifier == resolvedUser.AzureAdObjectIdentifier);
+
+                if (existingAzureAdObjectId != null)
+                {
+                    throw new Exception("There is already a user with the same Azure Ad Object Id.");
                 }
 
                 var result = _dbContext.ApplicationIdentities.Add(resolvedUser);

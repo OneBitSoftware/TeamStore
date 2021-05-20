@@ -109,6 +109,7 @@
             }
 
             // Save Grant event
+            // Issue: LogGrantAccessEventAsync calls SaveChanges. 
             await _eventService.LogGrantAccessEventAsync(projectId, remoteIpAddress, role, newAccessIdentifier.Identity.Id, currentUser.Id, "UPN: " + upn);
 
             var modifiedRows = await _dbContext.SaveChangesAsync();
@@ -312,7 +313,7 @@
             var result = project.AccessIdentifiers.Where(ai =>
                 ai.Project == project &&
                 string.IsNullOrWhiteSpace(((ApplicationUser)ai.Identity).Upn) == false && // avoid nulls
-                ((ApplicationUser)ai.Identity).Upn == targetUserUpn &&
+                ((ApplicationUser)ai.Identity).Upn.ToLowerInvariant() == targetUserUpn.ToLowerInvariant() &&
                 ai.Role == role).FirstOrDefault();
 
             if (result != null)
