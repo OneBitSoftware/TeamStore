@@ -4,7 +4,6 @@
     using Microsoft.Extensions.Configuration;
     using Microsoft.Graph;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -32,11 +31,13 @@
 
         private GraphServiceClient _graphClient = null;
 
-        public GraphService(IMemoryCache memoryCache, IConfiguration configuration, IAccessTokenRetriever tokenRetriever, ITelemetryService telemetryService)
+        public GraphService(
+            IMemoryCache memoryCache,
+            IConfiguration configuration,
+            IAccessTokenRetriever tokenRetriever)
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
             _tokenRetriever = tokenRetriever ?? throw new ArgumentNullException(nameof(tokenRetriever));
-            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
 
             _redirectUri = configuration.GetValue<string>("AzureAd:CallbackPath");
             _aadInstance = configuration.GetValue<string>("AzureAd:Instance");

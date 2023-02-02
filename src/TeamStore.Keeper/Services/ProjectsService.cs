@@ -1,7 +1,6 @@
 namespace TeamStore.Keeper.Services
 {
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Linq;

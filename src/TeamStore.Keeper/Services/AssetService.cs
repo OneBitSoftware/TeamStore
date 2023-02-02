@@ -8,7 +8,6 @@
     using TeamStore.Keeper.DataAccess;
     using TeamStore.Keeper.Interfaces;
     using TeamStore.Keeper.Models;
-    using Microsoft.EntityFrameworkCore.Extensions;
     using Microsoft.EntityFrameworkCore;
 
     public class AssetService : IAssetService
