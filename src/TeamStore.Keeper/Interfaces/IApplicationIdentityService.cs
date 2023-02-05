@@ -4,6 +4,7 @@
     using System.Linq.Expressions;
     using System.Security.Claims;
     using System.Security.Principal;
+    using System.Threading;
     using System.Threading.Tasks;
     using TeamStore.Keeper.Models;
 
@@ -69,7 +70,7 @@
         /// </summary>
         /// <param name="upn">The value of the object identifier claim to lookup.</param>
         /// <returns>A Task with the <see cref="ApplicationUser "/> as a result</returns>
-        Task<ApplicationUser> EnsureUserByUpnAsync(string upn);
+        Task<ApplicationUser> EnsureUserByUpnAsync(string upn, CancellationToken cancellationToken);
 
         // TODO: move to IPermissionService
         /// <summary>

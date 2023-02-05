@@ -177,7 +177,7 @@
         /// <param name="assetId">The Asset Id of the asset to archive</param>
         /// <param name="remoteIpAddress">The IP address of the originating request</param>
         /// <returns>A decrypted Asset object</returns>
-        public async Task<Asset> GetAssetAsync(int projectId, int assetId, string remoteIpAddress)
+        public async Task<Asset> GetAssetAsync(int projectId, int assetId, string remoteIpAddress, bool skipCredential = false)
         {
             if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
             if (assetId < 1) throw new ArgumentException("You must pass a valid asset id.");
@@ -212,17 +212,20 @@
                 .FirstOrDefaultAsync();
             }
 
-            string assetLogin = string.Empty;
-
             // decrypt
             if (retrievedAsset == null) return null;
             retrievedAsset.IsDecrypted = false;
+
+            // ISSUE:
+            // during asset edit, the Credential login is decrypted, but the password is not.
+            // during save, the password gets encrypted twice
 
             DecryptAsset(retrievedAsset);
             DecryptProjectTitle(retrievedAsset);
 
             // extract asset login
-            if (retrievedAsset.GetType() == typeof(Credential))
+            string assetLogin = string.Empty;
+            if (retrievedAsset.GetType() == typeof(Credential) && !skipCredential)
             {
                 assetLogin = (retrievedAsset as Credential).Login;
             }
@@ -445,7 +448,7 @@
         /// Performs in-memory encryption of the sensitive properties of an Asset object
         /// </summary>
         /// <param name="asset">The asset to encrypt</param>
-        public void EncryptAsset(Asset asset)
+        public void EncryptAsset(Asset asset, bool skipPasswordEncryption = false)
         {
             if (asset.IsDecrypted == false)
             {
@@ -464,7 +467,10 @@
                 if (string.IsNullOrWhiteSpace(credential.Login)) throw new Exception("A login cannot be an empty string. Cannot encrypt and decrypt.");
 
                 credential.Login = _encryptionService.EncryptString(credential.Login);
-                credential.Password = _encryptionService.EncryptString(credential.Password);
+                if (!skipPasswordEncryption)
+                {
+                    credential.Password = _encryptionService.EncryptString(credential.Password); 
+                }
             }
             else if (asset.GetType() == typeof(Note))
             {
@@ -548,9 +554,42 @@
             }
         }
 
-        public Task<Asset> UpdateAssetNotesAsync(int projectId, int assetId, string notes, string remoteIpAddress)
+        public async Task<Asset> UpdateAssetDetailsAsync(int projectId, int assetId, string title, string notes, string remoteIpAddress)
         {
-            return null;
+            // Validate
+            if (projectId < 1) throw new ArgumentException("You must pass a valid project id.");
+            if (assetId < 1) throw new ArgumentNullException(nameof(assetId));
+            if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentException("You must provide a valid IP address.");
+
+            // Validate current user
+            var currentUser = await _applicationIdentityService.GetCurrentUser();
+            if (currentUser == null) throw new Exception("Unauthorised requests are not allowed.");
+
+            var asset = await this.GetAssetAsync(projectId, assetId, remoteIpAddress, true);
+
+            // Set modified times
+            asset.Modified = DateTime.UtcNow;
+            asset.ModifiedBy = currentUser;
+
+            asset.Title = title;
+            asset.Notes = notes;
+
+            EncryptAsset(asset, skipPasswordEncryption: true);
+            EncryptProjectTitle(asset);
+
+            // Persist in DB
+            _dbContext.Assets.Update(asset);
+
+            var updatedRowCount = await _dbContext.SaveChangesAsync();
+            if (updatedRowCount > 1)
+            {
+                // we have a problem
+            }
+
+            // LOG Event
+            await _eventService.LogUpdateAssetEventAsync(projectId, remoteIpAddress, currentUser.Id, asset.Id);
+
+            return asset;
         }
     }
 }

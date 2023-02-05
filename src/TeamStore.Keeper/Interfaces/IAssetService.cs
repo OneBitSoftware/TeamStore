@@ -10,13 +10,13 @@
 
         Task<Asset> UpdateAssetAsync(int projectId, Asset asset, string remoteIpAddress);
 
-        Task<Asset> UpdateAssetNotesAsync(int projectId, int assetId, string notes, string remoteIpAddress);
+        Task<Asset> UpdateAssetDetailsAsync(int projectId, int assetId, string title, string notes, string remoteIpAddress);
 
         Task<Asset> UpdateAssetPasswordAsync(int projectId, int assetId, string password, string remoteIpAddress);
 
         Task ArchiveAssetAsync(int projectId, int assetId, string remoteIpAddress);
 
-        Task<Asset> GetAssetAsync(int projectId, int assetId, string remoteIpAddress);
+        Task<Asset> GetAssetAsync(int projectId, int assetId, string remoteIpAddress, bool skipCredential = false);
 
         Task<List<Asset>> GetAssetsAsync(int projectId);
 
@@ -30,7 +30,7 @@
         /// <returns>The populated Project</returns>
         Task LoadAssetsAsync(Project project);
 
-        void EncryptAsset(Asset asset);
+        void EncryptAsset(Asset asset, bool skipPasswordEncryption = false);
 
         /// <summary>
         /// Decrypts all properties of given asset, excluding the Password.

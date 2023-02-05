@@ -8,6 +8,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http.Headers;
+    using System.Threading;
     using System.Threading.Tasks;
     using TeamStore.Keeper.Factories;
     using TeamStore.Keeper.Interfaces;
@@ -20,7 +21,6 @@
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IAccessTokenRetriever _tokenRetriever;
-        private readonly ITelemetryService _telemetryService;
 
         private string _aadInstance;
         private readonly string _appId;
@@ -34,10 +34,12 @@
         public GraphService(
             IMemoryCache memoryCache,
             IConfiguration configuration,
-            IAccessTokenRetriever tokenRetriever)
+            IAccessTokenRetriever tokenRetriever,
+            GraphServiceClient graphClient)
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
             _tokenRetriever = tokenRetriever ?? throw new ArgumentNullException(nameof(tokenRetriever));
+            _graphClient = graphClient ?? throw new ArgumentNullException(nameof(graphClient));
 
             _redirectUri = configuration.GetValue<string>("AzureAd:CallbackPath");
             _aadInstance = configuration.GetValue<string>("AzureAd:Instance");
@@ -52,70 +54,59 @@
             if (string.IsNullOrWhiteSpace(_appSecret)) throw new ArgumentException("Client Secret is unknown. Terminating.");
         }
 
-        // Get an authenticated Microsoft Graph Service client.
-        public GraphServiceClient GetAuthenticatedClient(string userId)
-        {
-            //RA: here we could add a if (_graphClient != null) return _graphClient;
+        //// Get an authenticated Microsoft Graph Service client.
+        //public GraphServiceClient GetAuthenticatedClient(string userId)
+        //{
+        //    //RA: here we could add a if (_graphClient != null) return _graphClient;
 
-            _graphClient = new GraphServiceClient(new DelegateAuthenticationProvider(
-                async (requestMessage) =>
-                {
-                    // Passing tenant ID to the sample auth provider to use as a cache key
-                    string accessToken = await _tokenRetriever.GetGraphAccessTokenAsync(
-                           userId,
-                           _aadInstance,
-                           _appId,
-                           _appSecret,
-                           _tenantId,
-                           _memoryCache,
-                           _graphResourceId);
+        //    _graphClient = new GraphServiceClient(new DelegateAuthenticationProvider(
+        //        async (requestMessage) =>
+        //        {
+        //            // Passing tenant ID to the sample auth provider to use as a cache key
+        //            string accessToken = await _tokenRetriever.GetGraphAccessTokenAsync(
+        //                   userId,
+        //                   _aadInstance,
+        //                   _appId,
+        //                   _appSecret,
+        //                   _tenantId,
+        //                   _memoryCache,
+        //                   _graphResourceId);
 
-                    // Append the access token to the request
-                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                }));
+        //            // Append the access token to the request
+        //            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        //        }));
 
-            return _graphClient;
-        }
+        //    return _graphClient;
+        //}
 
         // Gets a token by Authorization Code.
         // Using password (secret) to authenticate. Production apps should use a certificate.
-        public async Task<AuthenticationResult> GetTokenByAuthorizationCodeAsync(string userId, string code, string redirectHost)
-        {
-            TokenCache userTokenCache = new SessionCacheService(userId, _memoryCache).GetCacheInstance();
+        //public async Task<AuthenticationResult> GetTokenByAuthorizationCodeAsync(string userId, string code, string redirectHost)
+        //{
+        //    TokenCache userTokenCache = new SessionCacheService(userId, _memoryCache).GetCacheInstance();
 
-            if (!_aadInstance.Last().Equals('/')) // TODO: extract and DRY
-                _aadInstance = _aadInstance + "/";
+        //    if (!_aadInstance.Last().Equals('/')) // TODO: extract and DRY
+        //        _aadInstance = _aadInstance + "/";
 
-            _aadInstance = _aadInstance + _tenantId;
+        //    _aadInstance = _aadInstance + _tenantId;
 
-            try
-            {
-                AuthenticationContext authContext = new AuthenticationContext(_aadInstance, userTokenCache);
-                ClientCredential credential = new ClientCredential(_appId, _appSecret);
-                AuthenticationResult result = await authContext.AcquireTokenByAuthorizationCodeAsync(
-                    code,
-                    new Uri(redirectHost + _redirectUri),
-                    credential,
-                    _graphResourceId);
+        //    AuthenticationContext authContext = new AuthenticationContext(_aadInstance, userTokenCache);
+        //    ClientCredential credential = new ClientCredential(_appId, _appSecret);
+        //    AuthenticationResult result = await authContext.AcquireTokenByAuthorizationCodeAsync(
+        //        code,
+        //        new Uri(redirectHost + _redirectUri),
+        //        credential,
+        //        _graphResourceId);
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // In most cases the Client Secret provided would be invalid. Update it in the secret store.
-                _telemetryService.TrackException(ex);
-                return null;
-            }
-        }
+        //    return result;
+        //}
 
         public async Task<List<ApplicationGroup>> GetGroups(string prefix, string userObjectId)
         {
-            var graphClient = GetAuthenticatedClient(userObjectId);
-
             List<ApplicationGroup> items = new List<ApplicationGroup>();
 
             // Get groups.
-            IGraphServiceGroupsCollectionPage groups = await graphClient.Groups.Request().GetAsync();
+            IGraphServiceGroupsCollectionPage groups = await _graphClient.Groups.Request().GetAsync();
 
             if (groups?.Count > 0)
             {
@@ -134,12 +125,10 @@
 
         public async Task<ApplicationGroup> GetGroup(string azureAdObjectId, string userObjectId)
         {
-            var graphClient = GetAuthenticatedClient(userObjectId);
-
             List<ApplicationGroup> items = new List<ApplicationGroup>();
 
             // Get groups by ID - TODO
-            IGraphServiceGroupsCollectionPage groups = await graphClient.Groups.Request().GetAsync();
+            IGraphServiceGroupsCollectionPage groups = await _graphClient.Groups.Request().GetAsync();
 
             if (groups?.Count > 0)
             {
@@ -164,10 +153,9 @@
         public async Task<List<ApplicationGroup>> GetGroupMembershipForUser(string userId)
         {
             List<ApplicationGroup> items = new List<ApplicationGroup>();
-            var graphClient = GetAuthenticatedClient(userId);
 
             // Get groups the current user is a direct member of.
-            IUserMemberOfCollectionWithReferencesPage memberOfGroups = await graphClient.Me.MemberOf.Request().GetAsync();
+            IUserMemberOfCollectionWithReferencesPage memberOfGroups = await _graphClient.Me.MemberOf.Request().GetAsync();
 
             if (memberOfGroups?.Count > 0)
             {
@@ -189,42 +177,39 @@
             }
             return items;
         }
-        
+
         // TODO: Implement with Func
         public async Task<ApplicationUser> ResolveUserByObjectIdAsync(string azureAdObjectIdentifier, string currentUserId)
         {
-            var graphClient = GetAuthenticatedClient(currentUserId);
-            try
-            {
-                var user = await graphClient.Users[azureAdObjectIdentifier].Request().GetAsync();
-                var mappedUser = UserIdentityFactory.MapApplicationUser(user);
-                mappedUser.TenantId = _tenantId;
-                return mappedUser;
-            }
-            catch (ServiceException graphException)
-            {
-                _telemetryService.TrackException(graphException);
-                return null;
-            }
+            var user = await _graphClient.Users[azureAdObjectIdentifier].Request().GetAsync();
+            var mappedUser = UserIdentityFactory.MapApplicationUser(user);
+            mappedUser.TenantId = _tenantId;
+            return mappedUser;
         }
 
         // TODO: Implement with Func
-        public async Task<ApplicationUser> ResolveUserByUpnAsync(string upn, string currentUserId)
+        public async Task<ApplicationUser> ResolveUserByUpnAsync(string upn, string currentUserId, CancellationToken cancellationToken = default)
         {
-            var graphClient = GetAuthenticatedClient(currentUserId);
-
+            User user;
             try
             {
-                var user = await graphClient.Users[upn].Request().GetAsync();
+                // cannot check if exists. See: https://github.com/microsoftgraph/msgraph-sdk-dotnet/issues/1633
+                user = await _graphClient.Users["fake@user.com"].Request().GetAsync();
+            }
+            catch (ServiceException sEx)
+            {
+                if (sEx.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+                else throw sEx;
+            }
+
+            if (user is not null)
+            {
                 var mappedUser = UserIdentityFactory.MapApplicationUser(user);
                 mappedUser.TenantId = _tenantId;
-                return mappedUser;
+                return mappedUser; 
             }
-            catch (ServiceException graphException)
-            {
-                _telemetryService.TrackException(graphException);
-                return null;
-            }
+
+            return null;
         }
     }
 }

@@ -8,6 +8,7 @@ namespace TeamStore.Keeper.Services
     using TeamStore.Keeper.DataAccess;
     using TeamStore.Keeper.Interfaces;
     using TeamStore.Keeper.Models;
+    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     /// <summary>
     /// Responsible for CRUD operations of Project.
@@ -597,10 +598,11 @@ namespace TeamStore.Keeper.Services
                 }
             }
 
-            // this is an alternative check with .Intersect
-            var matchingItems = updatedProject.AccessIdentifiers.Select(ai => ai.Identity.AzureAdObjectIdentifier)
-                .Intersect(retrievedProject.AccessIdentifiers.Select(ai => ai.Identity.AzureAdObjectIdentifier));
-            if (matchingItems.Count() != updatedProject.AccessIdentifiers.Count())
+            // this is an alternative check with Union/Except, which is slow.
+            var list1 = updatedProject.AccessIdentifiers.Select(ai => ai.Identity.AzureAdObjectIdentifier);
+            var list2 = retrievedProject.AccessIdentifiers.Select(ai => ai.Identity.AzureAdObjectIdentifier);
+            var mismatchingItems = list1.Except(list2).Union(list2.Except(list1));
+            if (mismatchingItems.Any())
             {
                 throw new Exception("You cannot update a project's access list unless you are sharing access.");
             }

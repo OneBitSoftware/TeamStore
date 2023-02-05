@@ -3,6 +3,7 @@
     using Microsoft.EntityFrameworkCore;
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using TeamStore.Keeper.DataAccess;
     using TeamStore.Keeper.Enums;
@@ -19,7 +20,6 @@
         // this would not be a problem.
 
         private readonly IEventService _eventService;
-        private readonly IGraphService _graphService;
         private readonly IApplicationIdentityService _applicationIdentityService;
         private ApplicationDbContext _dbContext;
 
@@ -32,13 +32,11 @@
         /// <param name="applicationIdentityService">An instance of the ApplicationIdentityService to resolve identities</param>
         public PermissionService(
             ApplicationDbContext context,
-            IGraphService graphService,
             IEventService eventService,
             IApplicationIdentityService applicationIdentityService)
         {
             _dbContext = context ?? throw new ArgumentNullException(nameof(context));
             _applicationIdentityService = applicationIdentityService ?? throw new ArgumentNullException(nameof(applicationIdentityService));
-            _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
             _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         }
 
@@ -56,7 +54,8 @@
             string upn,
             Role role,
             string remoteIpAddress,
-            IProjectsService projectsService)
+            IProjectsService projectsService,
+            CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(upn)) throw new ArgumentNullException(nameof(upn));
             if (string.IsNullOrWhiteSpace(remoteIpAddress)) throw new ArgumentNullException(nameof(remoteIpAddress));
@@ -88,13 +87,21 @@
                 return new AccessChangeResult() { Success = false, Message = $"User {upn} already has access." }; // no need to grant
             }
 
+            var userFromAzureAD = await _applicationIdentityService.EnsureUserByUpnAsync(upn, cancellationToken);
+
+            if (userFromAzureAD is null)
+            {
+                await _eventService.LogCustomEventAsync(currentUser.Upn, $"Ensure did not return a user for {upn}");
+                return new AccessChangeResult() { Success = false, Message = $"The user or group '{upn}' was not found." };
+            }
+
             // TODO: grant access to AD group
             var newAccessIdentifier = new AccessIdentifier();
             newAccessIdentifier.Project = project ?? throw new ArgumentNullException(nameof(project));
             newAccessIdentifier.Role = role;
             newAccessIdentifier.Created = DateTime.UtcNow;
             newAccessIdentifier.CreatedBy = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
-            newAccessIdentifier.Identity = await _applicationIdentityService.EnsureUserByUpnAsync(upn);
+            newAccessIdentifier.Identity = userFromAzureAD;
 
             project.AccessIdentifiers.Add(newAccessIdentifier);
 
@@ -297,6 +304,23 @@
                 return false;
         }
 
+        public bool CheckMinimalAccess(Project project, ApplicationUser targetUser, Role minimumRole)
+        {
+            if (project == null) throw new ArgumentNullException(nameof(project));
+            if (targetUser == null) throw new ArgumentNullException(nameof(targetUser));
+
+            // less than or minimum for Role
+            var result = project.AccessIdentifiers.Where(ai =>
+                ai.Project.Id == project.Id &&
+                ai.Identity.Id == targetUser.Id &&
+                ai.Role <= minimumRole).FirstOrDefault();
+
+            if (result != null)
+                return true;
+            else
+                return false;
+        }
+
         /// <summary>
         /// Checks if an ApplicationUser has the requested role against a project
         /// </summary>
@@ -337,6 +361,16 @@
             var project = await projectsService.GetProject(projectId, true);
 
             return CheckAccess(project, targetUser, role);
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> CheckMinimalAccessAsync(int projectId, ApplicationUser targetUser, Role minimumRoleLevel, IProjectsService projectsService)
+        {
+            if (targetUser == null) throw new ArgumentNullException(nameof(targetUser));
+            if (projectId < 1) throw new ArgumentException("You must provide a valid project id.");
+            var project = await projectsService.GetProject(projectId, true);
+
+            return CheckMinimalAccess(project, targetUser, minimumRoleLevel);
         }
     }
 }

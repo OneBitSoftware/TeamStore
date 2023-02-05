@@ -1,5 +1,6 @@
 ﻿namespace TeamStore.Keeper.Interfaces
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using TeamStore.Keeper.Enums;
     using TeamStore.Keeper.Models;
@@ -54,8 +55,8 @@
             string upn,
             Role role,
             string remoteIpAddress,
-            IProjectsService projectsService
-            );
+            IProjectsService projectsService,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Revokes access to a project
@@ -86,6 +87,16 @@
         bool CheckAccess(Project project, ApplicationUser targetUser, Role role);
 
         /// <summary>
+        /// Checks if an ApplicationUser has the requested role or a higher privilege against a project
+        /// </summary>
+        /// <param name="project">The Project to check</param>
+        /// <param name="targetUser">The ApplicationUser to check</param>
+        /// <param name="role">The role of interest</param>
+        /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
+        /// <returns>True if the user has the specified role, false if not.</returns>
+        bool CheckMinimalAccess(Project project, ApplicationUser targetUser, Role role);
+
+        /// <summary>
         /// Checks if an ApplicationUser has the requested role against a project
         /// </summary>
         /// <param name="project">The Project to check</param>
@@ -104,5 +115,15 @@
         /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
         /// <returns>A task of True if the user has the specified role, false if not.</returns>
         Task<bool> CheckAccessAsync(int projectId, ApplicationUser targetUser, Role role, IProjectsService projectsService);
+
+        /// <summary>
+        /// Checks if an ApplicationUser has the requested role or higher privileges against a project
+        /// </summary>
+        /// <param name="projectId">The ID of the Project to check</param>
+        /// <param name="targetUser">The ApplicationUser to check</param>
+        /// <param name="minimumRoleLevel">The minimum role of interest</param>
+        /// <param name="projectsService">An instance of IProjectService to assist with resolving of the project</param>
+        /// <returns>>A task of True if the user has the specified role, false if not.</returns>
+        Task<bool> CheckMinimalAccessAsync(int projectId, ApplicationUser targetUser, Role minimumRoleLevel, IProjectsService projectsService);
     }
 }

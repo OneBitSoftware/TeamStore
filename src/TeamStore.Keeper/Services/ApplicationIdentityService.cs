@@ -13,6 +13,9 @@
     using TeamStore.Keeper.Models;
     using TeamStore.Keeper.Factories;
     using System.Linq.Expressions;
+    using Microsoft.Graph;
+    using static System.Net.WebRequestMethods;
+    using System.Threading;
 
     // NOTE: I am rethinking the dependency on HttpContext. The idea is to "get the current user" at 
     // different life cycle events.
@@ -137,11 +140,11 @@
         /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
         public Task<ApplicationUser> FindUserAsync(ClaimsIdentity identity)
         {
-            var claim = identity.Claims.FirstOrDefault(c => c.Type == Constants.CLAIMS_OBJECTIDENTIFIER);
+            var claim = identity.Claims.FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier");
             if (claim == null) return null;
             if (string.IsNullOrWhiteSpace(claim.Value)) return null;
 
-            return FindUserAsync(ai => 
+            return FindUserAsync(ai =>
                 string.IsNullOrWhiteSpace(ai.AzureAdObjectIdentifier) == false &&
                 ai.AzureAdObjectIdentifier == claim.Value);
         }
@@ -209,7 +212,7 @@
         public async Task<ApplicationUser> EnsureUserByObjectIdAsync(string azureAdObjectIdentifier)
         {
             // TODO: implement EnsureUserByUpnAsync and EnsureUserByObjectIdAsync with Func!!
-            var existingUser = await FindUserAsync(ai => 
+            var existingUser = await FindUserAsync(ai =>
                 string.IsNullOrWhiteSpace(ai.AzureAdObjectIdentifier) == false &&
                 ai.AzureAdObjectIdentifier == azureAdObjectIdentifier);
 
@@ -242,16 +245,20 @@
         /// </summary>
         /// <param name="upn">The value of the UPN claim to lookup.</param>
         /// <returns>A Task with the <see cref="ApplicationUser"/> as a result</returns>
-        public async Task<ApplicationUser> EnsureUserByUpnAsync(string upn)
+        public async Task<ApplicationUser> EnsureUserByUpnAsync(string upn, CancellationToken cancellationToken)
         {
             // NOTE: this doesn't really ensure anything - it resolves it from the graph API, then
             // returns it. Most likely it should be persisted and returned.
 
             // TODO: implement EnsureUserByUpnAsync and EnsureUserByObjectIdAsync with Func!!
+            //var existingUser = await FindUserAsync(ai =>
+            //    string.IsNullOrWhiteSpace(((ApplicationUser)ai).Upn) == false &&
+            //    ((ApplicationUser)ai).Upn.ToLowerInvariant() == upn.ToLowerInvariant()
+            //);
+
             var existingUser = await FindUserAsync(ai =>
                 string.IsNullOrWhiteSpace(((ApplicationUser)ai).Upn) == false &&
-                ((ApplicationUser)ai).Upn.ToLowerInvariant() == upn.ToLowerInvariant()
-            );
+                ((ApplicationUser)ai).Upn.ToLower() == upn.ToLower());
 
             if (existingUser != null)
             {
@@ -260,7 +267,7 @@
             else
             {
                 var currentUser = await GetCurrentUser();
-                var resolvedUser = await _graphService.ResolveUserByUpnAsync(upn, currentUser.AzureAdObjectIdentifier);
+                var resolvedUser = await _graphService.ResolveUserByUpnAsync(upn, currentUser.AzureAdObjectIdentifier, cancellationToken);
 
                 if (resolvedUser == null)
                 {
