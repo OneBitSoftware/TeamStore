@@ -194,7 +194,7 @@
             try
             {
                 // cannot check if exists. See: https://github.com/microsoftgraph/msgraph-sdk-dotnet/issues/1633
-                user = await _graphClient.Users["fake@user.com"].Request().GetAsync();
+                user = await _graphClient.Users[upn].Request().GetAsync();
             }
             catch (ServiceException sEx)
             {
